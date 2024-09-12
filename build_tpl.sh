@@ -16,7 +16,7 @@ sub_project_gradle_path=$(echo "$sub_project_path" | sed 's/\//:/g')
 bash <(curl $ROOT_URI/gradle/build.sh) \
   -i "registry.cn-shanghai.aliyuncs.com/iproute/gradle:8.4-jdk17" \
   -c "gradle_8.4-jdk17_cache" \
-  -x "gradle clean $sub_project_gradle_path:build -x test"
+  -x "gradle clean $sub_project_gradle_path:build -x test --info"
 
 jar_name="$sub_project_jar_name"
 

@@ -7,7 +7,7 @@ source <(curl -SL https://gitlab.com/iprt/shell-basic/-/raw/main/build-project/b
 source <(curl -sSL $ROOT_URI/func/log.sh)
 
 log_info "build netty-server-socks"
-bash netty-socks-server/build.sh
+bash netty-server-socks/build.sh
 
 log_info "build netty-server-tcp"
-bash netty-tcp-server/build.sh
+bash netty-server-tcp/build.sh

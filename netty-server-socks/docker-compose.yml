@@ -1,7 +1,7 @@
 services:
   socks-server:
     image: "registry.cn-shanghai.aliyuncs.com/iproute/netty-server-socks:latest"
-    container_name: "netty-server-socks"
+    container_name: netty-server-socks
     network_mode: host
     volumes:
       - "./logs:/opt/app/logs"

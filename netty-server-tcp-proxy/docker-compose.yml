@@ -1,0 +1,11 @@
+services:
+  netty-tcp-server:
+    image: "registry.cn-shanghai.aliyuncs.com/iproute/netty-server-tcp-proxy"
+    container_name: netty-server-tcp-proxy
+    network_mode: host
+    volumes:
+      - "./conf/config.properties:/opt/app/config.properties"
+      - "./logs:/opt/app/logs"
+    environment:
+      - TZ=Asia/Shanghai
+      - JAVA_OPTIONS=-Xms128M -Xmx128M

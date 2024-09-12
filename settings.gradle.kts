@@ -8,4 +8,4 @@ rootProject.name = "netty-application"
 
 include("commons-dep")
 
-include("netty-server-socks", "netty-server-tcp")
+include("netty-server-socks", "netty-server-tcp", "netty-server-tcp-proxy")

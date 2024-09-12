@@ -1,7 +1,7 @@
 services:
   netty-tcp-server:
     image: "registry.cn-shanghai.aliyuncs.com/iproute/netty-server-tcp"
-    container_name: netty-tcp-server
+    container_name: netty-server-tcp
     ports:
       - "8080:8080"
     volumes:

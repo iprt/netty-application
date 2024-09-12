@@ -1,0 +1,3 @@
+services:
+  netty-tcp-server:
+    image:

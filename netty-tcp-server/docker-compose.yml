@@ -1,3 +1,12 @@
 services:
   netty-tcp-server:
-    image:
+    image: registry.cn-shanghai.aliyuncs.com/iproute/netty-tcp-server
+    container_name: netty-tcp-server
+    ports:
+      - "8080:8080"
+    volumes:
+      - "./logs:/opt/app/logs"
+    environment:
+      - TZ=Asia/Shanghai
+      - SERVER_PORT=8080
+      - JAVA_OPTIONS=-Xms128M -Xmx128M

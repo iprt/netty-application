@@ -1,0 +1,8 @@
+#!/bin/bash
+# shellcheck disable=SC2164 disable=SC2086 disable=SC1090
+SHELL_FOLDER=$(cd "$(dirname "$0")" && pwd)
+cd "$SHELL_FOLDER"
+
+bash ../build_template.sh "default-backend" \
+  "netty-tcp-server-1.0-all.jar.jar" \
+  "iproute/netty-tcp-server"

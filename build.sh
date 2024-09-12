@@ -11,3 +11,6 @@ bash netty-server-socks/build.sh
 
 log_info "build netty-server-tcp"
 bash netty-server-tcp/build.sh
+
+log_info "build netty-server-tcp-proxy"
+bash netty-server-tcp-proxy/build.sh

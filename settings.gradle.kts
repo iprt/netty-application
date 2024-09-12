@@ -6,4 +6,6 @@ dependencyResolutionManagement {
 
 rootProject.name = "netty-application"
 
-include("common-dep", "netty-tcp-server")
+include("commons-dep")
+
+include("netty-server-socks", "netty-server-tcp")

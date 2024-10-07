@@ -31,8 +31,8 @@ public class FrpClientInitializer extends ChannelInitializer<SocketChannel> {
         pipeline.addLast("FixedLengthFrameDecoder", new FixedLengthFrameDecoder(tokenLen));
         pipeline.addLast("StringDecoder", new StringDecoder(StandardCharsets.UTF_8));
         pipeline.addLast("StringEncoder", new StringEncoder(StandardCharsets.UTF_8));
-        pipeline.addLast(AuthTokenHandler.HANDLER_NAME,
-                new AuthTokenHandler(clientConfig.getServerConfig().getAuthToken(), clientConfig.getListeningConfigMap()));
+        pipeline.addLast(AuthHandler.HANDLER_NAME,
+                new AuthHandler(clientConfig.getServerConfig().getAuthToken(), clientConfig.getListeningConfigMap()));
 
     }
 

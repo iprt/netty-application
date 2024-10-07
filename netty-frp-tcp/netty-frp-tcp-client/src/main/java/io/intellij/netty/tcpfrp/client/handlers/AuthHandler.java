@@ -16,14 +16,14 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Map;
 
 /**
- * AuthTokenHandler
+ * AuthHandler
  *
  * @author tech@intellij.io
  */
 @RequiredArgsConstructor
 @Slf4j
-public class AuthTokenHandler extends SimpleChannelInboundHandler<String> {
-    public static final String HANDLER_NAME = AuthTokenHandler.class.getName();
+public class AuthHandler extends SimpleChannelInboundHandler<String> {
+    public static final String HANDLER_NAME = AuthHandler.class.getName();
 
     private final String token;
 
@@ -56,14 +56,12 @@ public class AuthTokenHandler extends SimpleChannelInboundHandler<String> {
             if (ctx.channel().isActive()) {
                 ctx.channel().writeAndFlush(
                         ExProtocolUtils.jsonProtocol(
-                                ExchangeType.CLIENT_TO_SERVER_SEND_CONFIG,
+                                ExchangeType.C2S_SEND_CONFIG,
                                 ListeningConfigReport.builder().listeningConfigMap(listeningConfigMap).build()
                         )
                 );
             }
-
         }
-
     }
 
     @Override

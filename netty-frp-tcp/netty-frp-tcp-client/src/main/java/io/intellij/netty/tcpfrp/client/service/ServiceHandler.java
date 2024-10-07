@@ -51,7 +51,7 @@ public class ServiceHandler extends SimpleChannelInboundHandler<ByteBuf> {
         // how to get user channel id
         exchangeChannel.writeAndFlush(
                 ExProtocolUtils.jsonProtocol(
-                        ExchangeType.CLIENT_TO_SERVER_SERVICE_DATA_PACKET,
+                        ExchangeType.C2S_SERVICE_DATA_PACKET,
                         ServiceDataPacket.builder()
                                 .userChannelId(this.userChannelId).serviceChannelId(serviceChannelId)
                                 .packet(packet)
@@ -74,7 +74,7 @@ public class ServiceHandler extends SimpleChannelInboundHandler<ByteBuf> {
         String serviceChannelId = CtxUtils.getChannelId(ctx);
         exchangeChannel.writeAndFlush(
                 ExProtocolUtils.jsonProtocol(
-                        ExchangeType.CLIENT_TO_SERVER_LOST_REAL_SERVER_CONN,
+                        ExchangeType.C2S_LOST_REAL_SERVER_CONN,
                         ServiceBreakConn.builder()
                                 .listeningConfig(listeningConfig)
                                 .userChannelId(this.userChannelId).serviceChannelId(serviceChannelId)
@@ -86,9 +86,9 @@ public class ServiceHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        log.error("localAddress={}|remoteAddress={}", CtxUtils.getLocalAddress(ctx), CtxUtils.getRemoteAddress(ctx), cause);
         String serviceChannelId = CtxUtils.getChannelId(ctx);
         closeServiceChannel(serviceChannelId, "ServiceHandler.exceptionCaught()");
-        log.error("{}|{}", CtxUtils.getRemoteAddress(ctx), cause.getMessage());
     }
 
     public static void closeServiceChannel(String serviceChannelId, String desc) {

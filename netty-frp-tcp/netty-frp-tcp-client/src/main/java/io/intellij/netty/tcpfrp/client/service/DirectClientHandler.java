@@ -1,6 +1,5 @@
 package io.intellij.netty.tcpfrp.client.service;
 
-import io.intellij.netty.utils.CtxUtils;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;

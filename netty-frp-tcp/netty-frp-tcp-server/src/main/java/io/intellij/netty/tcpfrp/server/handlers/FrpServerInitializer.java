@@ -33,7 +33,7 @@ public class FrpServerInitializer extends ChannelInitializer<SocketChannel> {
         pipeline.addLast("FixedLengthFrameDecoder", new FixedLengthFrameDecoder(TOKEN_LEN));
         pipeline.addLast("StringEncoder", new StringEncoder(Charset.defaultCharset()));
         pipeline.addLast("StringDecoder", new StringDecoder(Charset.defaultCharset()));
-        pipeline.addLast(AuthTokenHandler.HANDLER_NAME, new AuthTokenHandler(serverConfig.getAuthToken()));
+        pipeline.addLast(AuthHandler.HANDLER_NAME, new AuthHandler(serverConfig.getAuthToken()));
 
     }
 

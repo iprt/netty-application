@@ -9,14 +9,14 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * AuthTokenHandler
+ * AuthHandler
  *
  * @author tech@intellij.io
  */
 @RequiredArgsConstructor
 @Slf4j
-public class AuthTokenHandler extends SimpleChannelInboundHandler<String> {
-    public static final String HANDLER_NAME = AuthTokenHandler.class.getName();
+public class AuthHandler extends SimpleChannelInboundHandler<String> {
+    public static final String HANDLER_NAME = AuthHandler.class.getName();
 
     private final String token;
 

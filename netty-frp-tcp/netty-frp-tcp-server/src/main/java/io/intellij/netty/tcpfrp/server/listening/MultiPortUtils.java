@@ -7,7 +7,7 @@ import io.intellij.netty.utils.NetworkUtils;
 import java.util.List;
 
 /**
- * ListeningServerManager
+ * MultiPortUtils
  *
  * @author tech@intellij.io
  */

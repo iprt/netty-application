@@ -13,6 +13,10 @@ import lombok.RequiredArgsConstructor;
 
 /**
  * ExchangeType
+ * <p>
+ * C2S : frp-client send to frp-server
+ * <p>
+ * S2C:  frp-server send to frp-client
  *
  * @author tech@intellij.io
  */
@@ -23,52 +27,52 @@ public enum ExchangeType {
     /**
      * 客户端发送监听配置给服务端
      */
-    CLIENT_TO_SERVER_SEND_CONFIG(1, ListeningConfigReport.class, "client send listening config to server"),
+    C2S_SEND_CONFIG(1, ListeningConfigReport.class, "client send listening config to server"),
 
     /**
      * 服务端告知客户端监听的配置列表的回复
      */
-    SERVER_TO_CLIENT_LISTENING_CONFIG_RESP(2, ListeningLocalResp.class, "server send try listening response "),
+    S2C_LISTENING_CONFIG_RESP(2, ListeningLocalResp.class, "server send try listening response "),
 
     // ---------- ---------- ---------- ---------- ----------
 
     /**
      * 服务端 获取到用户新建连接 (服务端连接事件 用户建立连接 e.g. user ---> frp-server:3306)
      */
-    SERVER_TO_CLIENT_RECEIVE_USER_CONN_CREATE(3, UserCreateConn.class, "frp-server receive user's connection"),
+    S2C_RECEIVE_USER_CONN_CREATE(3, UserCreateConn.class, "frp-server receive user's connection"),
 
     /**
      * 服务端 获取到用户断开连接 (服务端连接事件 用户断开连接 e.g. user -×-> frp-server:3306)
      */
-    SERVER_TO_CLIENT_RECEIVE_USER_CONN_BREAK(4, UserBreakConn.class, "frp-server lost user's connection"),
+    S2C_RECEIVE_USER_CONN_BREAK(4, UserBreakConn.class, "frp-server lost user's connection"),
 
     /**
      * 客户端连接真实服务成功    (客户端端连接事件 建立到真实服务的连接成功)
      */
-    CLIENT_TO_SERVER_CONN_REAL_SERVICE_SUCCESS(5, ServiceConnResp.class, "frp-client connect to real server success"),
+    C2S_CONN_REAL_SERVICE_SUCCESS(5, ServiceConnResp.class, "frp-client connect to real server success"),
 
     /**
      * 客户端连接真实服务失败    (客户端端连接事件 建立到真实服务的连接失败 )
      */
-    CLIENT_TO_SERVER_CONN_REAL_SERVICE_FAILED(6, ServiceConnResp.class, "frp-client connect to real server failed"),
+    C2S_CONN_REAL_SERVICE_FAILED(6, ServiceConnResp.class, "frp-client connect to real server failed"),
 
     /**
      * 客户端丢失真实服务的连接   (客户端端连接事件 运行中的服务断开了连接)
      * <p>
      * TODO 本质上否等价于 CLIENT_TO_SERVER_CONN_REAL_SERVICE_FAILED
      */
-    CLIENT_TO_SERVER_LOST_REAL_SERVER_CONN(7, ServiceBreakConn.class, "frp-client lost real service's connection"),
+    C2S_LOST_REAL_SERVER_CONN(7, ServiceBreakConn.class, "frp-client lost real service's connection"),
 
 
     /**
      * 服务端接收到用户的数据
      */
-    SERVER_TO_CLIENT_USER_DATA_PACKET(100, UserDataPacket.class, "frp server get user' data packet"),
+    S2C_USER_DATA_PACKET(100, UserDataPacket.class, "frp server get user' data packet"),
 
     /**
      * 客户端接收到服务的数据
      */
-    CLIENT_TO_SERVER_SERVICE_DATA_PACKET(200, ServiceDataPacket.class, "frp client get service' data packet"),
+    C2S_SERVICE_DATA_PACKET(200, ServiceDataPacket.class, "frp client get service' data packet"),
     ;
 
     private final int type;

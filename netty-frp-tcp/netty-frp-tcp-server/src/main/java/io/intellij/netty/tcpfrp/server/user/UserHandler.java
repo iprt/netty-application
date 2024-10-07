@@ -41,13 +41,13 @@ public class UserHandler extends SimpleChannelInboundHandler<ByteBuf> {
         String userChannelId = CtxUtils.getChannelId(ctx);
         userChannelMap.put(userChannelId, ctx.channel());
 
-        ConnHostPort localInfo = CtxUtils.geLocalAddress(ctx);
+        ConnHostPort localInfo = CtxUtils.getLocalAddress(ctx);
         ListeningConfig listeningConfig = portToServer.get(localInfo.getPort());
         // user conn listening server
         if (exchangeChannel.isActive()) {
             exchangeChannel.writeAndFlush(
                     ExProtocolUtils.jsonProtocol(
-                            ExchangeType.SERVER_TO_CLIENT_RECEIVE_USER_CONN_CREATE,
+                            ExchangeType.S2C_RECEIVE_USER_CONN_CREATE,
                             UserCreateConn.builder().listeningConfig(listeningConfig)
                                     .userChannelId(userChannelId)
                                     .build()
@@ -73,7 +73,7 @@ public class UserHandler extends SimpleChannelInboundHandler<ByteBuf> {
         } else {
             exchangeChannel.writeAndFlush(
                     ExProtocolUtils.jsonProtocol(
-                            ExchangeType.SERVER_TO_CLIENT_USER_DATA_PACKET,
+                            ExchangeType.S2C_USER_DATA_PACKET,
                             UserDataPacket.builder()
                                     .userChannelId(userChannelId)
                                     .serviceChannelId(serviceChannelId)
@@ -95,13 +95,13 @@ public class UserHandler extends SimpleChannelInboundHandler<ByteBuf> {
     @Override
     public void channelInactive(@NotNull ChannelHandlerContext ctx) throws Exception {
         String userChannelId = CtxUtils.getChannelId(ctx);
-        ConnHostPort localInfo = CtxUtils.geLocalAddress(ctx);
+        ConnHostPort localInfo = CtxUtils.getLocalAddress(ctx);
 
         ListeningConfig listeningConfig = portToServer.get(localInfo.getPort());
 
         if (exchangeChannel.isActive()) {
             exchangeChannel.writeAndFlush(
-                    ExProtocolUtils.jsonProtocol(ExchangeType.SERVER_TO_CLIENT_RECEIVE_USER_CONN_BREAK,
+                    ExProtocolUtils.jsonProtocol(ExchangeType.S2C_RECEIVE_USER_CONN_BREAK,
                             UserBreakConn.builder()
                                     .listeningConfig(listeningConfig)
                                     .userChannelId(userChannelId)

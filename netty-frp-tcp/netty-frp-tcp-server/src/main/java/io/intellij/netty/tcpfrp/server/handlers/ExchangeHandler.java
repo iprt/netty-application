@@ -24,7 +24,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
- * UserHandlers
+ * ExchangeHandler
  *
  * @author tech@intellij.io
  */
@@ -36,7 +36,7 @@ public class ExchangeHandler extends SimpleChannelInboundHandler<ExchangeProtoco
         ExchangeType exchangeType = msg.getExchangeType();
         switch (exchangeType) {
 
-            case CLIENT_TO_SERVER_SEND_CONFIG -> {
+            case C2S_SEND_CONFIG -> {
                 ProtocolParse<ListeningConfigReport> parse = ExProtocolUtils.parseObj(msg, ListeningConfigReport.class);
                 if (parse.isValid()) {
                     ListeningConfigReport sendListeningConfig = parse.getData();
@@ -48,7 +48,7 @@ public class ExchangeHandler extends SimpleChannelInboundHandler<ExchangeProtoco
             }
 
             // frp client 连接服务成功
-            case CLIENT_TO_SERVER_CONN_REAL_SERVICE_SUCCESS -> {
+            case C2S_CONN_REAL_SERVICE_SUCCESS -> {
 
                 ProtocolParse<ServiceConnResp> parse = ExProtocolUtils.parseObj(msg, ServiceConnResp.class);
 
@@ -67,7 +67,7 @@ public class ExchangeHandler extends SimpleChannelInboundHandler<ExchangeProtoco
             }
 
             // frp client 连接服务失败
-            case CLIENT_TO_SERVER_CONN_REAL_SERVICE_FAILED -> {
+            case C2S_CONN_REAL_SERVICE_FAILED -> {
 
                 ProtocolParse<ServiceConnResp> parse = ExProtocolUtils.parseObj(msg, ServiceConnResp.class);
 
@@ -84,7 +84,7 @@ public class ExchangeHandler extends SimpleChannelInboundHandler<ExchangeProtoco
 
             }
 
-            case CLIENT_TO_SERVER_LOST_REAL_SERVER_CONN -> {
+            case C2S_LOST_REAL_SERVER_CONN -> {
 
                 ProtocolParse<ServiceBreakConn> parse = ExProtocolUtils.parseObj(msg, ServiceBreakConn.class);
 
@@ -102,7 +102,7 @@ public class ExchangeHandler extends SimpleChannelInboundHandler<ExchangeProtoco
             }
 
             // frp server 获取到 client 读取的 service 的数据
-            case CLIENT_TO_SERVER_SERVICE_DATA_PACKET -> {
+            case C2S_SERVICE_DATA_PACKET -> {
 
                 ProtocolParse<ServiceDataPacket> parse = ExProtocolUtils.parseObj(msg, ServiceDataPacket.class);
 
@@ -132,7 +132,7 @@ public class ExchangeHandler extends SimpleChannelInboundHandler<ExchangeProtoco
 
     private void prepareMultiPortNettyServer(ChannelHandlerContext ctx, Map<String, ListeningConfig> listeningConfigMap) {
         ListeningLocalResp listeningLocalResp = MultiPortUtils.connLocalResp(listeningConfigMap.values().stream().toList());
-        ctx.writeAndFlush(ExProtocolUtils.jsonProtocol(ExchangeType.SERVER_TO_CLIENT_LISTENING_CONFIG_RESP, listeningLocalResp));
+        ctx.writeAndFlush(ExProtocolUtils.jsonProtocol(ExchangeType.S2C_LISTENING_CONFIG_RESP, listeningLocalResp));
         if (!listeningLocalResp.isSuccess()) {
             ctx.close();
         } else {
@@ -157,6 +157,6 @@ public class ExchangeHandler extends SimpleChannelInboundHandler<ExchangeProtoco
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        log.error("{}|{}", CtxUtils.getRemoteAddress(ctx), cause.getMessage());
+        log.error("localAddress={}|remoteAddress={}", CtxUtils.getLocalAddress(ctx), CtxUtils.getRemoteAddress(ctx), cause);
     }
 }

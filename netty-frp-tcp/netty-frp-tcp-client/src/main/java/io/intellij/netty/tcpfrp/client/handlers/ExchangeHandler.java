@@ -39,10 +39,11 @@ public class ExchangeHandler extends SimpleChannelInboundHandler<ExchangeProtoco
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, ExchangeProtocol msg) throws Exception {
         ExchangeType exchangeType = msg.getExchangeType();
+        final Channel exchangeChannel = ctx.channel();
 
         switch (exchangeType) {
 
-            case SERVER_TO_CLIENT_LISTENING_CONFIG_RESP -> {
+            case S2C_LISTENING_CONFIG_RESP -> {
                 ProtocolParse<ListeningLocalResp> parse = ExProtocolUtils.parseObj(msg, ListeningLocalResp.class);
                 if (parse.isValid()) {
                     ListeningLocalResp listeningLocalResp = ListeningLocalResp.builder().build();
@@ -52,7 +53,7 @@ public class ExchangeHandler extends SimpleChannelInboundHandler<ExchangeProtoco
                 }
             }
 
-            case SERVER_TO_CLIENT_RECEIVE_USER_CONN_CREATE -> {
+            case S2C_RECEIVE_USER_CONN_CREATE -> {
                 ProtocolParse<UserCreateConn> parse = ExProtocolUtils.parseObj(msg, UserCreateConn.class);
                 if (parse.isValid()) {
                     UserCreateConn userCreateConn = parse.getData();
@@ -64,9 +65,9 @@ public class ExchangeHandler extends SimpleChannelInboundHandler<ExchangeProtoco
                         if (future.isSuccess()) {
                             String serviceChannelId = serviceChannel.id().asLongText();
                             log.info("service channel create success");
-                            ChannelFuture responseFuture = ctx.channel().writeAndFlush(
+                            ChannelFuture responseFuture = exchangeChannel.writeAndFlush(
                                     ExProtocolUtils.jsonProtocol(
-                                            ExchangeType.CLIENT_TO_SERVER_CONN_REAL_SERVICE_SUCCESS,
+                                            ExchangeType.C2S_CONN_REAL_SERVICE_SUCCESS,
                                             ServiceConnResp.builder().success(true)
                                                     .serviceChannelId(serviceChannelId).userChannelId(userChannelId)
                                                     .build()
@@ -76,7 +77,7 @@ public class ExchangeHandler extends SimpleChannelInboundHandler<ExchangeProtoco
                                 if (f.isSuccess()) {
                                     ChannelPipeline p = serviceChannel.pipeline();
                                     p.addLast(
-                                            new ServiceHandler(userCreateConn.getListeningConfig(), userChannelId, ctx.channel())
+                                            new ServiceHandler(userCreateConn.getListeningConfig(), userChannelId, exchangeChannel)
                                     );
                                     p.fireChannelActive();
                                 }
@@ -86,7 +87,7 @@ public class ExchangeHandler extends SimpleChannelInboundHandler<ExchangeProtoco
                         } else {
                             log.error("service channel create failed");
                             ctx.writeAndFlush(ExProtocolUtils.jsonProtocol(
-                                    ExchangeType.CLIENT_TO_SERVER_CONN_REAL_SERVICE_FAILED,
+                                    ExchangeType.C2S_CONN_REAL_SERVICE_FAILED,
                                     ServiceConnResp.builder().success(false)
                                             .serviceChannelId(null).userChannelId(userChannelId)
                                             .build())
@@ -95,7 +96,6 @@ public class ExchangeHandler extends SimpleChannelInboundHandler<ExchangeProtoco
 
                     });
 
-                    Channel exchangeChannel = ctx.channel();
                     // connect to service
                     Bootstrap b = new Bootstrap();
                     b.group(exchangeChannel.eventLoop())
@@ -114,7 +114,7 @@ public class ExchangeHandler extends SimpleChannelInboundHandler<ExchangeProtoco
                                     log.error("connect to service failed|{}", listeningConfig);
                                     exchangeChannel.writeAndFlush(
                                             ExProtocolUtils.jsonProtocol(
-                                                    ExchangeType.CLIENT_TO_SERVER_CONN_REAL_SERVICE_FAILED,
+                                                    ExchangeType.C2S_CONN_REAL_SERVICE_FAILED,
                                                     ServiceConnResp.builder().success(false)
                                                             .serviceChannelId(null)
                                                             .userChannelId(userCreateConn.getUserChannelId())
@@ -127,10 +127,9 @@ public class ExchangeHandler extends SimpleChannelInboundHandler<ExchangeProtoco
                     throw new RuntimeException(parse.getInvalidMsg());
                 }
 
-
             }
 
-            case SERVER_TO_CLIENT_RECEIVE_USER_CONN_BREAK -> {
+            case S2C_RECEIVE_USER_CONN_BREAK -> {
                 ProtocolParse<UserBreakConn> parse = ExProtocolUtils.parseObj(msg, UserBreakConn.class);
                 if (parse.isValid()) {
                     UserBreakConn userBreakConn = parse.getData();
@@ -143,7 +142,7 @@ public class ExchangeHandler extends SimpleChannelInboundHandler<ExchangeProtoco
 
             }
 
-            case SERVER_TO_CLIENT_USER_DATA_PACKET -> {
+            case S2C_USER_DATA_PACKET -> {
                 ProtocolParse<UserDataPacket> parse = ExProtocolUtils.parseObj(msg, UserDataPacket.class);
 
                 if (parse.isValid()) {
@@ -169,6 +168,6 @@ public class ExchangeHandler extends SimpleChannelInboundHandler<ExchangeProtoco
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        log.error("{}|{}", CtxUtils.getRemoteAddress(ctx), cause.getMessage(), cause);
+        log.error("localAddress={}|remoteAddress={}", CtxUtils.getLocalAddress(ctx), CtxUtils.getRemoteAddress(ctx), cause);
     }
 }

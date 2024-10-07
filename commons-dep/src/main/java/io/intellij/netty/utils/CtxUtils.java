@@ -27,7 +27,7 @@ public class CtxUtils {
         }
     }
 
-    public static ConnHostPort geLocalAddress(ChannelHandlerContext ctx) {
+    public static ConnHostPort getLocalAddress(ChannelHandlerContext ctx) {
         try {
             InetSocketAddress localAddress = (InetSocketAddress) ctx.channel().localAddress();
             String localIp = localAddress.getAddress().getHostAddress();

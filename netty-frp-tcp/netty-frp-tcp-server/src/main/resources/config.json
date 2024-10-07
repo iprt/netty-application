@@ -1,0 +1,9 @@
+{
+  "server": {
+    "host": "127.0.0.1",
+    "port": 7000,
+    "auth": {
+      "token": "bf6355f8-66ef-4dcb-9d61-433a2cf544cf"
+    }
+  }
+}

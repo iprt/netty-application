@@ -8,4 +8,15 @@ rootProject.name = "netty-application"
 
 include("commons-dep")
 
-include("netty-server-socks", "netty-server-tcp", "netty-server-tcp-proxy")
+include(
+    "netty-frp-tcp:frp-tcp-commons",
+    "netty-frp-tcp:netty-frp-tcp-client",
+    "netty-frp-tcp:netty-frp-tcp-server"
+)
+
+include(
+    "netty-server-dns-proxy-u2t",
+    "netty-server-socks",
+    "netty-server-tcp",
+    "netty-server-tcp-proxy"
+)

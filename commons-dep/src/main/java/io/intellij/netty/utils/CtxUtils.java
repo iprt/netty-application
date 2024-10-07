@@ -22,8 +22,25 @@ public class CtxUtils {
             int remotePort = remoteAddress.getPort();
             return ConnHostPort.of(remoteIp, remotePort);
         } catch (Exception e) {
-            log.error("", e);
+            log.error(e.getMessage());
             return ConnHostPort.unknown();
         }
     }
+
+    public static ConnHostPort geLocalAddress(ChannelHandlerContext ctx) {
+        try {
+            InetSocketAddress localAddress = (InetSocketAddress) ctx.channel().localAddress();
+            String localIp = localAddress.getAddress().getHostAddress();
+            int localPort = localAddress.getPort();
+            return ConnHostPort.of(localIp, localPort);
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            return ConnHostPort.unknown();
+        }
+    }
+
+    public static String getChannelId(ChannelHandlerContext ctx) {
+        return ctx.channel().id().asLongText();
+    }
+
 }

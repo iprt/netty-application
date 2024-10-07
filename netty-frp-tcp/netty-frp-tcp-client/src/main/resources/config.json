@@ -1,0 +1,23 @@
+{
+  "server": {
+    "host": "127.0.0.1",
+    "port": 7000,
+    "auth": {
+      "token": "bf6355f8-66ef-4dcb-9d61-433a2cf544cf"
+    }
+  },
+  "clients": [
+    {
+      "name": "mysql",
+      "local_ip": "172.100.1.100",
+      "local_port": 3306,
+      "remote_port": 3306
+    },
+    {
+      "name": "unknown",
+      "local_ip": "172.100.1.100",
+      "local_port": 12345,
+      "remote_port": 12345
+    }
+  ]
+}

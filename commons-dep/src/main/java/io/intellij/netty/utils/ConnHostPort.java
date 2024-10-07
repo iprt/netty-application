@@ -2,6 +2,7 @@ package io.intellij.netty.utils;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.ToString;
 
 /**
  * ConnHostPort
@@ -9,6 +10,7 @@ import lombok.RequiredArgsConstructor;
  * @author tech@intellij.io
  */
 @RequiredArgsConstructor
+@ToString
 @Getter
 public class ConnHostPort {
     private final String host;

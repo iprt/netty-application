@@ -9,6 +9,11 @@ rootProject.name = "netty-application"
 include("commons-dep")
 
 include(
+    "netty-client-reconnect:echo-server",
+    "netty-client-reconnect:reconnect-client"
+)
+
+include(
     "netty-frp-tcp:frp-tcp-commons",
     "netty-frp-tcp:netty-frp-tcp-client",
     "netty-frp-tcp:netty-frp-tcp-server"

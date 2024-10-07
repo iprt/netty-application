@@ -1,17 +1,17 @@
 package io.intellij.netty.tcpfrp.client.handlers;
 
-import com.alibaba.fastjson2.JSON;
 import io.intellij.netty.tcpfrp.client.service.DirectClientHandler;
 import io.intellij.netty.tcpfrp.client.service.ServiceHandler;
 import io.intellij.netty.tcpfrp.config.ListeningConfig;
+import io.intellij.netty.tcpfrp.exchange.ExProtocolUtils;
 import io.intellij.netty.tcpfrp.exchange.ExchangeProtocol;
-import io.intellij.netty.tcpfrp.exchange.ExchangeProtocolUtils;
 import io.intellij.netty.tcpfrp.exchange.ExchangeType;
+import io.intellij.netty.tcpfrp.exchange.ProtocolParse;
 import io.intellij.netty.tcpfrp.exchange.clientsend.ServiceConnResp;
-import io.intellij.netty.tcpfrp.exchange.serversend.ConnLocalResp;
-import io.intellij.netty.tcpfrp.exchange.serversend.GetUserData;
+import io.intellij.netty.tcpfrp.exchange.serversend.ListeningLocalResp;
 import io.intellij.netty.tcpfrp.exchange.serversend.UserBreakConn;
 import io.intellij.netty.tcpfrp.exchange.serversend.UserCreateConn;
+import io.intellij.netty.tcpfrp.exchange.serversend.UserDataPacket;
 import io.intellij.netty.utils.CtxUtils;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
@@ -26,11 +26,6 @@ import io.netty.util.concurrent.FutureListener;
 import io.netty.util.concurrent.Promise;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
-
-import java.nio.charset.StandardCharsets;
-
-import static io.intellij.netty.tcpfrp.exchange.ExchangeType.SERVER_TO_CLIENT_RECEIVE_USER_CONN_BREAK;
 
 /**
  * ExchangeHandler
@@ -47,159 +42,121 @@ public class ExchangeHandler extends SimpleChannelInboundHandler<ExchangeProtoco
 
         switch (exchangeType) {
 
-            case SERVER_TO_CLIENT_CONFIG_RESP -> {
-
-                if (ConnLocalResp.class.getName().equals(msg.getClassName())) {
-                    String json = new String(msg.getBody(), StandardCharsets.UTF_8);
-                    try {
-                        ConnLocalResp connLocalResp = JSON.parseObject(json, ConnLocalResp.class);
-                        log.info("connLocalResp|{}", connLocalResp);
-                    } catch (Exception e) {
-                        log.error("", e);
-                        ctx.close();
-                    }
-
+            case SERVER_TO_CLIENT_LISTENING_CONFIG_RESP -> {
+                ProtocolParse<ListeningLocalResp> parse = ExProtocolUtils.parseObj(msg, ListeningLocalResp.class);
+                if (parse.isValid()) {
+                    ListeningLocalResp listeningLocalResp = ListeningLocalResp.builder().build();
+                    log.info("frp-server response|{}", listeningLocalResp);
                 } else {
-                    log.error("SERVER_TO_CLIENT_CONFIG_RESP|unknown server msg");
-                    ctx.close();
+                    throw new RuntimeException(parse.getInvalidMsg());
                 }
-
             }
 
             case SERVER_TO_CLIENT_RECEIVE_USER_CONN_CREATE -> {
+                ProtocolParse<UserCreateConn> parse = ExProtocolUtils.parseObj(msg, UserCreateConn.class);
+                if (parse.isValid()) {
+                    UserCreateConn userCreateConn = parse.getData();
+                    final String userChannelId = userCreateConn.getUserChannelId();
 
-                if (UserCreateConn.class.getName().equals(msg.getClassName())) {
-                    String json = new String(msg.getBody(), StandardCharsets.UTF_8);
-                    try {
-                        UserCreateConn userCreateConn = JSON.parseObject(json, UserCreateConn.class);
-                        String userChannelId = userCreateConn.getUserChannelId();
+                    Promise<Channel> serviceChannelPromise = ctx.executor().newPromise();
+                    serviceChannelPromise.addListener((FutureListener<Channel>) future -> {
+                        Channel serviceChannel = future.getNow();
+                        if (future.isSuccess()) {
+                            String serviceChannelId = serviceChannel.id().asLongText();
+                            log.info("service channel create success");
+                            ChannelFuture responseFuture = ctx.channel().writeAndFlush(
+                                    ExProtocolUtils.jsonProtocol(
+                                            ExchangeType.CLIENT_TO_SERVER_CONN_REAL_SERVICE_SUCCESS,
+                                            ServiceConnResp.builder().success(true)
+                                                    .serviceChannelId(serviceChannelId).userChannelId(userChannelId)
+                                                    .build()
+                                    )
+                            );
+                            responseFuture.addListener((ChannelFutureListener) f -> {
+                                if (f.isSuccess()) {
+                                    ChannelPipeline p = serviceChannel.pipeline();
+                                    p.addLast(
+                                            new ServiceHandler(userCreateConn.getListeningConfig(), userChannelId, ctx.channel())
+                                    );
+                                    p.fireChannelActive();
+                                }
 
-                        Promise<Channel> serviceChannelPromise = ctx.executor().newPromise();
-                        serviceChannelPromise.addListener((FutureListener<Channel>) future -> {
-                            Channel serviceChannel = future.getNow();
-                            if (future.isSuccess()) {
-                                log.info("service channel create success");
-                                ChannelFuture responseFuture = ctx.channel().writeAndFlush(
-                                        ExchangeProtocolUtils.jsonProtocol(
-                                                ExchangeType.CLIENT_TO_SERVER_CONN_REAL_SERVICE_SUCCESS,
-                                                ServiceConnResp.builder().success(true)
-                                                        .serviceChannelId(serviceChannel.id().asLongText())
-                                                        .userChannelId(userCreateConn.getUserChannelId())
-                                                        .build()
-                                        )
-                                );
-                                responseFuture.addListener(new ChannelFutureListener() {
-                                    @Override
-                                    public void operationComplete(@NotNull ChannelFuture future) throws Exception {
-                                        ChannelPipeline p = serviceChannel.pipeline();
-                                        p.addLast(new ServiceHandler(userCreateConn.getListeningConfig(), userChannelId, ctx.channel()));
+                            });
 
-                                        p.fireChannelActive();
-                                    }
-                                });
+                        } else {
+                            log.error("service channel create failed");
+                            ctx.writeAndFlush(ExProtocolUtils.jsonProtocol(
+                                    ExchangeType.CLIENT_TO_SERVER_CONN_REAL_SERVICE_FAILED,
+                                    ServiceConnResp.builder().success(false)
+                                            .serviceChannelId(null).userChannelId(userChannelId)
+                                            .build())
+                            );
+                        }
 
+                    });
 
-                            } else {
-                                log.error("service channel create failed");
-                                ctx.writeAndFlush(
-                                        ExchangeProtocolUtils.jsonProtocol(
-                                                ExchangeType.CLIENT_TO_SERVER_CONN_REAL_SERVICE_FAILED,
-                                                ServiceConnResp.builder().success(false)
-                                                        .serviceChannelId(null)
-                                                        .userChannelId(userCreateConn.getUserChannelId())
-                                                        .build()
-                                        )
-                                );
-                            }
+                    Channel exchangeChannel = ctx.channel();
+                    // connect to service
+                    Bootstrap b = new Bootstrap();
+                    b.group(exchangeChannel.eventLoop())
+                            .channel(NioSocketChannel.class)
+                            .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 1000)
+                            // .option(ChannelOption.AUTO_READ, false)
+                            .option(ChannelOption.SO_KEEPALIVE, true)
+                            .handler(new DirectClientHandler(serviceChannelPromise));
 
-                        });
-
-                        Channel exchangeChannel = ctx.channel();
-
-                        // connect to service
-                        Bootstrap b = new Bootstrap();
-                        b.group(exchangeChannel.eventLoop())
-                                .channel(NioSocketChannel.class)
-                                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 1000)
-                                .option(ChannelOption.SO_KEEPALIVE, true)
-                                .handler(new DirectClientHandler(serviceChannelPromise));
-
-                        ListeningConfig listeningConfig = userCreateConn.getListeningConfig();
-                        log.info("try connect|{}|{}", listeningConfig.getLocalIp(), listeningConfig.getLocalPort());
-                        b.connect(listeningConfig.getLocalIp(), listeningConfig.getLocalPort())
-                                .addListener(new ChannelFutureListener() {
-                                    @Override
-                                    public void operationComplete(@NotNull ChannelFuture future) throws Exception {
-                                        if (future.isSuccess()) {
-                                            log.info("connect to service success|{}", listeningConfig);
-                                        } else {
-                                            log.error("connect to service failed|{}", listeningConfig);
-                                            exchangeChannel.writeAndFlush(
-                                                    ExchangeProtocolUtils.jsonProtocol(
-                                                            ExchangeType.CLIENT_TO_SERVER_CONN_REAL_SERVICE_FAILED,
-                                                            ServiceConnResp.builder().success(false)
-                                                                    .serviceChannelId(null)
-                                                                    .userChannelId(userCreateConn.getUserChannelId())
-                                                                    .build()
-                                                    )
-                                            );
-                                        }
-                                    }
-                                });
-                        log.info("After connect|{}", listeningConfig);
-                    } catch (Exception e) {
-                        log.error("", e);
-                        ctx.close();
-                    }
-
+                    ListeningConfig listeningConfig = userCreateConn.getListeningConfig();
+                    log.info("bootstrap try to connect {}:{}", listeningConfig.getLocalIp(), listeningConfig.getLocalPort());
+                    b.connect(listeningConfig.getLocalIp(), listeningConfig.getLocalPort())
+                            .addListener((ChannelFutureListener) future -> {
+                                if (future.isSuccess()) {
+                                    log.info("connect to service success|{}", listeningConfig);
+                                } else {
+                                    log.error("connect to service failed|{}", listeningConfig);
+                                    exchangeChannel.writeAndFlush(
+                                            ExProtocolUtils.jsonProtocol(
+                                                    ExchangeType.CLIENT_TO_SERVER_CONN_REAL_SERVICE_FAILED,
+                                                    ServiceConnResp.builder().success(false)
+                                                            .serviceChannelId(null)
+                                                            .userChannelId(userCreateConn.getUserChannelId())
+                                                            .build()
+                                            )
+                                    );
+                                }
+                            });
                 } else {
-                    log.error("unknown server msg|SERVER_TO_CLIENT_RECEIVE_USER_CONN_CREATE");
-                    ctx.close();
+                    throw new RuntimeException(parse.getInvalidMsg());
                 }
+
 
             }
 
             case SERVER_TO_CLIENT_RECEIVE_USER_CONN_BREAK -> {
-                if (UserBreakConn.class.getName().equals(msg.getClassName())) {
-                    String json = new String(msg.getBody(), StandardCharsets.UTF_8);
-                    try {
-                        UserBreakConn userBreakConn = JSON.parseObject(json, UserBreakConn.class);
-                        String serviceChannelId = userBreakConn.getServiceChannelId();
-                        ServiceHandler.closeServiceChannel(serviceChannelId, SERVER_TO_CLIENT_RECEIVE_USER_CONN_BREAK.getDesc());
-                    } catch (Exception e) {
-                        log.error("", e);
-                        ctx.close();
-                    }
+                ProtocolParse<UserBreakConn> parse = ExProtocolUtils.parseObj(msg, UserBreakConn.class);
+                if (parse.isValid()) {
+                    UserBreakConn userBreakConn = parse.getData();
+                    String serviceChannelId = userBreakConn.getServiceChannelId();
+                    ServiceHandler.closeServiceChannel(serviceChannelId, parse.getExchangeType().getDesc());
 
                 } else {
-                    log.error("unknown server msg|SERVER_TO_CLIENT_RECEIVE_USER_CONN_BREAK");
-                    ctx.close();
+                    throw new RuntimeException(parse.getInvalidMsg());
                 }
 
             }
 
-            case SERVER_TO_CLIENT_GET_USER_DATA -> {
+            case SERVER_TO_CLIENT_USER_DATA_PACKET -> {
+                ProtocolParse<UserDataPacket> parse = ExProtocolUtils.parseObj(msg, UserDataPacket.class);
 
-                if (GetUserData.class.getName().equals(msg.getClassName())) {
-                    String json = new String(msg.getBody(), StandardCharsets.UTF_8);
-                    try {
-                        GetUserData getUserData = JSON.parseObject(json, GetUserData.class);
+                if (parse.isValid()) {
+                    UserDataPacket userDataPacket = parse.getData();
 
-                        String serviceChannelId = getUserData.getServiceChannelId();
-                        log.info("receive get user data|serviceChannelId={}", serviceChannelId);
+                    String serviceChannelId = userDataPacket.getServiceChannelId();
+                    log.info("receive get user data|serviceChannelId={}", serviceChannelId);
 
-                        byte[] data = getUserData.getData();
-
-                        ServiceHandler.dispatch(serviceChannelId, data);
-
-                    } catch (Exception e) {
-                        log.error("", e);
-                        ctx.close();
-                    }
+                    ServiceHandler.dispatch(serviceChannelId, userDataPacket.getPacket());
 
                 } else {
-                    log.error("unknown server msg|SERVER_TO_CLIENT_READ_USER_DATA");
-                    ctx.close();
+                    throw new RuntimeException(parse.getInvalidMsg());
                 }
 
             }

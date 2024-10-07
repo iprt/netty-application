@@ -1,15 +1,15 @@
 package io.intellij.netty.tcpfrp.server.handlers;
 
-import com.alibaba.fastjson2.JSON;
 import io.intellij.netty.tcpfrp.config.ListeningConfig;
+import io.intellij.netty.tcpfrp.exchange.ExProtocolUtils;
 import io.intellij.netty.tcpfrp.exchange.ExchangeProtocol;
-import io.intellij.netty.tcpfrp.exchange.ExchangeProtocolUtils;
 import io.intellij.netty.tcpfrp.exchange.ExchangeType;
-import io.intellij.netty.tcpfrp.exchange.clientsend.GetServiceData;
-import io.intellij.netty.tcpfrp.exchange.clientsend.SendListeningConfig;
+import io.intellij.netty.tcpfrp.exchange.ProtocolParse;
+import io.intellij.netty.tcpfrp.exchange.clientsend.ListeningConfigReport;
 import io.intellij.netty.tcpfrp.exchange.clientsend.ServiceBreakConn;
 import io.intellij.netty.tcpfrp.exchange.clientsend.ServiceConnResp;
-import io.intellij.netty.tcpfrp.exchange.serversend.ConnLocalResp;
+import io.intellij.netty.tcpfrp.exchange.clientsend.ServiceDataPacket;
+import io.intellij.netty.tcpfrp.exchange.serversend.ListeningLocalResp;
 import io.intellij.netty.tcpfrp.server.listening.MultiPortNettyServer;
 import io.intellij.netty.tcpfrp.server.listening.MultiPortUtils;
 import io.intellij.netty.tcpfrp.server.user.UserHandler;
@@ -20,12 +20,8 @@ import io.netty.channel.SimpleChannelInboundHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
-
-import static io.intellij.netty.tcpfrp.exchange.ExchangeType.CLIENT_TO_SERVER_CONN_REAL_SERVICE_FAILED;
-import static io.intellij.netty.tcpfrp.exchange.ExchangeType.CLIENT_TO_SERVER_LOST_REAL_SERVER_CONN;
 
 /**
  * UserHandlers
@@ -37,115 +33,89 @@ public class ExchangeHandler extends SimpleChannelInboundHandler<ExchangeProtoco
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, ExchangeProtocol msg) throws Exception {
-
         ExchangeType exchangeType = msg.getExchangeType();
-
         switch (exchangeType) {
 
             case CLIENT_TO_SERVER_SEND_CONFIG -> {
-                if (SendListeningConfig.class.getName().equals(msg.getClassName())) {
-                    String json = new String(msg.getBody(), StandardCharsets.UTF_8);
-                    try {
-                        SendListeningConfig sendListeningConfig = JSON.parseObject(json, SendListeningConfig.class);
-                        log.info("listening config|{}", sendListeningConfig);
-                        this.doReceiveClientConfig(ctx, sendListeningConfig.getListeningConfigMap());
-                    } catch (Exception e) {
-                        log.error("", e);
-                        ctx.close();
-                    }
-
+                ProtocolParse<ListeningConfigReport> parse = ExProtocolUtils.parseObj(msg, ListeningConfigReport.class);
+                if (parse.isValid()) {
+                    ListeningConfigReport sendListeningConfig = parse.getData();
+                    log.info("get frp-client's listening config request|{}", sendListeningConfig);
+                    this.prepareMultiPortNettyServer(ctx, sendListeningConfig.getListeningConfigMap());
                 } else {
-                    ctx.close();
+                    throw new RuntimeException(parse.getInvalidMsg());
                 }
-
             }
 
             // frp client 连接服务成功
             case CLIENT_TO_SERVER_CONN_REAL_SERVICE_SUCCESS -> {
-                if (ServiceConnResp.class.getName().equals(msg.getClassName())) {
-                    String json = new String(msg.getBody(), StandardCharsets.UTF_8);
-                    try {
-                        ServiceConnResp serviceConnResp = JSON.parseObject(json, ServiceConnResp.class);
-                        log.info("ConnServiceResp Get Success|{}", serviceConnResp);
-                        log.info("得到frp-client回复的消息，连接成功");
 
-                        // 远程连接成功了
-                        String userChannelId = serviceConnResp.getUserChannelId();
-                        String serviceChannelId = serviceConnResp.getServiceChannelId();
+                ProtocolParse<ServiceConnResp> parse = ExProtocolUtils.parseObj(msg, ServiceConnResp.class);
 
-                        UserHandler.notifyUserChannelRead(userChannelId, serviceChannelId);
+                if (parse.isValid()) {
+                    ServiceConnResp serviceConnResp = parse.getData();
+                    log.info("ConnServiceResp|frp-client connect service success|{}", serviceConnResp);
+                    // 远程连接成功了
+                    String userChannelId = serviceConnResp.getUserChannelId();
+                    String serviceChannelId = serviceConnResp.getServiceChannelId();
+                    UserHandler.notifyUserChannelRead(userChannelId, serviceChannelId);
 
-                    } catch (Exception e) {
-                        log.error("", e);
-                        ctx.close();
-                    }
                 } else {
-                    ctx.close();
+                    throw new RuntimeException(parse.getInvalidMsg());
                 }
 
             }
 
             // frp client 连接服务失败
             case CLIENT_TO_SERVER_CONN_REAL_SERVICE_FAILED -> {
-                if (ServiceConnResp.class.getName().equals(msg.getClassName())) {
-                    String json = new String(msg.getBody(), StandardCharsets.UTF_8);
-                    try {
-                        ServiceConnResp serviceConnResp = JSON.parseObject(json, ServiceConnResp.class);
-                        log.error("ConnServiceResp Get Failed|{}", serviceConnResp);
 
-                        String userChannelId = serviceConnResp.getUserChannelId();
-                        UserHandler.closeUserChannel(userChannelId, CLIENT_TO_SERVER_CONN_REAL_SERVICE_FAILED.getDesc());
+                ProtocolParse<ServiceConnResp> parse = ExProtocolUtils.parseObj(msg, ServiceConnResp.class);
 
-                    } catch (Exception e) {
-                        log.error("", e);
-                        ctx.close();
-                    }
+                if (parse.isValid()) {
+                    ServiceConnResp serviceConnResp = parse.getData();
+                    log.error("ConnServiceResp|frp-client connect service failed|{}", serviceConnResp);
+
+                    String userChannelId = serviceConnResp.getUserChannelId();
+                    UserHandler.closeUserChannel(userChannelId, parse.getExchangeType().getDesc());
+
                 } else {
-                    ctx.close();
+                    throw new RuntimeException(parse.getInvalidMsg());
                 }
+
             }
 
             case CLIENT_TO_SERVER_LOST_REAL_SERVER_CONN -> {
 
-                if (ServiceBreakConn.class.getName().equals(msg.getClassName())) {
-                    String json = new String(msg.getBody(), StandardCharsets.UTF_8);
-                    try {
-                        ServiceBreakConn serviceBreakConn = JSON.parseObject(json, ServiceBreakConn.class);
+                ProtocolParse<ServiceBreakConn> parse = ExProtocolUtils.parseObj(msg, ServiceBreakConn.class);
 
-                        String userChannelId = serviceBreakConn.getUserChannelId();
-                        UserHandler.closeUserChannel(userChannelId, CLIENT_TO_SERVER_LOST_REAL_SERVER_CONN.getDesc());
+                if (parse.isValid()) {
+                    ServiceBreakConn serviceBreakConn = parse.getData();
+                    log.error("ConnServiceResp|frp-client lost service's connection|{}", serviceBreakConn);
+                    String userChannelId = serviceBreakConn.getUserChannelId();
 
-                    } catch (Exception e) {
-                        log.error("", e);
-                        ctx.close();
-                    }
+                    UserHandler.closeUserChannel(userChannelId, parse.getExchangeType().getDesc());
 
                 } else {
-                    ctx.close();
+                    throw new RuntimeException(parse.getInvalidMsg());
                 }
 
             }
 
             // frp server 获取到 client 读取的 service 的数据
-            case CLIENT_TO_SERVER_GET_SERVICE_DATA -> {
-                if (GetServiceData.class.getName().equals(msg.getClassName())) {
-                    log.info("receive get service data");
-                    String json = new String(msg.getBody(), StandardCharsets.UTF_8);
-                    try {
-                        GetServiceData serviceData = JSON.parseObject(json, GetServiceData.class);
+            case CLIENT_TO_SERVER_SERVICE_DATA_PACKET -> {
 
-                        String userChannelId = serviceData.getUserChannelId();
-                        byte[] data = serviceData.getData();
+                ProtocolParse<ServiceDataPacket> parse = ExProtocolUtils.parseObj(msg, ServiceDataPacket.class);
 
-                        UserHandler.dispatch(userChannelId, Unpooled.copiedBuffer(data));
+                if (parse.isValid()) {
+                    ServiceDataPacket serviceData = parse.getData();
 
-                    } catch (Exception e) {
-                        log.error("", e);
-                        ctx.close();
-                    }
+                    String userChannelId = serviceData.getUserChannelId();
+                    byte[] data = serviceData.getPacket();
+
+                    UserHandler.dispatch(userChannelId, Unpooled.copiedBuffer(data));
 
                 } else {
-                    ctx.close();
+                    throw new RuntimeException(parse.getInvalidMsg());
                 }
 
             }
@@ -160,10 +130,10 @@ public class ExchangeHandler extends SimpleChannelInboundHandler<ExchangeProtoco
 
     private final AtomicReference<MultiPortNettyServer> serverRef = new AtomicReference<>(null);
 
-    private void doReceiveClientConfig(ChannelHandlerContext ctx, Map<String, ListeningConfig> listeningConfigMap) {
-        ConnLocalResp connLocalResp = MultiPortUtils.connLocalResp(listeningConfigMap.values().stream().toList());
-        ctx.writeAndFlush(ExchangeProtocolUtils.jsonProtocol(ExchangeType.SERVER_TO_CLIENT_CONFIG_RESP, connLocalResp));
-        if (!connLocalResp.isSuccess()) {
+    private void prepareMultiPortNettyServer(ChannelHandlerContext ctx, Map<String, ListeningConfig> listeningConfigMap) {
+        ListeningLocalResp listeningLocalResp = MultiPortUtils.connLocalResp(listeningConfigMap.values().stream().toList());
+        ctx.writeAndFlush(ExProtocolUtils.jsonProtocol(ExchangeType.SERVER_TO_CLIENT_LISTENING_CONFIG_RESP, listeningLocalResp));
+        if (!listeningLocalResp.isSuccess()) {
             ctx.close();
         } else {
             MultiPortNettyServer server = new MultiPortNettyServer(listeningConfigMap, ctx.channel());
@@ -181,6 +151,7 @@ public class ExchangeHandler extends SimpleChannelInboundHandler<ExchangeProtoco
         MultiPortNettyServer mServer = serverRef.get();
         if (mServer != null) {
             mServer.stop();
+            serverRef.set(null);
         }
     }
 

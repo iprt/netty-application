@@ -1,5 +1,6 @@
 package io.intellij.netty.tcpfrp.client;
 
+import io.intellij.netty.tcpfrp.client.handlers.FrpClientInitializer;
 import io.intellij.netty.tcpfrp.config.ClientConfig;
 import io.intellij.netty.tcpfrp.config.ServerConfig;
 import io.netty.bootstrap.Bootstrap;
@@ -30,12 +31,11 @@ public class FrpClientMain {
                     .option(ChannelOption.SO_KEEPALIVE, true);
 
             b.handler(new FrpClientInitializer(clientConfig));
-
             ServerConfig serverConfig = clientConfig.getServerConfig();
 
             ChannelFuture f = b.connect(serverConfig.getHost(), serverConfig.getPort()).sync();
 
-            log.info("connect to server |host={}|port={}", serverConfig.getHost(), serverConfig.getPort());
+            log.info("Connect to frp-server |host={}|port={}", serverConfig.getHost(), serverConfig.getPort());
 
             f.channel().closeFuture().sync();
         } finally {

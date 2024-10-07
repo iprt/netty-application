@@ -1,4 +1,4 @@
-package io.intellij.netty.tcpfrp.exchange.serversend;
+package io.intellij.netty.tcpfrp.exchange;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 /**
- * ReadUserData
+ * ProtocolParse
  *
  * @author tech@intellij.io
  */
@@ -16,8 +16,9 @@ import lombok.ToString;
 @ToString
 @Builder
 @Data
-public class GetUserData {
-    private String userChannelId;
-    private String serviceChannelId;
-    private byte[] data;
+public class ProtocolParse<T> {
+    private boolean valid;
+    private String invalidMsg;
+    private ExchangeType exchangeType;
+    private T data;
 }

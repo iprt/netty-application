@@ -1,6 +1,5 @@
-package io.intellij.netty.tcpfrp.client;
+package io.intellij.netty.tcpfrp.client.handlers;
 
-import io.intellij.netty.tcpfrp.client.handlers.AuthTokenHandler;
 import io.intellij.netty.tcpfrp.config.ClientConfig;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;

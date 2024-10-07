@@ -1,4 +1,4 @@
-package io.intellij.netty.tcpfrp.exchange.clientsend;
+package io.intellij.netty.tcpfrp.exchange.serversend;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 /**
- * GetServiceData
+ * ReadUserData
  *
  * @author tech@intellij.io
  */
@@ -16,8 +16,8 @@ import lombok.ToString;
 @ToString
 @Builder
 @Data
-public class GetServiceData {
-    private String serviceChannelId;
+public class UserDataPacket {
     private String userChannelId;
-    private byte[] data;
+    private String serviceChannelId;
+    private byte[] packet;
 }

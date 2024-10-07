@@ -1,9 +1,9 @@
 package io.intellij.netty.tcpfrp.client.handlers;
 
 import io.intellij.netty.tcpfrp.config.ListeningConfig;
-import io.intellij.netty.tcpfrp.exchange.ExchangeProtocolUtils;
+import io.intellij.netty.tcpfrp.exchange.ExProtocolUtils;
 import io.intellij.netty.tcpfrp.exchange.ExchangeType;
-import io.intellij.netty.tcpfrp.exchange.clientsend.SendListeningConfig;
+import io.intellij.netty.tcpfrp.exchange.clientsend.ListeningConfigReport;
 import io.intellij.netty.tcpfrp.exchange.codec.ExchangeDecoder;
 import io.intellij.netty.tcpfrp.exchange.codec.ExchangeEncoder;
 import io.intellij.netty.utils.CtxUtils;
@@ -55,9 +55,9 @@ public class AuthTokenHandler extends SimpleChannelInboundHandler<String> {
 
             if (ctx.channel().isActive()) {
                 ctx.channel().writeAndFlush(
-                        ExchangeProtocolUtils.jsonProtocol(
+                        ExProtocolUtils.jsonProtocol(
                                 ExchangeType.CLIENT_TO_SERVER_SEND_CONFIG,
-                                SendListeningConfig.builder().listeningConfigMap(listeningConfigMap).build()
+                                ListeningConfigReport.builder().listeningConfigMap(listeningConfigMap).build()
                         )
                 );
             }

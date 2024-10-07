@@ -1,10 +1,10 @@
 package io.intellij.netty.tcpfrp.client.service;
 
 import io.intellij.netty.tcpfrp.config.ListeningConfig;
-import io.intellij.netty.tcpfrp.exchange.ExchangeProtocolUtils;
+import io.intellij.netty.tcpfrp.exchange.ExProtocolUtils;
 import io.intellij.netty.tcpfrp.exchange.ExchangeType;
-import io.intellij.netty.tcpfrp.exchange.clientsend.GetServiceData;
 import io.intellij.netty.tcpfrp.exchange.clientsend.ServiceBreakConn;
+import io.intellij.netty.tcpfrp.exchange.clientsend.ServiceDataPacket;
 import io.intellij.netty.utils.CtxUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -26,11 +26,10 @@ import java.util.concurrent.ConcurrentHashMap;
 @RequiredArgsConstructor
 @Slf4j
 public class ServiceHandler extends SimpleChannelInboundHandler<ByteBuf> {
-    public static final Map<String, Channel> serviceChannelMap = new ConcurrentHashMap<>();
+    private static final Map<String, Channel> serviceChannelMap = new ConcurrentHashMap<>();
 
     private final ListeningConfig listeningConfig;
     private final String userChannelId;
-
     private final Channel exchangeChannel;
 
     @Override
@@ -42,19 +41,17 @@ public class ServiceHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, ByteBuf msg) throws Exception {
-        log.info("获取到service的数据{}", listeningConfig);
-        byte[] bytes = new byte[msg.readableBytes()];
-        msg.readBytes(bytes);
+        byte[] packet = new byte[msg.readableBytes()];
+        msg.readBytes(packet);
 
         String serviceChannelId = CtxUtils.getChannelId(ctx);
         // how to get user channel id
         exchangeChannel.writeAndFlush(
-                ExchangeProtocolUtils.jsonProtocol(
-                        ExchangeType.CLIENT_TO_SERVER_GET_SERVICE_DATA,
-                        GetServiceData.builder()
-                                .userChannelId(this.userChannelId)
-                                .serviceChannelId(serviceChannelId)
-                                .data(bytes)
+                ExProtocolUtils.jsonProtocol(
+                        ExchangeType.CLIENT_TO_SERVER_SERVICE_DATA_PACKET,
+                        ServiceDataPacket.builder()
+                                .userChannelId(this.userChannelId).serviceChannelId(serviceChannelId)
+                                .packet(packet)
                                 .build()
                 )
         );
@@ -65,7 +62,7 @@ public class ServiceHandler extends SimpleChannelInboundHandler<ByteBuf> {
     public void channelInactive(@NotNull ChannelHandlerContext ctx) throws Exception {
         String serviceChannelId = CtxUtils.getChannelId(ctx);
         exchangeChannel.writeAndFlush(
-                ExchangeProtocolUtils.jsonProtocol(
+                ExProtocolUtils.jsonProtocol(
                         ExchangeType.CLIENT_TO_SERVER_LOST_REAL_SERVER_CONN,
                         ServiceBreakConn.builder()
                                 .listeningConfig(listeningConfig)
@@ -82,7 +79,6 @@ public class ServiceHandler extends SimpleChannelInboundHandler<ByteBuf> {
         log.error("{}|{}", CtxUtils.getRemoteAddress(ctx), cause.getMessage());
     }
 
-
     public static void closeServiceChannel(String serviceChannelId, String desc) {
         if (null == serviceChannelId) {
             return;
@@ -97,11 +93,18 @@ public class ServiceHandler extends SimpleChannelInboundHandler<ByteBuf> {
         }
     }
 
-    public static void dispatch(String serviceChannelId, byte[] bytes) {
+    public static void dispatch(String serviceChannelId, byte[] packet) {
         Channel serviceChannel = serviceChannelMap.get(serviceChannelId);
         if (serviceChannel != null && serviceChannel.isActive()) {
-            log.info("dispatch to service|{}", serviceChannelId);
-            serviceChannel.writeAndFlush(Unpooled.copiedBuffer(bytes));
+            log.info("dispatch to service|serviceChannelId={}", serviceChannelId);
+            serviceChannel.writeAndFlush(Unpooled.copiedBuffer(packet));
+            // .addListener((ChannelFutureListener) future -> {
+            //     if (future.isSuccess()) {
+            //         future.channel().read();
+            //     } else {
+            //         future.channel().close();
+            //     }
+            // });
         }
     }
 

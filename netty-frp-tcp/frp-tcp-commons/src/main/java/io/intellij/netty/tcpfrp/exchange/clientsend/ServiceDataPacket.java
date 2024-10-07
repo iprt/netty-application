@@ -1,16 +1,13 @@
 package io.intellij.netty.tcpfrp.exchange.clientsend;
 
-import io.intellij.netty.tcpfrp.config.ListeningConfig;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
-import java.util.Map;
-
 /**
- * SendListeningConfig
+ * ServiceDataPacket
  *
  * @author tech@intellij.io
  */
@@ -19,6 +16,8 @@ import java.util.Map;
 @ToString
 @Builder
 @Data
-public class SendListeningConfig {
-    private Map<String, ListeningConfig> listeningConfigMap;
+public class ServiceDataPacket {
+    private String serviceChannelId;
+    private String userChannelId;
+    private byte[] packet;
 }

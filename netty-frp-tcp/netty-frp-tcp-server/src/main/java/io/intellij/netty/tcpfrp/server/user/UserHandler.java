@@ -1,14 +1,15 @@
 package io.intellij.netty.tcpfrp.server.user;
 
 import io.intellij.netty.tcpfrp.config.ListeningConfig;
-import io.intellij.netty.tcpfrp.exchange.ExchangeProtocolUtils;
+import io.intellij.netty.tcpfrp.exchange.ExProtocolUtils;
 import io.intellij.netty.tcpfrp.exchange.ExchangeType;
-import io.intellij.netty.tcpfrp.exchange.serversend.GetUserData;
 import io.intellij.netty.tcpfrp.exchange.serversend.UserBreakConn;
 import io.intellij.netty.tcpfrp.exchange.serversend.UserCreateConn;
+import io.intellij.netty.tcpfrp.exchange.serversend.UserDataPacket;
 import io.intellij.netty.utils.ConnHostPort;
 import io.intellij.netty.utils.CtxUtils;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
@@ -45,7 +46,7 @@ public class UserHandler extends SimpleChannelInboundHandler<ByteBuf> {
         // user conn listening server
         if (exchangeChannel.isActive()) {
             exchangeChannel.writeAndFlush(
-                    ExchangeProtocolUtils.jsonProtocol(
+                    ExProtocolUtils.jsonProtocol(
                             ExchangeType.SERVER_TO_CLIENT_RECEIVE_USER_CONN_CREATE,
                             UserCreateConn.builder().listeningConfig(listeningConfig)
                                     .userChannelId(userChannelId)
@@ -70,12 +71,12 @@ public class UserHandler extends SimpleChannelInboundHandler<ByteBuf> {
             ctx.close();
         } else {
             exchangeChannel.writeAndFlush(
-                    ExchangeProtocolUtils.jsonProtocol(
-                            ExchangeType.SERVER_TO_CLIENT_GET_USER_DATA,
-                            GetUserData.builder()
+                    ExProtocolUtils.jsonProtocol(
+                            ExchangeType.SERVER_TO_CLIENT_USER_DATA_PACKET,
+                            UserDataPacket.builder()
                                     .userChannelId(userChannelId)
                                     .serviceChannelId(serviceChannelId)
-                                    .data(bytes).build()
+                                    .packet(bytes).build()
                     )
             );
         }
@@ -91,7 +92,7 @@ public class UserHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
         if (exchangeChannel.isActive()) {
             exchangeChannel.writeAndFlush(
-                    ExchangeProtocolUtils.jsonProtocol(
+                    ExProtocolUtils.jsonProtocol(
                             ExchangeType.SERVER_TO_CLIENT_RECEIVE_USER_CONN_BREAK,
                             UserBreakConn.builder()
                                     .listeningConfig(listeningConfig)
@@ -103,6 +104,7 @@ public class UserHandler extends SimpleChannelInboundHandler<ByteBuf> {
             closeUserChannel(userChannelId, "UserHandler.channelInactive");
         }
     }
+
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
@@ -116,13 +118,19 @@ public class UserHandler extends SimpleChannelInboundHandler<ByteBuf> {
         Channel channel = userChannelMap.get(userChannelId);
         if (channel != null) {
             log.info("CloseUserChannel|UserChannelId={}|desc={}", userChannelId, desc);
-            if (channel.isActive()) {
-                channel.close();
-            }
+            closeOnFlush(channel);
             userChannelMap.remove(userChannelId);
         }
 
         userChannelId2ServiceChannelId.remove(userChannelId);
+    }
+
+    static void closeOnFlush(Channel ch) {
+        if (ch.isActive()) {
+            ch.writeAndFlush(Unpooled.EMPTY_BUFFER)
+                    .addListener(ChannelFutureListener.CLOSE);
+        }
+
     }
 
     public static void notifyUserChannelRead(String userChannelId, String serviceChannelId) {

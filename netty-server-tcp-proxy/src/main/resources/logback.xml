@@ -22,7 +22,7 @@
             <fileNamePattern>
                 ./logs/tcp-proxy-%d{yyyy-MM-dd}.%i.log
             </fileNamePattern>
-            <maxHistory>30</maxHistory>
+            <maxHistory>180</maxHistory>
             <maxFileSize>200MB</maxFileSize>
         </rollingPolicy>
     </appender>

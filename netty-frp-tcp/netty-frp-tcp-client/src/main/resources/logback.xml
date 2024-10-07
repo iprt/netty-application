@@ -20,7 +20,7 @@
             <fileNamePattern>
                 ./logs/netty-frp-client-%d{yyyy-MM-dd}.%i.log
             </fileNamePattern>
-            <maxHistory>30</maxHistory>
+            <maxHistory>180</maxHistory>
             <maxFileSize>20MB</maxFileSize>
         </rollingPolicy>
     </appender>

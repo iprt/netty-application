@@ -22,7 +22,7 @@
             <fileNamePattern>
                 ./logs/socks-%d{yyyy-MM-dd}.%i.log
             </fileNamePattern>
-            <maxHistory>30</maxHistory>
+            <maxHistory>180</maxHistory>
             <maxFileSize>100MB</maxFileSize>
         </rollingPolicy>
     </appender>

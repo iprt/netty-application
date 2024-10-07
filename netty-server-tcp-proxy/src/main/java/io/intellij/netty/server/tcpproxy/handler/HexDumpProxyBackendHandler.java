@@ -37,7 +37,7 @@ public class HexDumpProxyBackendHandler extends ChannelInboundHandlerAdapter {
     }
 
     @Override
-    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+    public void channelInactive(@NotNull ChannelHandlerContext ctx) throws Exception {
         HexDumpProxyFrontendHandler.closeOnFlush(inboundChannel);
     }
 

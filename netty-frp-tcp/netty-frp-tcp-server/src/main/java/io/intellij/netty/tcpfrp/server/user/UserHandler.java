@@ -60,10 +60,11 @@ public class UserHandler extends SimpleChannelInboundHandler<ByteBuf> {
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, ByteBuf msg) throws Exception {
         // e.g. user -write-> localhost:3306
-        String userChannelId = CtxUtils.getChannelId(ctx);
         byte[] bytes = new byte[msg.readableBytes()];
         msg.readBytes(bytes);
 
+        Channel userChannel = ctx.channel();
+        String userChannelId = CtxUtils.getChannelId(ctx);
         // take service channel id
         String serviceChannelId = userChannelId2ServiceChannelId.get(userChannelId);
 
@@ -78,7 +79,15 @@ public class UserHandler extends SimpleChannelInboundHandler<ByteBuf> {
                                     .serviceChannelId(serviceChannelId)
                                     .packet(bytes).build()
                     )
-            );
+            ).addListener((ChannelFutureListener) future -> {
+                if (future.isSuccess()) {
+                    if (userChannel.isActive()) {
+                        userChannel.read();
+                    }
+                } else {
+                    closeUserChannel(userChannelId, "UserHandler.channelRead0");
+                }
+            });
         }
 
     }
@@ -92,15 +101,13 @@ public class UserHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
         if (exchangeChannel.isActive()) {
             exchangeChannel.writeAndFlush(
-                    ExProtocolUtils.jsonProtocol(
-                            ExchangeType.SERVER_TO_CLIENT_RECEIVE_USER_CONN_BREAK,
+                    ExProtocolUtils.jsonProtocol(ExchangeType.SERVER_TO_CLIENT_RECEIVE_USER_CONN_BREAK,
                             UserBreakConn.builder()
                                     .listeningConfig(listeningConfig)
                                     .userChannelId(userChannelId)
                                     .build()
                     )
             );
-
             closeUserChannel(userChannelId, "UserHandler.channelInactive");
         }
     }
@@ -130,7 +137,6 @@ public class UserHandler extends SimpleChannelInboundHandler<ByteBuf> {
             ch.writeAndFlush(Unpooled.EMPTY_BUFFER)
                     .addListener(ChannelFutureListener.CLOSE);
         }
-
     }
 
     public static void notifyUserChannelRead(String userChannelId, String serviceChannelId) {

@@ -100,9 +100,8 @@ public class ExchangeHandler extends SimpleChannelInboundHandler<ExchangeProtoco
                     Bootstrap b = new Bootstrap();
                     b.group(exchangeChannel.eventLoop())
                             .channel(NioSocketChannel.class)
-                            .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 1000)
-                            // .option(ChannelOption.AUTO_READ, false)
-                            .option(ChannelOption.SO_KEEPALIVE, true)
+                            .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 10000)
+                            .option(ChannelOption.AUTO_READ, false)
                             .handler(new DirectClientHandler(serviceChannelPromise));
 
                     ListeningConfig listeningConfig = userCreateConn.getListeningConfig();

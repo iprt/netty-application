@@ -3,7 +3,7 @@ plugins {
     id("io.freefair.lombok") version "8.10"
 }
 
-group = "io.intellij.netty"
+group = "io.intellij.netty.commons"
 version = "1.0"
 
 java {
@@ -38,5 +38,5 @@ dependencies {
 
 
 tasks.jar {
-    archiveFileName = "commons.jar"
+    archiveFileName = "netty-application-commons-dep.jar"
 }

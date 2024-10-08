@@ -7,6 +7,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * AuthHandler
@@ -16,7 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 @Slf4j
 public class AuthHandler extends SimpleChannelInboundHandler<String> {
-    public static final String HANDLER_NAME = AuthHandler.class.getName();
+    static final String HANDLER_NAME = AuthHandler.class.getName();
 
     private final String token;
 

@@ -12,7 +12,7 @@ import io.intellij.netty.tcpfrp.exchange.clientsend.ServiceDataPacket;
 import io.intellij.netty.tcpfrp.exchange.serversend.ListeningLocalResp;
 import io.intellij.netty.tcpfrp.server.listening.MultiPortNettyServer;
 import io.intellij.netty.tcpfrp.server.listening.MultiPortUtils;
-import io.intellij.netty.tcpfrp.server.user.UserHandler;
+import io.intellij.netty.tcpfrp.server.listening.UserHandler;
 import io.intellij.netty.utils.CtxUtils;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
@@ -37,7 +37,9 @@ public class ExchangeHandler extends SimpleChannelInboundHandler<ExchangeProtoco
         switch (exchangeType) {
 
             case C2S_SEND_CONFIG -> {
+
                 ProtocolParse<ListeningConfigReport> parse = ExProtocolUtils.parseObj(msg, ListeningConfigReport.class);
+
                 if (parse.isValid()) {
                     ListeningConfigReport sendListeningConfig = parse.getData();
                     log.info("get frp-client's listening config request|{}", sendListeningConfig);
@@ -146,13 +148,17 @@ public class ExchangeHandler extends SimpleChannelInboundHandler<ExchangeProtoco
         }
     }
 
-    @Override
-    public void channelInactive(@NotNull ChannelHandlerContext ctx) throws Exception {
+    private void stopMultiPortNettyServer() {
         MultiPortNettyServer mServer = serverRef.get();
         if (mServer != null) {
             mServer.stop();
             serverRef.set(null);
         }
+    }
+
+    @Override
+    public void channelInactive(@NotNull ChannelHandlerContext ctx) throws Exception {
+        this.stopMultiPortNettyServer();
     }
 
     @Override

@@ -21,7 +21,6 @@ public class MultiPortUtils {
                         .success(false).listeningConfigs(listeningConfigs)
                         .build();
             }
-
         }
         return ListeningLocalResp.builder().success(true).listeningConfigs(listeningConfigs).build();
     }

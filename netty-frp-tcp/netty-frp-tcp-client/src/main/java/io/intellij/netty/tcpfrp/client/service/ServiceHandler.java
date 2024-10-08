@@ -5,6 +5,7 @@ import io.intellij.netty.tcpfrp.exchange.ExProtocolUtils;
 import io.intellij.netty.tcpfrp.exchange.ExchangeType;
 import io.intellij.netty.tcpfrp.exchange.clientsend.ServiceBreakConn;
 import io.intellij.netty.tcpfrp.exchange.clientsend.ServiceDataPacket;
+import io.intellij.netty.utils.ChannelUtils;
 import io.intellij.netty.utils.CtxUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -46,7 +47,7 @@ public class ServiceHandler extends SimpleChannelInboundHandler<ByteBuf> {
     protected void channelRead0(ChannelHandlerContext ctx, ByteBuf msg) throws Exception {
         byte[] packet = new byte[msg.readableBytes()];
         msg.readBytes(packet);
-        Channel serviceChannel = ctx.channel();
+        final Channel serviceChannel = ctx.channel();
         String serviceChannelId = CtxUtils.getChannelId(ctx);
         // how to get user channel id
         exchangeChannel.writeAndFlush(
@@ -98,15 +99,18 @@ public class ServiceHandler extends SimpleChannelInboundHandler<ByteBuf> {
         Channel channel = serviceChannelMap.get(serviceChannelId);
         if (channel != null) {
             log.error("CloseServiceChannel|ServiceChannelId={}|desc={}", serviceChannelId, desc);
-            closeOnFlush(channel);
+            ChannelUtils.closeOnFlush(channel);
             serviceChannelMap.remove(serviceChannelId);
         }
     }
 
-    static void closeOnFlush(Channel ch) {
-        if (ch.isActive()) {
-            ch.writeAndFlush(Unpooled.EMPTY_BUFFER).addListener(ChannelFutureListener.CLOSE);
-        }
+    public static void closeAllServiceChannels() {
+        log.error("close all service channels");
+        serviceChannelMap.values().forEach(channel -> {
+            if (channel.isActive()) {
+                channel.close();
+            }
+        });
     }
 
     public static void dispatch(String serviceChannelId, byte[] packet) {

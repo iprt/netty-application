@@ -26,6 +26,7 @@ import io.netty.util.concurrent.FutureListener;
 import io.netty.util.concurrent.Promise;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * ExchangeHandler
@@ -46,8 +47,7 @@ public class ExchangeHandler extends SimpleChannelInboundHandler<ExchangeProtoco
             case S2C_LISTENING_CONFIG_RESP -> {
                 ProtocolParse<ListeningLocalResp> parse = ExProtocolUtils.parseObj(msg, ListeningLocalResp.class);
                 if (parse.isValid()) {
-                    ListeningLocalResp listeningLocalResp = ListeningLocalResp.builder().build();
-                    log.info("frp-server response|{}", listeningLocalResp);
+                    log.info("frp-server response|{}", parse.getData());
                 } else {
                     throw new RuntimeException(parse.getInvalidMsg());
                 }
@@ -164,6 +164,11 @@ public class ExchangeHandler extends SimpleChannelInboundHandler<ExchangeProtoco
                 ctx.close();
             }
         }
+    }
+
+    @Override
+    public void channelInactive(@NotNull ChannelHandlerContext ctx) throws Exception {
+        ServiceHandler.closeAllServiceChannels();
     }
 
     @Override

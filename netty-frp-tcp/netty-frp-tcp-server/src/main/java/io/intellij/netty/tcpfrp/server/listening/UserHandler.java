@@ -1,4 +1,4 @@
-package io.intellij.netty.tcpfrp.server.user;
+package io.intellij.netty.tcpfrp.server.listening;
 
 import io.intellij.netty.tcpfrp.config.ListeningConfig;
 import io.intellij.netty.tcpfrp.exchange.ExProtocolUtils;
@@ -6,10 +6,10 @@ import io.intellij.netty.tcpfrp.exchange.ExchangeType;
 import io.intellij.netty.tcpfrp.exchange.serversend.UserBreakConn;
 import io.intellij.netty.tcpfrp.exchange.serversend.UserCreateConn;
 import io.intellij.netty.tcpfrp.exchange.serversend.UserDataPacket;
+import io.intellij.netty.utils.ChannelUtils;
 import io.intellij.netty.utils.ConnHostPort;
 import io.intellij.netty.utils.CtxUtils;
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
@@ -136,18 +136,13 @@ public class UserHandler extends SimpleChannelInboundHandler<ByteBuf> {
         Channel channel = userChannelMap.get(userChannelId);
         if (channel != null) {
             log.info("CloseUserChannel|UserChannelId={}|desc={}", userChannelId, desc);
-            closeOnFlush(channel);
+            ChannelUtils.closeOnFlush(channel);
             userChannelMap.remove(userChannelId);
         }
 
         userChannelId2ServiceChannelId.remove(userChannelId);
     }
 
-    static void closeOnFlush(Channel ch) {
-        if (ch.isActive()) {
-            ch.writeAndFlush(Unpooled.EMPTY_BUFFER).addListener(ChannelFutureListener.CLOSE);
-        }
-    }
 
     public static void dispatch(String userChannelId, ByteBuf msg) {
         Channel userChannel = userChannelMap.get(userChannelId);

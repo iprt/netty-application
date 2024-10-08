@@ -3,15 +3,16 @@ package io.intellij.netty.tcpfrp.client.handlers;
 import io.intellij.netty.tcpfrp.client.service.DirectServiceHandler;
 import io.intellij.netty.tcpfrp.client.service.ServiceHandler;
 import io.intellij.netty.tcpfrp.config.ListeningConfig;
-import io.intellij.netty.tcpfrp.exchange.ExProtocolUtils;
-import io.intellij.netty.tcpfrp.exchange.ExchangeProtocol;
-import io.intellij.netty.tcpfrp.exchange.ExchangeType;
-import io.intellij.netty.tcpfrp.exchange.ProtocolParse;
-import io.intellij.netty.tcpfrp.exchange.c2s.ServiceConnResp;
+import io.intellij.netty.tcpfrp.exchange.both.DataPacket;
+import io.intellij.netty.tcpfrp.exchange.c2s.ServiceConnFailed;
+import io.intellij.netty.tcpfrp.exchange.c2s.ServiceConnSuccess;
+import io.intellij.netty.tcpfrp.exchange.codec.ExProtocolUtils;
+import io.intellij.netty.tcpfrp.exchange.codec.ExchangeProtocol;
+import io.intellij.netty.tcpfrp.exchange.codec.ExchangeType;
+import io.intellij.netty.tcpfrp.exchange.codec.ProtocolParse;
 import io.intellij.netty.tcpfrp.exchange.s2c.ListeningLocalResp;
 import io.intellij.netty.tcpfrp.exchange.s2c.UserBreakConn;
 import io.intellij.netty.tcpfrp.exchange.s2c.UserCreateConn;
-import io.intellij.netty.tcpfrp.exchange.s2c.UserDataPacket;
 import io.intellij.netty.utils.CtxUtils;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
@@ -45,7 +46,7 @@ public class ExchangeHandler extends SimpleChannelInboundHandler<ExchangeProtoco
         switch (exchangeType) {
 
             case S2C_LISTENING_CONFIG_RESP -> {
-                ProtocolParse<ListeningLocalResp> parse = ExProtocolUtils.parseObj(msg, ListeningLocalResp.class);
+                ProtocolParse<ListeningLocalResp> parse = ExProtocolUtils.parseProtocol(msg, ListeningLocalResp.class);
                 if (parse.isValid()) {
                     log.info("frp-server response|{}", parse.getData());
                 } else {
@@ -54,7 +55,7 @@ public class ExchangeHandler extends SimpleChannelInboundHandler<ExchangeProtoco
             }
 
             case S2C_RECEIVE_USER_CONN_CREATE -> {
-                ProtocolParse<UserCreateConn> parse = ExProtocolUtils.parseObj(msg, UserCreateConn.class);
+                ProtocolParse<UserCreateConn> parse = ExProtocolUtils.parseProtocol(msg, UserCreateConn.class);
                 if (parse.isValid()) {
                     UserCreateConn userCreateConn = parse.getData();
                     final String userChannelId = userCreateConn.getUserChannelId();
@@ -66,9 +67,9 @@ public class ExchangeHandler extends SimpleChannelInboundHandler<ExchangeProtoco
                             String serviceChannelId = serviceChannel.id().asLongText();
                             log.info("service channel create success");
                             ChannelFuture responseFuture = exchangeChannel.writeAndFlush(
-                                    ExProtocolUtils.jsonProtocol(
+                                    ExProtocolUtils.createProtocolData(
                                             ExchangeType.C2S_CONN_REAL_SERVICE_SUCCESS,
-                                            ServiceConnResp.builder().success(true)
+                                            ServiceConnSuccess.builder().success(true)
                                                     .serviceChannelId(serviceChannelId).userChannelId(userChannelId)
                                                     .build()
                                     )
@@ -81,14 +82,13 @@ public class ExchangeHandler extends SimpleChannelInboundHandler<ExchangeProtoco
                                     );
                                     p.fireChannelActive();
                                 }
-
                             });
 
                         } else {
                             log.error("service channel create failed");
-                            ctx.writeAndFlush(ExProtocolUtils.jsonProtocol(
+                            ctx.writeAndFlush(ExProtocolUtils.createProtocolData(
                                     ExchangeType.C2S_CONN_REAL_SERVICE_FAILED,
-                                    ServiceConnResp.builder().success(false)
+                                    ServiceConnFailed.builder().success(false)
                                             .serviceChannelId(null).userChannelId(userChannelId)
                                             .build())
                             );
@@ -113,9 +113,9 @@ public class ExchangeHandler extends SimpleChannelInboundHandler<ExchangeProtoco
                                 } else {
                                     log.error("connect to service failed|{}", listeningConfig);
                                     exchangeChannel.writeAndFlush(
-                                            ExProtocolUtils.jsonProtocol(
+                                            ExProtocolUtils.createProtocolData(
                                                     ExchangeType.C2S_CONN_REAL_SERVICE_FAILED,
-                                                    ServiceConnResp.builder().success(false)
+                                                    ServiceConnFailed.builder().success(false)
                                                             .serviceChannelId(null)
                                                             .userChannelId(userCreateConn.getUserChannelId())
                                                             .build()
@@ -130,7 +130,7 @@ public class ExchangeHandler extends SimpleChannelInboundHandler<ExchangeProtoco
             }
 
             case S2C_RECEIVE_USER_CONN_BREAK -> {
-                ProtocolParse<UserBreakConn> parse = ExProtocolUtils.parseObj(msg, UserBreakConn.class);
+                ProtocolParse<UserBreakConn> parse = ExProtocolUtils.parseProtocol(msg, UserBreakConn.class);
                 if (parse.isValid()) {
                     UserBreakConn userBreakConn = parse.getData();
                     String serviceChannelId = userBreakConn.getServiceChannelId();
@@ -143,14 +143,15 @@ public class ExchangeHandler extends SimpleChannelInboundHandler<ExchangeProtoco
             }
 
             case S2C_USER_DATA_PACKET -> {
-                ProtocolParse<UserDataPacket> parse = ExProtocolUtils.parseObj(msg, UserDataPacket.class);
+                // ProtocolParse<UserDataPacket> parse = ExProtocolUtils.parseProtocol(msg, UserDataPacket.class);
+                ProtocolParse<DataPacket> parse = ExProtocolUtils.parseDataPacket(msg);
 
                 if (parse.isValid()) {
-                    UserDataPacket userDataPacket = parse.getData();
+                    DataPacket userDataPacket = parse.getData();
 
                     String serviceChannelId = userDataPacket.getServiceChannelId();
-                    log.info("receive get user data|serviceChannelId={}", serviceChannelId);
 
+                    // log.info("receive get user data|serviceChannelId={}", serviceChannelId);
                     ServiceHandler.dispatch(serviceChannelId, userDataPacket.getPacket());
 
                 } else {

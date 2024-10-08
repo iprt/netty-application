@@ -1,10 +1,11 @@
 package io.intellij.netty.tcpfrp.client.service;
 
 import io.intellij.netty.tcpfrp.config.ListeningConfig;
-import io.intellij.netty.tcpfrp.exchange.ExProtocolUtils;
-import io.intellij.netty.tcpfrp.exchange.ExchangeType;
+import io.intellij.netty.tcpfrp.exchange.both.DataPacket;
 import io.intellij.netty.tcpfrp.exchange.c2s.ServiceBreakConn;
 import io.intellij.netty.tcpfrp.exchange.c2s.ServiceDataPacket;
+import io.intellij.netty.tcpfrp.exchange.codec.ExProtocolUtils;
+import io.intellij.netty.tcpfrp.exchange.codec.ExchangeType;
 import io.intellij.netty.utils.ChannelUtils;
 import io.intellij.netty.utils.CtxUtils;
 import io.netty.buffer.ByteBuf;
@@ -47,13 +48,15 @@ public class ServiceHandler extends SimpleChannelInboundHandler<ByteBuf> {
     protected void channelRead0(ChannelHandlerContext ctx, ByteBuf msg) throws Exception {
         byte[] packet = new byte[msg.readableBytes()];
         msg.readBytes(packet);
+
         final Channel serviceChannel = ctx.channel();
         String serviceChannelId = CtxUtils.getChannelId(ctx);
         // how to get user channel id
         exchangeChannel.writeAndFlush(
-                ExProtocolUtils.jsonProtocol(
+                ExProtocolUtils.createProtocolData(
                         ExchangeType.C2S_SERVICE_DATA_PACKET,
-                        ServiceDataPacket.builder()
+                        DataPacket.builder()
+                                .from(ServiceDataPacket.class.getName())
                                 .userChannelId(this.userChannelId).serviceChannelId(serviceChannelId)
                                 .packet(packet)
                                 .build()
@@ -67,14 +70,13 @@ public class ServiceHandler extends SimpleChannelInboundHandler<ByteBuf> {
                 closeServiceChannel(serviceChannelId, "ServiceHandler.channelRead0");
             }
         });
-
     }
 
     @Override
     public void channelInactive(@NotNull ChannelHandlerContext ctx) throws Exception {
         String serviceChannelId = CtxUtils.getChannelId(ctx);
         exchangeChannel.writeAndFlush(
-                ExProtocolUtils.jsonProtocol(
+                ExProtocolUtils.createProtocolData(
                         ExchangeType.C2S_LOST_REAL_SERVER_CONN,
                         ServiceBreakConn.builder()
                                 .listeningConfig(listeningConfig)
@@ -116,7 +118,7 @@ public class ServiceHandler extends SimpleChannelInboundHandler<ByteBuf> {
     public static void dispatch(String serviceChannelId, byte[] packet) {
         Channel serviceChannel = serviceChannelMap.get(serviceChannelId);
         if (serviceChannel != null && serviceChannel.isActive()) {
-            log.info("dispatch to service|serviceChannelId={}", serviceChannelId);
+            // log.info("dispatch to service|serviceChannelId={}", serviceChannelId);
             serviceChannel.writeAndFlush(Unpooled.copiedBuffer(packet))
                     .addListener((ChannelFutureListener) future -> {
                         if (future.isSuccess()) {

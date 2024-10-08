@@ -1,4 +1,4 @@
-package io.intellij.netty.tcpfrp.exchange;
+package io.intellij.netty.tcpfrp.exchange.codec;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 /**
- * ExchangeProtocol
+ * ProtocolParse
  *
  * @author tech@intellij.io
  */
@@ -16,16 +16,10 @@ import lombok.ToString;
 @ToString
 @Builder
 @Data
-public class ExchangeProtocol {
-
+public class ProtocolParse<T> {
+    private boolean valid;
+    private String invalidMsg;
+    // record
     private ExchangeType exchangeType;
-
-    private int classLen;
-
-    private String className;
-
-    private int bodyLen;
-
-    private byte[] body;
-
+    private T data;
 }

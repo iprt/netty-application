@@ -1,8 +1,9 @@
-package io.intellij.netty.tcpfrp.exchange;
+package io.intellij.netty.tcpfrp.exchange.codec;
 
 import io.intellij.netty.tcpfrp.exchange.c2s.ListeningConfigReport;
 import io.intellij.netty.tcpfrp.exchange.c2s.ServiceBreakConn;
-import io.intellij.netty.tcpfrp.exchange.c2s.ServiceConnResp;
+import io.intellij.netty.tcpfrp.exchange.c2s.ServiceConnFailed;
+import io.intellij.netty.tcpfrp.exchange.c2s.ServiceConnSuccess;
 import io.intellij.netty.tcpfrp.exchange.c2s.ServiceDataPacket;
 import io.intellij.netty.tcpfrp.exchange.s2c.ListeningLocalResp;
 import io.intellij.netty.tcpfrp.exchange.s2c.UserBreakConn;
@@ -49,12 +50,12 @@ public enum ExchangeType {
     /**
      * 客户端连接真实服务成功    (客户端端连接事件 建立到真实服务的连接成功)
      */
-    C2S_CONN_REAL_SERVICE_SUCCESS(5, ServiceConnResp.class, "frp-client connect to real server success"),
+    C2S_CONN_REAL_SERVICE_SUCCESS(5, ServiceConnSuccess.class, "frp-client connect to real server success"),
 
     /**
      * 客户端连接真实服务失败    (客户端端连接事件 建立到真实服务的连接失败 )
      */
-    C2S_CONN_REAL_SERVICE_FAILED(6, ServiceConnResp.class, "frp-client connect to real server failed"),
+    C2S_CONN_REAL_SERVICE_FAILED(6, ServiceConnFailed.class, "frp-client connect to real server failed"),
 
     /**
      * 客户端丢失真实服务的连接   (客户端端连接事件 运行中的服务断开了连接)
@@ -62,7 +63,6 @@ public enum ExchangeType {
      * TODO 本质上否等价于 CLIENT_TO_SERVER_CONN_REAL_SERVICE_FAILED
      */
     C2S_LOST_REAL_SERVER_CONN(7, ServiceBreakConn.class, "frp-client lost real service's connection"),
-
 
     /**
      * 服务端接收到用户的数据
@@ -75,15 +75,13 @@ public enum ExchangeType {
     C2S_SERVICE_DATA_PACKET(9, ServiceDataPacket.class, "frp client get service' data packet"),
     ;
 
-    // public static final int TYPE_COUNT = ExchangeType.values().length;
-
     private final int type;
     private final Class<?> clazz;
     private final String desc;
 
-    public static ExchangeType getType(int value) {
+    public static ExchangeType getExchangeType(int type) {
         for (ExchangeType exchangeType : ExchangeType.values()) {
-            if (exchangeType.getType() == value) {
+            if (exchangeType.getType() == type) {
                 return exchangeType;
             }
         }

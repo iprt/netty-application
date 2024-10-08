@@ -16,7 +16,7 @@ import lombok.ToString;
 @ToString
 @Builder
 @Data
-public class ServiceConnResp {
+public class ServiceConnSuccess {
     private boolean success;
     private String serviceChannelId;
     // user -> frp-server channelId

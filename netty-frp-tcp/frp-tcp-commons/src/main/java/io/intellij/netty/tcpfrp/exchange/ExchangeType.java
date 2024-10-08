@@ -67,13 +67,15 @@ public enum ExchangeType {
     /**
      * 服务端接收到用户的数据
      */
-    S2C_USER_DATA_PACKET(100, UserDataPacket.class, "frp server get user' data packet"),
+    S2C_USER_DATA_PACKET(8, UserDataPacket.class, "frp server get user' data packet"),
 
     /**
      * 客户端接收到服务的数据
      */
-    C2S_SERVICE_DATA_PACKET(200, ServiceDataPacket.class, "frp client get service' data packet"),
+    C2S_SERVICE_DATA_PACKET(9, ServiceDataPacket.class, "frp client get service' data packet"),
     ;
+
+    public static final int TYPE_COUNT = ExchangeType.values().length;
 
     private final int type;
     private final Class<?> clazz;

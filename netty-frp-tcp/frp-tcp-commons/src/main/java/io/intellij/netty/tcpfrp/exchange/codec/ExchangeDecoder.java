@@ -24,29 +24,36 @@ public class ExchangeDecoder extends ByteToMessageDecoder {
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf byteBuf, List<Object> list) throws Exception {
         byteBuf.markReaderIndex();
-        ExchangeType type = ExchangeType.getType(byteBuf.readInt());
+        ExchangeType type = ExchangeType.getType(byteBuf.readByte());
         if (Objects.isNull(type)) {
             log.error("unknown exchange type");
             ctx.close();
         }
 
-        int classLen = byteBuf.readInt();
-        String className = null;
-        if (classLen > 0) {
-            int i = byteBuf.readableBytes();
+        int classLen = byteBuf.readByte();
 
-            if (i < classLen) {
-                byteBuf.resetReaderIndex();
-                return;
-            }
-
-            byte[] classNameBytes = new byte[classLen];
-            byteBuf.readBytes(classNameBytes);
-            className = new String(classNameBytes, StandardCharsets.UTF_8);
-
+        if (classLen == 0) {
+            log.error("class name length must > 0");
+            ctx.close();
+            return;
         }
 
+        int i = byteBuf.readableBytes();
+        if (i < classLen) {
+            byteBuf.resetReaderIndex();
+            return;
+        }
+
+        byte[] classNameBytes = new byte[classLen];
+        byteBuf.readBytes(classNameBytes);
+        String className = new String(classNameBytes, StandardCharsets.UTF_8);
+
         int bodyLen = byteBuf.readInt();
+        if (bodyLen == 0) {
+            log.error("body length must > 0");
+            ctx.close();
+            return;
+        }
 
         int j = byteBuf.readableBytes();
         if (j < bodyLen) {

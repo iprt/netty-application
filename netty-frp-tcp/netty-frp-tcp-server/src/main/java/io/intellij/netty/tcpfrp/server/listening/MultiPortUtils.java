@@ -2,7 +2,7 @@ package io.intellij.netty.tcpfrp.server.listening;
 
 import io.intellij.netty.tcpfrp.config.ListeningConfig;
 import io.intellij.netty.tcpfrp.exchange.serversend.ListeningLocalResp;
-import io.intellij.netty.utils.NetworkUtils;
+import io.intellij.netty.utils.SocketUtils;
 
 import java.util.List;
 
@@ -15,7 +15,7 @@ public class MultiPortUtils {
 
     public static ListeningLocalResp connLocalResp(List<ListeningConfig> listeningConfigs) {
         for (ListeningConfig listeningConfig : listeningConfigs) {
-            boolean portOpen = NetworkUtils.isPortOpen("127.0.0.1", listeningConfig.getRemotePort());
+            boolean portOpen = SocketUtils.isPortOpen("127.0.0.1", listeningConfig.getRemotePort());
             if (portOpen) {
                 return ListeningLocalResp.builder()
                         .success(false).listeningConfigs(listeningConfigs)

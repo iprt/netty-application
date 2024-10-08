@@ -17,10 +17,11 @@ public class ExchangeEncoder extends MessageToByteEncoder<ExchangeProtocol> {
     @Override
     protected void encode(ChannelHandlerContext ctx, ExchangeProtocol exchangeProtocol, ByteBuf byteBuf) throws Exception {
         ExchangeType type = exchangeProtocol.getExchangeType();
-        byteBuf.writeInt(type.getType());
+        // 只要一个字节
+        byteBuf.writeByte(type.getType());
 
         int classLen = exchangeProtocol.getClassLen();
-        byteBuf.writeInt(classLen);
+        byteBuf.writeByte(classLen);
         byteBuf.writeBytes(exchangeProtocol.getClassName().getBytes(StandardCharsets.UTF_8));
 
         int bodyLen = exchangeProtocol.getBodyLen();

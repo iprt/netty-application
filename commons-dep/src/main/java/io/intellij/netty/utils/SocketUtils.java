@@ -9,7 +9,7 @@ import java.net.Socket;
  *
  * @author tech@intellij.io
  */
-public class NetworkUtils {
+public class SocketUtils {
 
     public static boolean isPortOpen(String host, int port) {
         return isPortOpen(host, port, 3);

@@ -7,15 +7,15 @@ import io.netty.util.concurrent.Promise;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * DirectClientHandler
+ * DirectServiceHandler
  *
  * @author tech@intellij.io
  */
-public class DirectClientHandler extends ChannelInboundHandlerAdapter {
+public class DirectServiceHandler extends ChannelInboundHandlerAdapter {
 
     private final Promise<Channel> promise;
 
-    public DirectClientHandler(Promise<Channel> promise) {
+    public DirectServiceHandler(Promise<Channel> promise) {
         this.promise = promise;
     }
 

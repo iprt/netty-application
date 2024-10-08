@@ -1,6 +1,6 @@
 package io.intellij.netty.tcpfrp.client.handlers;
 
-import io.intellij.netty.tcpfrp.client.service.DirectClientHandler;
+import io.intellij.netty.tcpfrp.client.service.DirectServiceHandler;
 import io.intellij.netty.tcpfrp.client.service.ServiceHandler;
 import io.intellij.netty.tcpfrp.config.ListeningConfig;
 import io.intellij.netty.tcpfrp.exchange.ExProtocolUtils;
@@ -102,7 +102,7 @@ public class ExchangeHandler extends SimpleChannelInboundHandler<ExchangeProtoco
                             .channel(NioSocketChannel.class)
                             .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 10000)
                             .option(ChannelOption.AUTO_READ, false)
-                            .handler(new DirectClientHandler(serviceChannelPromise));
+                            .handler(new DirectServiceHandler(serviceChannelPromise));
 
                     ListeningConfig listeningConfig = userCreateConn.getListeningConfig();
                     log.info("bootstrap try to connect {}:{}", listeningConfig.getLocalIp(), listeningConfig.getLocalPort());

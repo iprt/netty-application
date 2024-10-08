@@ -29,7 +29,7 @@ public class MultiPortNettyServer {
     private final Map<Integer, ListeningConfig> portToServer;
     private final Channel exchangeChannel;
 
-    private final EventLoopGroup bossGroup = new NioEventLoopGroup(2);
+    private final EventLoopGroup bossGroup = new NioEventLoopGroup(1);
     private final EventLoopGroup workerGroup = new NioEventLoopGroup();
 
     public MultiPortNettyServer(Map<String, ListeningConfig> listeningConfigMap, Channel exchangeChannel) {

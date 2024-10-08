@@ -48,11 +48,22 @@ public class UserHandler extends SimpleChannelInboundHandler<ByteBuf> {
             exchangeChannel.writeAndFlush(
                     ExProtocolUtils.jsonProtocol(
                             ExchangeType.S2C_RECEIVE_USER_CONN_CREATE,
-                            UserCreateConn.builder().listeningConfig(listeningConfig)
-                                    .userChannelId(userChannelId)
+                            UserCreateConn.builder()
+                                    .listeningConfig(listeningConfig).userChannelId(userChannelId)
                                     .build()
                     )
             );
+        }
+    }
+
+    // AUTO_READ = false
+    public static void notifyUserChannelRead(String userChannelId, String serviceChannelId) {
+        userChannelId2ServiceChannelId.put(userChannelId, serviceChannelId);
+        Channel channel = userChannelMap.get(userChannelId);
+        if (channel != null) {
+            if (channel.isActive()) {
+                channel.read();
+            }
         }
     }
 
@@ -134,18 +145,7 @@ public class UserHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
     static void closeOnFlush(Channel ch) {
         if (ch.isActive()) {
-            ch.writeAndFlush(Unpooled.EMPTY_BUFFER)
-                    .addListener(ChannelFutureListener.CLOSE);
-        }
-    }
-
-    public static void notifyUserChannelRead(String userChannelId, String serviceChannelId) {
-        userChannelId2ServiceChannelId.put(userChannelId, serviceChannelId);
-        Channel channel = userChannelMap.get(userChannelId);
-        if (channel != null) {
-            if (channel.isActive()) {
-                channel.read();
-            }
+            ch.writeAndFlush(Unpooled.EMPTY_BUFFER).addListener(ChannelFutureListener.CLOSE);
         }
     }
 

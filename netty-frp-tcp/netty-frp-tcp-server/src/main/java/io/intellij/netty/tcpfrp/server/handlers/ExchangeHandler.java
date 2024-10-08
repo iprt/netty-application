@@ -47,7 +47,7 @@ public class ExchangeHandler extends SimpleChannelInboundHandler<ExchangeProtoco
                 }
             }
 
-            // frp client 连接服务成功
+            // frp client 连接服务成功 回复的消息
             case C2S_CONN_REAL_SERVICE_SUCCESS -> {
 
                 ProtocolParse<ServiceConnResp> parse = ExProtocolUtils.parseObj(msg, ServiceConnResp.class);

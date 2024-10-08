@@ -97,7 +97,7 @@ public class ServiceHandler extends SimpleChannelInboundHandler<ByteBuf> {
         }
         Channel channel = serviceChannelMap.get(serviceChannelId);
         if (channel != null) {
-            log.info("CloseServiceChannel|ServiceChannelId={}|desc={}", serviceChannelId, desc);
+            log.error("CloseServiceChannel|ServiceChannelId={}|desc={}", serviceChannelId, desc);
             closeOnFlush(channel);
             serviceChannelMap.remove(serviceChannelId);
         }
@@ -105,8 +105,7 @@ public class ServiceHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
     static void closeOnFlush(Channel ch) {
         if (ch.isActive()) {
-            ch.writeAndFlush(Unpooled.EMPTY_BUFFER)
-                    .addListener(ChannelFutureListener.CLOSE);
+            ch.writeAndFlush(Unpooled.EMPTY_BUFFER).addListener(ChannelFutureListener.CLOSE);
         }
     }
 

@@ -1,4 +1,4 @@
-package io.intellij.netty.tcpfrp.exchange.clientsend;
+package io.intellij.netty.tcpfrp.exchange.c2s;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

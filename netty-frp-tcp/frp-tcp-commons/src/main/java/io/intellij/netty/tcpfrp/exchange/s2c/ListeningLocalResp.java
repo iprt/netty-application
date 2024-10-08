@@ -1,4 +1,4 @@
-package io.intellij.netty.tcpfrp.exchange.serversend;
+package io.intellij.netty.tcpfrp.exchange.s2c;
 
 import io.intellij.netty.tcpfrp.config.ListeningConfig;
 import lombok.AllArgsConstructor;
@@ -7,8 +7,10 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+import java.util.List;
+
 /**
- * UserConn
+ * ListeningLocalResp
  *
  * @author tech@intellij.io
  */
@@ -17,7 +19,13 @@ import lombok.ToString;
 @ToString
 @Builder
 @Data
-public class UserCreateConn {
-    private ListeningConfig listeningConfig;
-    private String userChannelId;
+public class ListeningLocalResp {
+
+    // 是否连接成功
+    private boolean success;
+
+    // 连接的配置
+    private List<ListeningConfig> listeningConfigs;
+
+
 }

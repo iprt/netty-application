@@ -1,7 +1,7 @@
 package io.intellij.netty.tcpfrp.server.listening;
 
 import io.intellij.netty.tcpfrp.config.ListeningConfig;
-import io.intellij.netty.tcpfrp.exchange.serversend.ListeningLocalResp;
+import io.intellij.netty.tcpfrp.exchange.s2c.ListeningLocalResp;
 import io.intellij.netty.utils.SocketUtils;
 
 import java.util.List;

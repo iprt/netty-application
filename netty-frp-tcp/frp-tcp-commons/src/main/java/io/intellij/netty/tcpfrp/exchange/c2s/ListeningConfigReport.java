@@ -1,4 +1,4 @@
-package io.intellij.netty.tcpfrp.exchange.serversend;
+package io.intellij.netty.tcpfrp.exchange.c2s;
 
 import io.intellij.netty.tcpfrp.config.ListeningConfig;
 import lombok.AllArgsConstructor;
@@ -7,10 +7,10 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+import java.util.Map;
+
 /**
- * UserBreakConn
- * <p>
- * 用户断开连接
+ * ReportListeningConfig
  *
  * @author tech@intellij.io
  */
@@ -19,8 +19,6 @@ import lombok.ToString;
 @ToString
 @Builder
 @Data
-public class UserBreakConn {
-    private ListeningConfig listeningConfig;
-    private String userChannelId;
-    private String serviceChannelId;
+public class ListeningConfigReport {
+    private Map<String, ListeningConfig> listeningConfigMap;
 }

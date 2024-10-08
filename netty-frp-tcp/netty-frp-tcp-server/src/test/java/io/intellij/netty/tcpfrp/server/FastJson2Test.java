@@ -1,7 +1,7 @@
 package io.intellij.netty.tcpfrp.server;
 
 import com.alibaba.fastjson2.JSON;
-import io.intellij.netty.tcpfrp.exchange.serversend.UserDataPacket;
+import io.intellij.netty.tcpfrp.exchange.s2c.UserDataPacket;
 import org.junit.jupiter.api.Test;
 
 /**

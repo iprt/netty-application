@@ -1,5 +1,6 @@
-package io.intellij.netty.tcpfrp.exchange.clientsend;
+package io.intellij.netty.tcpfrp.exchange.s2c;
 
+import io.intellij.netty.tcpfrp.config.ListeningConfig;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -7,7 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 /**
- * ServiceDataPacket
+ * UserConn
  *
  * @author tech@intellij.io
  */
@@ -16,8 +17,7 @@ import lombok.ToString;
 @ToString
 @Builder
 @Data
-public class ServiceDataPacket {
-    private String serviceChannelId;
+public class UserCreateConn {
+    private ListeningConfig listeningConfig;
     private String userChannelId;
-    private byte[] packet;
 }

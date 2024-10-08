@@ -1,13 +1,13 @@
 package io.intellij.netty.tcpfrp.exchange;
 
-import io.intellij.netty.tcpfrp.exchange.clientsend.ListeningConfigReport;
-import io.intellij.netty.tcpfrp.exchange.clientsend.ServiceBreakConn;
-import io.intellij.netty.tcpfrp.exchange.clientsend.ServiceConnResp;
-import io.intellij.netty.tcpfrp.exchange.clientsend.ServiceDataPacket;
-import io.intellij.netty.tcpfrp.exchange.serversend.ListeningLocalResp;
-import io.intellij.netty.tcpfrp.exchange.serversend.UserBreakConn;
-import io.intellij.netty.tcpfrp.exchange.serversend.UserCreateConn;
-import io.intellij.netty.tcpfrp.exchange.serversend.UserDataPacket;
+import io.intellij.netty.tcpfrp.exchange.c2s.ListeningConfigReport;
+import io.intellij.netty.tcpfrp.exchange.c2s.ServiceBreakConn;
+import io.intellij.netty.tcpfrp.exchange.c2s.ServiceConnResp;
+import io.intellij.netty.tcpfrp.exchange.c2s.ServiceDataPacket;
+import io.intellij.netty.tcpfrp.exchange.s2c.ListeningLocalResp;
+import io.intellij.netty.tcpfrp.exchange.s2c.UserBreakConn;
+import io.intellij.netty.tcpfrp.exchange.s2c.UserCreateConn;
+import io.intellij.netty.tcpfrp.exchange.s2c.UserDataPacket;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -75,7 +75,7 @@ public enum ExchangeType {
     C2S_SERVICE_DATA_PACKET(9, ServiceDataPacket.class, "frp client get service' data packet"),
     ;
 
-    public static final int TYPE_COUNT = ExchangeType.values().length;
+    // public static final int TYPE_COUNT = ExchangeType.values().length;
 
     private final int type;
     private final Class<?> clazz;

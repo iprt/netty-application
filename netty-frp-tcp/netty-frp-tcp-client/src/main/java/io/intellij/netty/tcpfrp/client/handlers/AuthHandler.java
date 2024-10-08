@@ -3,7 +3,7 @@ package io.intellij.netty.tcpfrp.client.handlers;
 import io.intellij.netty.tcpfrp.config.ListeningConfig;
 import io.intellij.netty.tcpfrp.exchange.ExProtocolUtils;
 import io.intellij.netty.tcpfrp.exchange.ExchangeType;
-import io.intellij.netty.tcpfrp.exchange.clientsend.ListeningConfigReport;
+import io.intellij.netty.tcpfrp.exchange.c2s.ListeningConfigReport;
 import io.intellij.netty.tcpfrp.exchange.codec.ExchangeDecoder;
 import io.intellij.netty.tcpfrp.exchange.codec.ExchangeEncoder;
 import io.intellij.netty.utils.CtxUtils;

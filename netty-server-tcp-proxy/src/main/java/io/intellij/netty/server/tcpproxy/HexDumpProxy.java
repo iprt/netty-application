@@ -1,5 +1,6 @@
 package io.intellij.netty.server.tcpproxy;
 
+import io.intellij.netty.server.tcpproxy.handler.HexDumpProxyInitializer;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
@@ -8,7 +9,6 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import lombok.extern.slf4j.Slf4j;
-import io.intellij.netty.server.tcpproxy.handler.HexDumpProxyInitializer;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -65,7 +65,7 @@ public final class HexDumpProxy {
             REMOTE_PORT = Integer.parseInt(p.getProperty("remotePort", "3306"));
 
         } else {
-            LOCAL_HOST = System.getProperty("localHost", "127.0.0.1");
+            LOCAL_HOST = System.getProperty("localHost", "0.0.0.0");
             LOCAL_PORT = Integer.parseInt(System.getProperty("localPort", "3306"));
             REMOTE_HOST = System.getProperty("remoteHost", "172.100.1.100");
             REMOTE_PORT = Integer.parseInt(System.getProperty("remotePort", "3306"));

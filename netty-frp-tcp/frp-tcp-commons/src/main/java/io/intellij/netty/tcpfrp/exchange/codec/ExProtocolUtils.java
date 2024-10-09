@@ -11,6 +11,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
+import static io.intellij.netty.tcpfrp.exchange.SystemConfig.DATA_PACKET_USE_JSON;
+
 /**
  * ProtocolUtils
  *
@@ -21,9 +23,7 @@ public class ExProtocolUtils {
 
     // private static final int TYPE_COUNT = ExchangeType.values().length;
 
-    private static final int FIXED_CHANNEL_ID_LEN = 60;
-
-    static final boolean DATA_PACKET_USE_JSON = Boolean.parseBoolean(System.getProperty("jsonPacket", "false"));
+    public static final int FIXED_CHANNEL_ID_LEN = 60;
 
     public static ExchangeProtocol createProtocolData(ExchangeType exchangeType, Object obj) {
         if (Objects.isNull(exchangeType) || Objects.isNull(obj)) {
@@ -69,7 +69,7 @@ public class ExProtocolUtils {
                 T obj = JSON.parseObject(msg.getBody(), target);
                 if (Objects.isNull(obj)) {
                     return ProtocolParse.<T>builder()
-                            .valid(false).invalidMsg("JSON.parseObject(json, target) return null")
+                            .valid(false).invalidMsg("JSON.parseObject(json, target) return null|type=" + exchangeType)
                             .build();
                 }
 

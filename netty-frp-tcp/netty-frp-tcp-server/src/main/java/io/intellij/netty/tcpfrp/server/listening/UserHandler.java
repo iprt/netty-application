@@ -7,10 +7,12 @@ import io.intellij.netty.tcpfrp.exchange.codec.ExchangeType;
 import io.intellij.netty.tcpfrp.exchange.s2c.UserBreakConn;
 import io.intellij.netty.tcpfrp.exchange.s2c.UserCreateConn;
 import io.intellij.netty.tcpfrp.exchange.s2c.UserDataPacket;
+import io.intellij.netty.utils.ByteUtils;
 import io.intellij.netty.utils.ChannelUtils;
 import io.intellij.netty.utils.ConnHostPort;
 import io.intellij.netty.utils.CtxUtils;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
@@ -22,6 +24,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+
+import static io.intellij.netty.tcpfrp.exchange.SystemConfig.DATA_PACKET_USE_JSON;
 
 /**
  * UserHandler
@@ -73,17 +77,22 @@ public class UserHandler extends SimpleChannelInboundHandler<ByteBuf> {
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, ByteBuf msg) throws Exception {
         // e.g. user -write-> localhost:3306
-        byte[] bytes = new byte[msg.readableBytes()];
-        msg.readBytes(bytes);
 
         Channel userChannel = ctx.channel();
         String userChannelId = CtxUtils.getChannelId(ctx);
+
         // take service channel id
         String serviceChannelId = userChannelId2ServiceChannelId.get(userChannelId);
 
         if (serviceChannelId == null) {
+            log.error("Internal error occurred <serviceChannelId=null> |userChannelId={}", userChannelId);
             ctx.close();
-        } else {
+            return;
+        }
+
+        if (DATA_PACKET_USE_JSON) {
+            byte[] bytes = new byte[msg.readableBytes()];
+            msg.readBytes(bytes);
             exchangeChannel.writeAndFlush(
                     ExProtocolUtils.createProtocolData(
                             ExchangeType.S2C_USER_DATA_PACKET,
@@ -101,6 +110,40 @@ public class UserHandler extends SimpleChannelInboundHandler<ByteBuf> {
                     closeUserChannel(userChannelId, "UserHandler.channelRead0");
                 }
             });
+
+        } else {
+            byte[] userChannelIdBytes = userChannelId.getBytes();
+            byte[] serviceChannelIdBytes = serviceChannelId.getBytes();
+
+            byte[] prepareBytes = new byte[1 + 4 + userChannelIdBytes.length + serviceChannelIdBytes.length];
+
+            int bodyLen = userChannelIdBytes.length + serviceChannelIdBytes.length + msg.readableBytes();
+            byte[] bodyLenBytes = ByteUtils.getIntBytes(bodyLen);
+
+            prepareBytes[0] = (byte) ExchangeType.S2C_USER_DATA_PACKET.getType();
+            System.arraycopy(bodyLenBytes, 0, prepareBytes, 1, bodyLenBytes.length);
+            System.arraycopy(userChannelIdBytes, 0, prepareBytes, 1 + 4, userChannelIdBytes.length);
+            System.arraycopy(serviceChannelIdBytes, 0, prepareBytes, 1 + 4 + userChannelIdBytes.length, serviceChannelIdBytes.length);
+
+            // write 1
+            exchangeChannel.write(Unpooled.copiedBuffer(prepareBytes));
+
+            // 引用计数器+1 给exchangeChannel使用,节约内存
+            ReferenceCountUtil.retain(msg);
+
+            // write 2
+            exchangeChannel.write(msg)
+                    .addListener((ChannelFutureListener) future -> {
+                        if (future.isSuccess()) {
+                            if (userChannel.isActive()) {
+                                userChannel.read();
+                            }
+                        } else {
+                            closeUserChannel(userChannelId, "ServiceHandler.channelRead0");
+                        }
+                    });
+            exchangeChannel.flush();
+
         }
 
     }
@@ -145,11 +188,10 @@ public class UserHandler extends SimpleChannelInboundHandler<ByteBuf> {
         userChannelId2ServiceChannelId.remove(userChannelId);
     }
 
-
     public static void dispatch(String userChannelId, ByteBuf msg) {
         Channel userChannel = userChannelMap.get(userChannelId);
         if (userChannel != null && userChannel.isActive()) {
-            // log.info("dispatch to user|userChannelId={}", userChannelId);
+            log.info("dispatch to user|userChannelId={}", userChannelId);
             userChannel.writeAndFlush(msg)
                     .addListener((ChannelFutureListener) future -> {
                         if (future.isSuccess()) {

@@ -1,20 +1,22 @@
 package io.intellij.netty.tcpfrp.server.listening;
 
 import io.intellij.netty.tcpfrp.config.ListeningConfig;
+import io.intellij.netty.tcpfrp.server.thread.EventLoopGroupContainer;
 import io.intellij.netty.tcpfrp.server.thread.ThreadPool;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.EventLoopGroup;
-import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -28,8 +30,7 @@ public class MultiPortNettyServer {
     private final Map<Integer, ListeningConfig> portToListeningConfig;
     private final Channel exchangeChannel;
 
-    private final EventLoopGroup bossGroup = new NioEventLoopGroup(1);
-    private final EventLoopGroup workerGroup = new NioEventLoopGroup();
+    private final Map<Integer, Channel> SERVER_CHANNEL = new ConcurrentHashMap<>();
 
     public MultiPortNettyServer(Map<String, ListeningConfig> listeningConfigMap, Channel exchangeChannel) {
         this.exchangeChannel = exchangeChannel;
@@ -37,7 +38,12 @@ public class MultiPortNettyServer {
                 .collect(Collectors.toMap(ListeningConfig::getRemotePort, Function.identity()));
     }
 
+
     public boolean start() {
+        EventLoopGroupContainer container = EventLoopGroupContainer.get();
+        EventLoopGroup bossGroup = container.getBossGroup();
+        EventLoopGroup workerGroup = container.getWorkerGroup();
+
         try {
             for (Map.Entry<Integer, ListeningConfig> e : portToListeningConfig.entrySet()) {
                 ServerBootstrap b = new ServerBootstrap();
@@ -53,7 +59,10 @@ public class MultiPortNettyServer {
                         });
 
                 // 绑定端口并启动服务器
-                b.bind(e.getKey()).sync();
+                ChannelFuture channelFuture = b.bind(e.getKey()).sync();
+
+                SERVER_CHANNEL.put(e.getKey(), channelFuture.channel());
+
                 log.info("{} service started and listening on port {}", e.getValue().getName(), e.getKey());
             }
 
@@ -77,9 +86,16 @@ public class MultiPortNettyServer {
     }
 
     public void stop() {
-        log.warn("multi port server stop ...");
-        bossGroup.shutdownGracefully();
-        workerGroup.shutdownGracefully();
+        log.warn("multi port server stop start ...");
+        SERVER_CHANNEL.forEach((port, channel) -> {
+            ListeningConfig listeningConfig = portToListeningConfig.get(port);
+            log.warn("{} service stopped and release listening port {}", listeningConfig.getName(), port);
+            if (channel != null && channel.isActive()) {
+                channel.close();
+            }
+        });
+        log.warn("multi port server stop end ...");
+
     }
 
 }

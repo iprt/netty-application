@@ -23,7 +23,7 @@ public class ExchangeProtocolUtils {
         return new ExchangeProtocol(exchangeType, exchangeType.getClazz().getName(), JSON.toJSONBytes(obj));
     }
 
-    public static <T> ProtocolParse<T> parseProtocolBy(@NotNull ExchangeProtocol msg, @NotNull Class<T> target) {
+    public static <T> ProtocolParse<T> parseProtocolByJson(@NotNull ExchangeProtocol msg, @NotNull Class<T> target) {
         ExchangeType exchangeType = msg.exchangeType();
         String protocolClassName = exchangeType.getClazz().getName();
         String targetClassName = target.getName();

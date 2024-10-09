@@ -1,7 +1,6 @@
 package io.intellij.netty.tcpfrp.exchange.c2s;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
@@ -14,11 +13,12 @@ import lombok.ToString;
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
-@Builder
 @Data
 public class ServiceConnFailed {
-    private boolean success;
-    private String serviceChannelId;
-    // user -> frp-server channelId
     private String userChannelId;
+
+    public static ServiceConnFailed create(String userChannelId) {
+        return new ServiceConnFailed(userChannelId);
+    }
+
 }

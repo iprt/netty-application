@@ -48,7 +48,7 @@ public class ExchangeHandler extends SimpleChannelInboundHandler<ExchangeProtoco
         switch (exchangeType) {
 
             case S2C_LISTENING_CONFIG_RESP -> {
-                ProtocolParse<ListeningLocalResp> parse = ExchangeProtocolUtils.parseProtocolBy(msg, ListeningLocalResp.class);
+                ProtocolParse<ListeningLocalResp> parse = ExchangeProtocolUtils.parseProtocolByJson(msg, ListeningLocalResp.class);
                 if (parse.valid()) {
                     log.info("frp-server response|{}", parse.data());
                 } else {
@@ -57,7 +57,7 @@ public class ExchangeHandler extends SimpleChannelInboundHandler<ExchangeProtoco
             }
 
             case S2C_RECEIVE_USER_CONN_CREATE -> {
-                ProtocolParse<UserCreateConn> parse = ExchangeProtocolUtils.parseProtocolBy(msg, UserCreateConn.class);
+                ProtocolParse<UserCreateConn> parse = ExchangeProtocolUtils.parseProtocolByJson(msg, UserCreateConn.class);
                 if (parse.valid()) {
                     UserCreateConn userCreateConn = parse.data();
                     final String userChannelId = userCreateConn.getUserChannelId();
@@ -71,9 +71,7 @@ public class ExchangeHandler extends SimpleChannelInboundHandler<ExchangeProtoco
                             ChannelFuture responseFuture = exchangeChannel.writeAndFlush(
                                     ExchangeProtocolUtils.buildProtocolByJson(
                                             ExchangeType.C2S_CONN_REAL_SERVICE_SUCCESS,
-                                            ServiceConnSuccess.builder().success(true)
-                                                    .serviceChannelId(serviceChannelId).userChannelId(userChannelId)
-                                                    .build()
+                                            ServiceConnSuccess.create(userChannelId, serviceChannelId)
                                     )
                             );
                             responseFuture.addListener((ChannelFutureListener) f -> {
@@ -93,10 +91,8 @@ public class ExchangeHandler extends SimpleChannelInboundHandler<ExchangeProtoco
                             log.error("service channel create failed");
                             ctx.writeAndFlush(ExchangeProtocolUtils.buildProtocolByJson(
                                     ExchangeType.C2S_CONN_REAL_SERVICE_FAILED,
-                                    ServiceConnFailed.builder().success(false)
-                                            .serviceChannelId(null).userChannelId(userChannelId)
-                                            .build())
-                            );
+                                    ServiceConnFailed.create(userChannelId)
+                            ));
                         }
 
                     });
@@ -120,10 +116,7 @@ public class ExchangeHandler extends SimpleChannelInboundHandler<ExchangeProtoco
                                     exchangeChannel.writeAndFlush(
                                             ExchangeProtocolUtils.buildProtocolByJson(
                                                     ExchangeType.C2S_CONN_REAL_SERVICE_FAILED,
-                                                    ServiceConnFailed.builder().success(false)
-                                                            .serviceChannelId(null)
-                                                            .userChannelId(userCreateConn.getUserChannelId())
-                                                            .build()
+                                                    ServiceConnFailed.create(userChannelId)
                                             )
                                     );
                                 }
@@ -135,7 +128,7 @@ public class ExchangeHandler extends SimpleChannelInboundHandler<ExchangeProtoco
             }
 
             case S2C_RECEIVE_USER_CONN_BREAK -> {
-                ProtocolParse<UserBreakConn> parse = ExchangeProtocolUtils.parseProtocolBy(msg, UserBreakConn.class);
+                ProtocolParse<UserBreakConn> parse = ExchangeProtocolUtils.parseProtocolByJson(msg, UserBreakConn.class);
                 if (parse.valid()) {
                     UserBreakConn userBreakConn = parse.data();
                     String serviceChannelId = userBreakConn.getServiceChannelId();
@@ -150,7 +143,7 @@ public class ExchangeHandler extends SimpleChannelInboundHandler<ExchangeProtoco
                     throw new RuntimeException("data packet parse type is not json !!!");
                 }
 
-                ProtocolParse<DataPacket> parse = ExchangeProtocolUtils.parseProtocolBy(msg, DataPacket.class);
+                ProtocolParse<DataPacket> parse = ExchangeProtocolUtils.parseProtocolByJson(msg, DataPacket.class);
                 if (parse.valid()) {
                     DataPacket userDataPacket = parse.data();
                     String serviceChannelId = userDataPacket.getServiceChannelId();

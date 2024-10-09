@@ -43,7 +43,7 @@ public class ExchangeHandler extends SimpleChannelInboundHandler<ExchangeProtoco
 
             case C2S_SEND_CONFIG -> {
 
-                ProtocolParse<ListeningConfigReport> parse = ExchangeProtocolUtils.parseProtocolBy(msg, ListeningConfigReport.class);
+                ProtocolParse<ListeningConfigReport> parse = ExchangeProtocolUtils.parseProtocolByJson(msg, ListeningConfigReport.class);
 
                 if (parse.valid()) {
                     ListeningConfigReport sendListeningConfig = parse.data();
@@ -52,12 +52,13 @@ public class ExchangeHandler extends SimpleChannelInboundHandler<ExchangeProtoco
                 } else {
                     throw new RuntimeException(parse.invalidMsg());
                 }
+
             }
 
-            // frp client 连接服务成功 回复的消息
+            // frp client 连接服务成功
             case C2S_CONN_REAL_SERVICE_SUCCESS -> {
 
-                ProtocolParse<ServiceConnSuccess> parse = ExchangeProtocolUtils.parseProtocolBy(msg, ServiceConnSuccess.class);
+                ProtocolParse<ServiceConnSuccess> parse = ExchangeProtocolUtils.parseProtocolByJson(msg, ServiceConnSuccess.class);
 
                 if (parse.valid()) {
                     ServiceConnSuccess serviceConnSuccess = parse.data();
@@ -76,7 +77,7 @@ public class ExchangeHandler extends SimpleChannelInboundHandler<ExchangeProtoco
             // frp client 连接服务失败
             case C2S_CONN_REAL_SERVICE_FAILED -> {
 
-                ProtocolParse<ServiceConnFailed> parse = ExchangeProtocolUtils.parseProtocolBy(msg, ServiceConnFailed.class);
+                ProtocolParse<ServiceConnFailed> parse = ExchangeProtocolUtils.parseProtocolByJson(msg, ServiceConnFailed.class);
 
                 if (parse.valid()) {
                     ServiceConnFailed serviceConnFailed = parse.data();
@@ -93,7 +94,7 @@ public class ExchangeHandler extends SimpleChannelInboundHandler<ExchangeProtoco
 
             case C2S_LOST_REAL_SERVER_CONN -> {
 
-                ProtocolParse<ServiceBreakConn> parse = ExchangeProtocolUtils.parseProtocolBy(msg, ServiceBreakConn.class);
+                ProtocolParse<ServiceBreakConn> parse = ExchangeProtocolUtils.parseProtocolByJson(msg, ServiceBreakConn.class);
 
                 if (parse.valid()) {
                     ServiceBreakConn serviceBreakConn = parse.data();
@@ -110,10 +111,12 @@ public class ExchangeHandler extends SimpleChannelInboundHandler<ExchangeProtoco
 
             // 处理数据 传输使用的JSON序列化
             case C2S_SERVICE_DATA_PACKET -> {
+
                 if (!dataPacketUseJson) {
                     throw new RuntimeException("data packet parse type is not json !!!");
                 }
-                ProtocolParse<DataPacket> parse = ExchangeProtocolUtils.parseProtocolBy(msg, DataPacket.class);
+
+                ProtocolParse<DataPacket> parse = ExchangeProtocolUtils.parseProtocolByJson(msg, DataPacket.class);
                 if (parse.valid()) {
                     DataPacket serviceDataPacket = parse.data();
 
@@ -131,6 +134,7 @@ public class ExchangeHandler extends SimpleChannelInboundHandler<ExchangeProtoco
                 log.error("unknown type in default case|{}", exchangeType);
                 ctx.close();
             }
+
         }
 
     }

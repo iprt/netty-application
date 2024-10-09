@@ -138,18 +138,19 @@ public class ExchangeHandler extends SimpleChannelInboundHandler<ExchangeProtoco
     private final AtomicReference<MultiPortNettyServer> serverRef = new AtomicReference<>(null);
 
     private void prepareMultiPortNettyServer(ChannelHandlerContext ctx, Map<String, ListeningConfig> listeningConfigMap) {
-        ListeningLocalResp listeningLocalResp = MultiPortUtils.connLocalResp(listeningConfigMap.values().stream().toList());
+        ListeningLocalResp listeningLocalResp = MultiPortUtils.testLocalListing(listeningConfigMap.values().stream().toList());
         ctx.writeAndFlush(ExchangeProtocolUtils.buildProtocolByJson(ExchangeType.S2C_LISTENING_CONFIG_RESP, listeningLocalResp));
-        if (!listeningLocalResp.isSuccess()) {
-            ctx.close();
-        } else {
+        if (listeningLocalResp.isSuccess()) {
             MultiPortNettyServer server = new MultiPortNettyServer(listeningConfigMap, ctx.channel());
             if (server.start()) {
                 log.info("multi port server start ...");
+                // TODO promise optimize serverRef
                 serverRef.set(server);
             } else {
                 ctx.close();
             }
+        } else {
+            ctx.close();
         }
     }
 

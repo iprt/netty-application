@@ -13,7 +13,7 @@ import java.util.List;
  */
 public class MultiPortUtils {
 
-    public static ListeningLocalResp connLocalResp(List<ListeningConfig> listeningConfigs) {
+    public static ListeningLocalResp testLocalListing(List<ListeningConfig> listeningConfigs) {
         for (ListeningConfig listeningConfig : listeningConfigs) {
             boolean portOpen = SocketUtils.isPortOpen("127.0.0.1", listeningConfig.getRemotePort());
             if (portOpen) {

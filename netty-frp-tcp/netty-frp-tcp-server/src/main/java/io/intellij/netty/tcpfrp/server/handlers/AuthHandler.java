@@ -18,7 +18,6 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class AuthHandler extends SimpleChannelInboundHandler<String> {
     static final String HANDLER_NAME = AuthHandler.class.getName();
-
     private final String token;
 
     @Override

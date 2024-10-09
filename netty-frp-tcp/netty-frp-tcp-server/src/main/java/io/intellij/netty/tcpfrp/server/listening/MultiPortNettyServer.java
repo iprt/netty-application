@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 public class MultiPortNettyServer {
-    private final Map<Integer, ListeningConfig> portToServer;
+    private final Map<Integer, ListeningConfig> portToListeningConfig;
     private final Channel exchangeChannel;
 
     private final EventLoopGroup bossGroup = new NioEventLoopGroup(1);
@@ -33,13 +33,13 @@ public class MultiPortNettyServer {
 
     public MultiPortNettyServer(Map<String, ListeningConfig> listeningConfigMap, Channel exchangeChannel) {
         this.exchangeChannel = exchangeChannel;
-        this.portToServer = listeningConfigMap.values().stream()
+        this.portToListeningConfig = listeningConfigMap.values().stream()
                 .collect(Collectors.toMap(ListeningConfig::getRemotePort, Function.identity()));
     }
 
     public boolean start() {
         try {
-            for (Map.Entry<Integer, ListeningConfig> e : portToServer.entrySet()) {
+            for (Map.Entry<Integer, ListeningConfig> e : portToListeningConfig.entrySet()) {
                 ServerBootstrap b = new ServerBootstrap();
                 b.group(bossGroup, workerGroup)
                         .channel(NioServerSocketChannel.class)
@@ -48,7 +48,7 @@ public class MultiPortNettyServer {
                             @Override
                             protected void initChannel(@NotNull SocketChannel ch) throws Exception {
                                 ChannelPipeline pipeline = ch.pipeline();
-                                pipeline.addLast(new UserHandler(portToServer, exchangeChannel));
+                                pipeline.addLast(new UserHandler(portToListeningConfig, exchangeChannel));
                             }
                         });
 

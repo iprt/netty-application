@@ -17,7 +17,7 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.channel.ChannelInboundHandlerAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
@@ -34,7 +34,7 @@ import static io.intellij.netty.tcpfrp.exchange.SystemConfig.DATA_PACKET_USE_JSO
  */
 @RequiredArgsConstructor
 @Slf4j
-public class UserHandler extends SimpleChannelInboundHandler<ByteBuf> {
+public class UserHandler extends ChannelInboundHandlerAdapter {
     private static final Map<String, Channel> userChannelMap = new ConcurrentHashMap<>();
     private static final Map<String, String> userChannelId2ServiceChannelId = new ConcurrentHashMap<>();
 
@@ -75,76 +75,80 @@ public class UserHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
     // childOption(ChannelOption.AUTO_READ, false)
     @Override
-    protected void channelRead0(ChannelHandlerContext ctx, ByteBuf msg) throws Exception {
+    public void channelRead(@NotNull ChannelHandlerContext ctx, @NotNull Object objMsg) throws Exception {
         // e.g. user -write-> localhost:3306
 
-        Channel userChannel = ctx.channel();
-        String userChannelId = CtxUtils.getChannelId(ctx);
+        if (objMsg instanceof ByteBuf msg) {
+            Channel userChannel = ctx.channel();
+            String userChannelId = CtxUtils.getChannelId(ctx);
 
-        // take service channel id
-        String serviceChannelId = userChannelId2ServiceChannelId.get(userChannelId);
+            // take service channel id
+            String serviceChannelId = userChannelId2ServiceChannelId.get(userChannelId);
 
-        if (serviceChannelId == null) {
-            log.error("Internal error occurred <serviceChannelId=null> |userChannelId={}", userChannelId);
-            ctx.close();
-            return;
-        }
+            if (serviceChannelId == null) {
+                log.error("Internal error occurred <serviceChannelId=null> |userChannelId={}", userChannelId);
+                ctx.close();
+                return;
+            }
 
-        if (DATA_PACKET_USE_JSON) {
-            byte[] bytes = new byte[msg.readableBytes()];
-            msg.readBytes(bytes);
-            exchangeChannel.writeAndFlush(
-                    ExchangeProtocolUtils.buildProtocolByJson(
-                            ExchangeType.S2C_USER_DATA_PACKET,
-                            DataPacket.builder()
-                                    .from(UserDataPacket.class.getName())
-                                    .userChannelId(userChannelId).serviceChannelId(serviceChannelId)
-                                    .packet(bytes).build()
-                    )
-            ).addListener((ChannelFutureListener) future -> {
-                if (future.isSuccess()) {
-                    if (userChannel.isActive()) {
-                        userChannel.read();
-                    }
-                } else {
-                    closeUserChannel(userChannelId, "UserHandler.channelRead0");
-                }
-            });
-
-        } else {
-            byte[] userChannelIdBytes = userChannelId.getBytes();
-            byte[] serviceChannelIdBytes = serviceChannelId.getBytes();
-
-            byte[] prepareBytes = new byte[1 + 4 + userChannelIdBytes.length + serviceChannelIdBytes.length];
-
-            int bodyLen = userChannelIdBytes.length + serviceChannelIdBytes.length + msg.readableBytes();
-            byte[] bodyLenBytes = ByteUtils.getIntBytes(bodyLen);
-
-            prepareBytes[0] = (byte) ExchangeType.S2C_USER_DATA_PACKET.getType();
-            System.arraycopy(bodyLenBytes, 0, prepareBytes, 1, bodyLenBytes.length);
-            System.arraycopy(userChannelIdBytes, 0, prepareBytes, 1 + 4, userChannelIdBytes.length);
-            System.arraycopy(serviceChannelIdBytes, 0, prepareBytes, 1 + 4 + userChannelIdBytes.length, serviceChannelIdBytes.length);
-
-            // write 1
-            exchangeChannel.write(Unpooled.copiedBuffer(prepareBytes));
-
-            // 引用计数器+1 给exchangeChannel使用,节约内存
-            // ReferenceCountUtil.retain(msg);
-
-            // write 2
-            exchangeChannel.write(msg.retainedDuplicate())
-                    .addListener((ChannelFutureListener) future -> {
-                        if (future.isSuccess()) {
-                            if (userChannel.isActive()) {
-                                userChannel.read();
-                            }
-                        } else {
-                            closeUserChannel(userChannelId, "ServiceHandler.channelRead0");
+            if (DATA_PACKET_USE_JSON) {
+                byte[] bytes = new byte[msg.readableBytes()];
+                msg.readBytes(bytes);
+                exchangeChannel.writeAndFlush(
+                        ExchangeProtocolUtils.buildProtocolByJson(
+                                ExchangeType.S2C_USER_DATA_PACKET,
+                                DataPacket.builder()
+                                        .from(UserDataPacket.class.getName())
+                                        .userChannelId(userChannelId).serviceChannelId(serviceChannelId)
+                                        .packet(bytes).build()
+                        )
+                ).addListener((ChannelFutureListener) future -> {
+                    if (future.isSuccess()) {
+                        if (userChannel.isActive()) {
+                            userChannel.read();
                         }
-                    });
-            exchangeChannel.flush();
-        }
+                    } else {
+                        closeUserChannel(userChannelId, "UserHandler.channelRead0");
+                    }
+                });
 
+            } else {
+                byte[] userChannelIdBytes = userChannelId.getBytes();
+                byte[] serviceChannelIdBytes = serviceChannelId.getBytes();
+
+                byte[] prepareBytes = new byte[1 + 4 + userChannelIdBytes.length + serviceChannelIdBytes.length];
+
+                int bodyLen = userChannelIdBytes.length + serviceChannelIdBytes.length + msg.readableBytes();
+                byte[] bodyLenBytes = ByteUtils.getIntBytes(bodyLen);
+
+                prepareBytes[0] = (byte) ExchangeType.S2C_USER_DATA_PACKET.getType();
+                System.arraycopy(bodyLenBytes, 0, prepareBytes, 1, bodyLenBytes.length);
+                System.arraycopy(userChannelIdBytes, 0, prepareBytes, 1 + 4, userChannelIdBytes.length);
+                System.arraycopy(serviceChannelIdBytes, 0, prepareBytes, 1 + 4 + userChannelIdBytes.length, serviceChannelIdBytes.length);
+
+                // write 1
+                exchangeChannel.write(Unpooled.copiedBuffer(prepareBytes));
+
+                // 引用计数器+1 给exchangeChannel使用,节约内存
+                // ReferenceCountUtil.retain(msg);
+
+                // write 2
+                // exchangeChannel.write(msg.retainedDuplicate())
+                exchangeChannel.write(objMsg)
+                        .addListener((ChannelFutureListener) future -> {
+                            if (future.isSuccess()) {
+                                if (userChannel.isActive()) {
+                                    userChannel.read();
+                                }
+                            } else {
+                                closeUserChannel(userChannelId, "ServiceHandler.channelRead0");
+                            }
+                        });
+                exchangeChannel.flush();
+            }
+        } else {
+            ctx.close();
+        }
     }
 
     @Override
@@ -206,7 +210,7 @@ public class UserHandler extends SimpleChannelInboundHandler<ByteBuf> {
         String userChannelId = dataPacket.userChannelId();
         Channel userChannel = userChannelMap.get(userChannelId);
         if (userChannel != null && userChannel.isActive()) {
-            log.info("dispatch ByteBuf to user|userChannelId={}", userChannelId);
+            log.info("dispatch ByteBuf to user|userChannelId={}|realPacketLen={}", userChannelId, dataPacket.packet().readableBytes());
             userChannel.writeAndFlush(dataPacket.packet())
                     .addListener((ChannelFutureListener) future -> {
                         if (future.isSuccess()) {

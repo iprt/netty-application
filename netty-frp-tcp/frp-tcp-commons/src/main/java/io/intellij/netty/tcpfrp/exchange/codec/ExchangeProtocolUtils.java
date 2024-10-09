@@ -1,54 +1,44 @@
 package io.intellij.netty.tcpfrp.exchange.codec;
 
 import com.alibaba.fastjson2.JSON;
+import io.intellij.netty.tcpfrp.exchange.c2s.ServiceDataPacket;
+import io.intellij.netty.tcpfrp.exchange.s2c.UserDataPacket;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
 /**
- * ProtocolUtils
+ * ExchangeProtocolUtils
  *
  * @author tech@intellij.io
  */
 public class ExchangeProtocolUtils {
-    public static final int FIXED_CHANNEL_ID_LEN = 60;
+    private ExchangeProtocolUtils() {
+    }
 
     public static ExchangeProtocol buildProtocolByJson(ExchangeType exchangeType, Object obj) {
         if (Objects.isNull(exchangeType) || Objects.isNull(obj)) {
             return null;
         }
         return new ExchangeProtocol(exchangeType, exchangeType.getClazz().getName(), JSON.toJSONBytes(obj));
-
     }
 
     public static <T> ProtocolParse<T> parseProtocolBy(@NotNull ExchangeProtocol msg, @NotNull Class<T> target) {
         ExchangeType exchangeType = msg.exchangeType();
         String protocolClassName = exchangeType.getClazz().getName();
         String targetClassName = target.getName();
-        if (protocolClassName.equals(targetClassName)) {
+        if (exchangeType.getClazz() == ServiceDataPacket.class || exchangeType.getClazz() == UserDataPacket.class || protocolClassName.equals(targetClassName)) {
             try {
                 T obj = JSON.parseObject(msg.body(), target);
-                if (Objects.isNull(obj)) {
-                    return ProtocolParse.<T>builder()
-                            .valid(false).invalidMsg("JSON.parseObject(json, target) return null|type=" + exchangeType)
-                            .build();
-                }
-
-                return ProtocolParse.<T>builder().valid(true).exchangeType(msg.exchangeType()).data(obj).build();
-
+                return Objects.isNull(obj) ? ProtocolParse.failed("JSON.parseObject(json, target) return null|type=" + exchangeType)
+                        : ProtocolParse.success(exchangeType, obj);
             } catch (Exception e) {
-                return ProtocolParse.<T>builder()
-                        .valid(false).invalidMsg(e.getMessage())
-                        .build();
+                return ProtocolParse.failed(e.getMessage());
             }
-
         } else {
-            return ProtocolParse.<T>builder()
-                    .valid(false).exchangeType(exchangeType)
-                    .invalidMsg(
-                            String.format("msg's classname does not match target's classname|protocol.classname=%s|target.classname=%s",
-                                    protocolClassName, targetClassName)
-                    ).build();
+            return ProtocolParse.failed(
+                    String.format("msg's classname does not match target's classname|protocol.classname=%s|target.classname=%s", protocolClassName, targetClassName)
+            );
         }
     }
 

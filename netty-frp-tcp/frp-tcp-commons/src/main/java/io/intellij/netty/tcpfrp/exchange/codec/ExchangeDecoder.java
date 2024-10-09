@@ -9,6 +9,11 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.List;
 import java.util.Objects;
 
+import static io.intellij.netty.tcpfrp.exchange.codec.ExchangeProtocol.FIXED_CHANNEL_ID_LEN;
+import static io.intellij.netty.tcpfrp.exchange.codec.ExchangeType.C2S_SERVICE_DATA_PACKET;
+import static io.intellij.netty.tcpfrp.exchange.codec.ExchangeType.S2C_USER_DATA_PACKET;
+import static io.intellij.netty.tcpfrp.exchange.codec.ExchangeType.getExchangeType;
+
 /**
  * ExchangeDecoder
  * <p>
@@ -24,7 +29,7 @@ public class ExchangeDecoder extends ByteToMessageDecoder {
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
         in.markReaderIndex();
-        ExchangeType exchangeType = ExchangeType.getExchangeType(in.readByte());
+        ExchangeType exchangeType = getExchangeType(in.readByte());
         if (Objects.isNull(exchangeType)) {
             log.error("unknown exchange exchangeType");
             ctx.close();
@@ -48,36 +53,41 @@ public class ExchangeDecoder extends ByteToMessageDecoder {
             return;
         }
 
-        if ((ExchangeType.S2C_USER_DATA_PACKET == exchangeType || ExchangeType.C2S_SERVICE_DATA_PACKET == exchangeType)
-            && !dataPacketUseJson) {
-            this.decodeDataPacket(exchangeType, in, out);
+        if ((S2C_USER_DATA_PACKET == exchangeType || C2S_SERVICE_DATA_PACKET == exchangeType) && !dataPacketUseJson) {
+
+            if (bodyLen < 120) {
+                log.error("data packet bodyLen must > 120");
+                ctx.close();
+            }
+
+            byte[] userChannelIdBytes = new byte[FIXED_CHANNEL_ID_LEN];
+            in.readBytes(userChannelIdBytes);
+
+            byte[] serviceChannelIdBytes = new byte[FIXED_CHANNEL_ID_LEN];
+            in.readBytes(serviceChannelIdBytes);
+
+            String userChannelId = new String(userChannelIdBytes);
+            String serviceChannelId = new String(serviceChannelIdBytes);
+
+            // important 计算剩余的字节数
+            int packetLen = bodyLen - FIXED_CHANNEL_ID_LEN * 2;
+            out.add(ExchangeProtocolDataPacket.of(exchangeType, userChannelId, serviceChannelId,
+
+                            in.retainedSlice(in.readerIndex(), packetLen)
+                    )
+            );
+            // 更新读指针位置
+            in.skipBytes(packetLen);
+            // in.readBytes(in.readableBytes())
+            // tips: in.retainedSlice(in.readerIndex(), in.readableBytes()) 和  in.skipBytes(in.readableBytes()) 组合使用
             return;
+
         }
 
         byte[] body = new byte[bodyLen];
         in.readBytes(body);
         out.add(new ExchangeProtocol(exchangeType, exchangeType.getClazz().getName(), body));
 
-    }
-
-    private void decodeDataPacket(ExchangeType exchangeType, ByteBuf in, List<Object> out) {
-        // TODO bodyLen 一定要大于 FIXED_CHANNEL_ID_LEN * 2
-        byte[] userChannelIdBytes = new byte[ExchangeProtocolUtils.FIXED_CHANNEL_ID_LEN];
-        byte[] serviceChannelIdBytes = new byte[ExchangeProtocolUtils.FIXED_CHANNEL_ID_LEN];
-
-        in.readBytes(userChannelIdBytes);
-        in.readBytes(serviceChannelIdBytes);
-        String userChannelId = new String(userChannelIdBytes);
-        String serviceChannelId = new String(serviceChannelIdBytes);
-
-        // 剩余的字节就是 真实的数据包
-        out.add(new ExchangeProtocolDataPacket(exchangeType, userChannelId, serviceChannelId,
-                        // in.readBytes(in.readableBytes())
-                        in.retainedSlice(in.readerIndex(), in.readableBytes())
-                )
-        );
-        //  in.retainedSlice(in.readerIndex(), in.readableBytes()) 和  in.skipBytes(in.readableBytes()) 组合使用
-        in.skipBytes(in.readableBytes());
     }
 
 }

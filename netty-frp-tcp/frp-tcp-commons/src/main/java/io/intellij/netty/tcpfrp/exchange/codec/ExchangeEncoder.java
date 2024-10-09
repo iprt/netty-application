@@ -22,9 +22,3 @@ public class ExchangeEncoder extends MessageToByteEncoder<ExchangeProtocol> {
         byteBuf.writeBytes(bodyBytes);
     }
 }
-
-/*
-
-| 1byte | 4byte len | ... msg |
-
- */

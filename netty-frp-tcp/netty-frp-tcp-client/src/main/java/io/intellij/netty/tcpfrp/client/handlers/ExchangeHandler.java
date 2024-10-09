@@ -49,17 +49,17 @@ public class ExchangeHandler extends SimpleChannelInboundHandler<ExchangeProtoco
 
             case S2C_LISTENING_CONFIG_RESP -> {
                 ProtocolParse<ListeningLocalResp> parse = ExchangeProtocolUtils.parseProtocolBy(msg, ListeningLocalResp.class);
-                if (parse.isValid()) {
-                    log.info("frp-server response|{}", parse.getData());
+                if (parse.valid()) {
+                    log.info("frp-server response|{}", parse.data());
                 } else {
-                    throw new RuntimeException(parse.getInvalidMsg());
+                    throw new RuntimeException(parse.invalidMsg());
                 }
             }
 
             case S2C_RECEIVE_USER_CONN_CREATE -> {
                 ProtocolParse<UserCreateConn> parse = ExchangeProtocolUtils.parseProtocolBy(msg, UserCreateConn.class);
-                if (parse.isValid()) {
-                    UserCreateConn userCreateConn = parse.getData();
+                if (parse.valid()) {
+                    UserCreateConn userCreateConn = parse.data();
                     final String userChannelId = userCreateConn.getUserChannelId();
 
                     Promise<Channel> serviceChannelPromise = ctx.executor().newPromise();
@@ -129,22 +129,20 @@ public class ExchangeHandler extends SimpleChannelInboundHandler<ExchangeProtoco
                                 }
                             });
                 } else {
-                    throw new RuntimeException(parse.getInvalidMsg());
+                    throw new RuntimeException(parse.invalidMsg());
                 }
 
             }
 
             case S2C_RECEIVE_USER_CONN_BREAK -> {
                 ProtocolParse<UserBreakConn> parse = ExchangeProtocolUtils.parseProtocolBy(msg, UserBreakConn.class);
-                if (parse.isValid()) {
-                    UserBreakConn userBreakConn = parse.getData();
+                if (parse.valid()) {
+                    UserBreakConn userBreakConn = parse.data();
                     String serviceChannelId = userBreakConn.getServiceChannelId();
-                    ServiceHandler.closeServiceChannel(serviceChannelId, parse.getExchangeType().getDesc());
-
+                    ServiceHandler.closeServiceChannel(serviceChannelId, parse.exchangeType().getDesc());
                 } else {
-                    throw new RuntimeException(parse.getInvalidMsg());
+                    throw new RuntimeException(parse.invalidMsg());
                 }
-
             }
 
             case S2C_USER_DATA_PACKET -> {
@@ -153,14 +151,14 @@ public class ExchangeHandler extends SimpleChannelInboundHandler<ExchangeProtoco
                 }
 
                 ProtocolParse<DataPacket> parse = ExchangeProtocolUtils.parseProtocolBy(msg, DataPacket.class);
-                if (parse.isValid()) {
-                    DataPacket userDataPacket = parse.getData();
+                if (parse.valid()) {
+                    DataPacket userDataPacket = parse.data();
                     String serviceChannelId = userDataPacket.getServiceChannelId();
                     // log.info("receive get user data|serviceChannelId={}", serviceChannelId);
                     ServiceHandler.dispatch(serviceChannelId, userDataPacket.getPacket());
 
                 } else {
-                    throw new RuntimeException(parse.getInvalidMsg());
+                    throw new RuntimeException(parse.invalidMsg());
                 }
             }
 

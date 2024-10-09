@@ -45,12 +45,12 @@ public class ExchangeHandler extends SimpleChannelInboundHandler<ExchangeProtoco
 
                 ProtocolParse<ListeningConfigReport> parse = ExchangeProtocolUtils.parseProtocolBy(msg, ListeningConfigReport.class);
 
-                if (parse.isValid()) {
-                    ListeningConfigReport sendListeningConfig = parse.getData();
+                if (parse.valid()) {
+                    ListeningConfigReport sendListeningConfig = parse.data();
                     log.info("get frp-client's listening config request|{}", sendListeningConfig);
                     this.prepareMultiPortNettyServer(ctx, sendListeningConfig.getListeningConfigMap());
                 } else {
-                    throw new RuntimeException(parse.getInvalidMsg());
+                    throw new RuntimeException(parse.invalidMsg());
                 }
             }
 
@@ -59,8 +59,8 @@ public class ExchangeHandler extends SimpleChannelInboundHandler<ExchangeProtoco
 
                 ProtocolParse<ServiceConnSuccess> parse = ExchangeProtocolUtils.parseProtocolBy(msg, ServiceConnSuccess.class);
 
-                if (parse.isValid()) {
-                    ServiceConnSuccess serviceConnSuccess = parse.getData();
+                if (parse.valid()) {
+                    ServiceConnSuccess serviceConnSuccess = parse.data();
                     log.info("ConnServiceResp|frp-client connect service success|{}", serviceConnSuccess);
                     // 远程连接成功了
                     String userChannelId = serviceConnSuccess.getUserChannelId();
@@ -68,7 +68,7 @@ public class ExchangeHandler extends SimpleChannelInboundHandler<ExchangeProtoco
                     UserHandler.notifyUserChannelRead(userChannelId, serviceChannelId);
 
                 } else {
-                    throw new RuntimeException(parse.getInvalidMsg());
+                    throw new RuntimeException(parse.invalidMsg());
                 }
 
             }
@@ -78,15 +78,15 @@ public class ExchangeHandler extends SimpleChannelInboundHandler<ExchangeProtoco
 
                 ProtocolParse<ServiceConnFailed> parse = ExchangeProtocolUtils.parseProtocolBy(msg, ServiceConnFailed.class);
 
-                if (parse.isValid()) {
-                    ServiceConnFailed serviceConnFailed = parse.getData();
+                if (parse.valid()) {
+                    ServiceConnFailed serviceConnFailed = parse.data();
                     log.error("ConnServiceResp|frp-client connect service failed|{}", serviceConnFailed);
 
                     String userChannelId = serviceConnFailed.getUserChannelId();
-                    UserHandler.closeUserChannel(userChannelId, parse.getExchangeType().getDesc());
+                    UserHandler.closeUserChannel(userChannelId, parse.exchangeType().getDesc());
 
                 } else {
-                    throw new RuntimeException(parse.getInvalidMsg());
+                    throw new RuntimeException(parse.invalidMsg());
                 }
 
             }
@@ -95,15 +95,15 @@ public class ExchangeHandler extends SimpleChannelInboundHandler<ExchangeProtoco
 
                 ProtocolParse<ServiceBreakConn> parse = ExchangeProtocolUtils.parseProtocolBy(msg, ServiceBreakConn.class);
 
-                if (parse.isValid()) {
-                    ServiceBreakConn serviceBreakConn = parse.getData();
+                if (parse.valid()) {
+                    ServiceBreakConn serviceBreakConn = parse.data();
                     log.error("ConnServiceResp|frp-client lost service's connection|{}", serviceBreakConn);
                     String userChannelId = serviceBreakConn.getUserChannelId();
 
-                    UserHandler.closeUserChannel(userChannelId, parse.getExchangeType().getDesc());
+                    UserHandler.closeUserChannel(userChannelId, parse.exchangeType().getDesc());
 
                 } else {
-                    throw new RuntimeException(parse.getInvalidMsg());
+                    throw new RuntimeException(parse.invalidMsg());
                 }
 
             }
@@ -114,15 +114,15 @@ public class ExchangeHandler extends SimpleChannelInboundHandler<ExchangeProtoco
                     throw new RuntimeException("data packet parse type is not json !!!");
                 }
                 ProtocolParse<DataPacket> parse = ExchangeProtocolUtils.parseProtocolBy(msg, DataPacket.class);
-                if (parse.isValid()) {
-                    DataPacket serviceDataPacket = parse.getData();
+                if (parse.valid()) {
+                    DataPacket serviceDataPacket = parse.data();
 
                     String userChannelId = serviceDataPacket.getUserChannelId();
                     byte[] data = serviceDataPacket.getPacket();
 
                     UserHandler.dispatch(userChannelId, Unpooled.copiedBuffer(data));
                 } else {
-                    throw new RuntimeException(parse.getInvalidMsg());
+                    throw new RuntimeException(parse.invalidMsg());
                 }
 
             }

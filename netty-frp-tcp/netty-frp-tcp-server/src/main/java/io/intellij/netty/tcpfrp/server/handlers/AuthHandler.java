@@ -1,5 +1,6 @@
 package io.intellij.netty.tcpfrp.server.handlers;
 
+import io.intellij.netty.tcpfrp.exchange.SystemConfig;
 import io.intellij.netty.tcpfrp.exchange.codec.ExchangeDecoder;
 import io.intellij.netty.tcpfrp.exchange.codec.ExchangeEncoder;
 import io.intellij.netty.utils.CtxUtils;
@@ -7,7 +8,6 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * AuthHandler
@@ -33,9 +33,16 @@ public class AuthHandler extends SimpleChannelInboundHandler<String> {
             ctx.pipeline().remove("StringEncoder");
             ctx.pipeline().remove("StringDecoder");
 
-            ctx.pipeline().addLast("ExchangeDecoder", new ExchangeDecoder());
+            boolean dataPacketUseJson = SystemConfig.DATA_PACKET_USE_JSON;
+
+            ctx.pipeline().addLast("ExchangeDecoder", new ExchangeDecoder(dataPacketUseJson));
             ctx.pipeline().addLast("ExchangeEncoder", new ExchangeEncoder());
-            ctx.pipeline().addLast(new ExchangeHandler());
+
+            ctx.pipeline().addLast(new ExchangeHandler(dataPacketUseJson));
+
+            if (!dataPacketUseJson) {
+                ctx.pipeline().addLast(new ExchangeDataPacketHandler());
+            }
 
         } else {
             ctx.close();

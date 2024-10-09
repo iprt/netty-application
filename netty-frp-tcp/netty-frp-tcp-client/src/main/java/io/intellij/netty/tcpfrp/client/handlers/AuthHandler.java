@@ -1,11 +1,12 @@
 package io.intellij.netty.tcpfrp.client.handlers;
 
 import io.intellij.netty.tcpfrp.config.ListeningConfig;
-import io.intellij.netty.tcpfrp.exchange.codec.ExProtocolUtils;
-import io.intellij.netty.tcpfrp.exchange.codec.ExchangeType;
+import io.intellij.netty.tcpfrp.exchange.SystemConfig;
 import io.intellij.netty.tcpfrp.exchange.c2s.ListeningConfigReport;
 import io.intellij.netty.tcpfrp.exchange.codec.ExchangeDecoder;
 import io.intellij.netty.tcpfrp.exchange.codec.ExchangeEncoder;
+import io.intellij.netty.tcpfrp.exchange.codec.ExchangeProtocolUtils;
+import io.intellij.netty.tcpfrp.exchange.codec.ExchangeType;
 import io.intellij.netty.utils.CtxUtils;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -49,18 +50,27 @@ public class AuthHandler extends SimpleChannelInboundHandler<String> {
             ctx.pipeline().remove("StringDecoder");
             ctx.pipeline().remove("StringEncoder");
 
-            ctx.pipeline().addLast(new ExchangeDecoder());
+            boolean dataPacketUseJson = SystemConfig.DATA_PACKET_USE_JSON;
+
+            ctx.pipeline().addLast(new ExchangeDecoder(dataPacketUseJson));
             ctx.pipeline().addLast(new ExchangeEncoder());
-            ctx.pipeline().addLast(new ExchangeHandler());
+
+            ctx.pipeline().addLast(new ExchangeHandler(dataPacketUseJson));
+
+            if (!dataPacketUseJson) {
+                // 自定义的最终的数据包序列化
+                ctx.pipeline().addLast(new ExchangeDataPacketHandler());
+            }
 
             if (ctx.channel().isActive()) {
                 ctx.channel().writeAndFlush(
-                        ExProtocolUtils.createProtocolData(
+                        ExchangeProtocolUtils.buildProtocolByJson(
                                 ExchangeType.C2S_SEND_CONFIG,
                                 ListeningConfigReport.builder().listeningConfigMap(listeningConfigMap).build()
                         )
                 );
             }
+
         }
     }
 

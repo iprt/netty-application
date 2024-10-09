@@ -2,7 +2,8 @@ package io.intellij.netty.tcpfrp.server.listening;
 
 import io.intellij.netty.tcpfrp.config.ListeningConfig;
 import io.intellij.netty.tcpfrp.exchange.both.DataPacket;
-import io.intellij.netty.tcpfrp.exchange.codec.ExProtocolUtils;
+import io.intellij.netty.tcpfrp.exchange.codec.ExchangeProtocolDataPacket;
+import io.intellij.netty.tcpfrp.exchange.codec.ExchangeProtocolUtils;
 import io.intellij.netty.tcpfrp.exchange.codec.ExchangeType;
 import io.intellij.netty.tcpfrp.exchange.s2c.UserBreakConn;
 import io.intellij.netty.tcpfrp.exchange.s2c.UserCreateConn;
@@ -17,7 +18,6 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
-import io.netty.util.ReferenceCountUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
@@ -52,7 +52,7 @@ public class UserHandler extends SimpleChannelInboundHandler<ByteBuf> {
         // user conn listening server
         if (exchangeChannel.isActive()) {
             exchangeChannel.writeAndFlush(
-                    ExProtocolUtils.createProtocolData(
+                    ExchangeProtocolUtils.buildProtocolByJson(
                             ExchangeType.S2C_RECEIVE_USER_CONN_CREATE,
                             UserCreateConn.builder()
                                     .listeningConfig(listeningConfig).userChannelId(userChannelId)
@@ -94,7 +94,7 @@ public class UserHandler extends SimpleChannelInboundHandler<ByteBuf> {
             byte[] bytes = new byte[msg.readableBytes()];
             msg.readBytes(bytes);
             exchangeChannel.writeAndFlush(
-                    ExProtocolUtils.createProtocolData(
+                    ExchangeProtocolUtils.buildProtocolByJson(
                             ExchangeType.S2C_USER_DATA_PACKET,
                             DataPacket.builder()
                                     .from(UserDataPacket.class.getName())
@@ -129,10 +129,10 @@ public class UserHandler extends SimpleChannelInboundHandler<ByteBuf> {
             exchangeChannel.write(Unpooled.copiedBuffer(prepareBytes));
 
             // 引用计数器+1 给exchangeChannel使用,节约内存
-            ReferenceCountUtil.retain(msg);
+            // ReferenceCountUtil.retain(msg);
 
             // write 2
-            exchangeChannel.write(msg)
+            exchangeChannel.write(msg.retainedDuplicate())
                     .addListener((ChannelFutureListener) future -> {
                         if (future.isSuccess()) {
                             if (userChannel.isActive()) {
@@ -143,7 +143,6 @@ public class UserHandler extends SimpleChannelInboundHandler<ByteBuf> {
                         }
                     });
             exchangeChannel.flush();
-
         }
 
     }
@@ -157,7 +156,7 @@ public class UserHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
         if (exchangeChannel.isActive()) {
             exchangeChannel.writeAndFlush(
-                    ExProtocolUtils.createProtocolData(ExchangeType.S2C_RECEIVE_USER_CONN_BREAK,
+                    ExchangeProtocolUtils.buildProtocolByJson(ExchangeType.S2C_RECEIVE_USER_CONN_BREAK,
                             UserBreakConn.builder()
                                     .listeningConfig(listeningConfig)
                                     .userChannelId(userChannelId)
@@ -193,6 +192,22 @@ public class UserHandler extends SimpleChannelInboundHandler<ByteBuf> {
         if (userChannel != null && userChannel.isActive()) {
             log.info("dispatch to user|userChannelId={}", userChannelId);
             userChannel.writeAndFlush(msg)
+                    .addListener((ChannelFutureListener) future -> {
+                        if (future.isSuccess()) {
+                            future.channel().read();
+                        } else {
+                            future.channel().close();
+                        }
+                    });
+        }
+    }
+
+    public static void dispatch(ExchangeProtocolDataPacket dataPacket) {
+        String userChannelId = dataPacket.userChannelId();
+        Channel userChannel = userChannelMap.get(userChannelId);
+        if (userChannel != null && userChannel.isActive()) {
+            log.info("dispatch ByteBuf to user|userChannelId={}", userChannelId);
+            userChannel.writeAndFlush(dataPacket.packet())
                     .addListener((ChannelFutureListener) future -> {
                         if (future.isSuccess()) {
                             future.channel().read();

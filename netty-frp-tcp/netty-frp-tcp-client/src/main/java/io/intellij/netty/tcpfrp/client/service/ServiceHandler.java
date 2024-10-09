@@ -4,7 +4,8 @@ import io.intellij.netty.tcpfrp.config.ListeningConfig;
 import io.intellij.netty.tcpfrp.exchange.both.DataPacket;
 import io.intellij.netty.tcpfrp.exchange.c2s.ServiceBreakConn;
 import io.intellij.netty.tcpfrp.exchange.c2s.ServiceDataPacket;
-import io.intellij.netty.tcpfrp.exchange.codec.ExProtocolUtils;
+import io.intellij.netty.tcpfrp.exchange.codec.ExchangeProtocolDataPacket;
+import io.intellij.netty.tcpfrp.exchange.codec.ExchangeProtocolUtils;
 import io.intellij.netty.tcpfrp.exchange.codec.ExchangeType;
 import io.intellij.netty.utils.ByteUtils;
 import io.intellij.netty.utils.ChannelUtils;
@@ -15,15 +16,12 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
-import io.netty.util.ReferenceCountUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
-import static io.intellij.netty.tcpfrp.exchange.SystemConfig.DATA_PACKET_USE_JSON;
 
 /**
  * ServiceHandler
@@ -38,6 +36,7 @@ public class ServiceHandler extends SimpleChannelInboundHandler<ByteBuf> {
     private final ListeningConfig listeningConfig;
     private final String userChannelId;
     private final Channel exchangeChannel;
+    private final boolean dataPacketUseJson;
 
     @Override
     public void channelActive(@NotNull ChannelHandlerContext ctx) throws Exception {
@@ -53,11 +52,11 @@ public class ServiceHandler extends SimpleChannelInboundHandler<ByteBuf> {
         final Channel serviceChannel = ctx.channel();
         String serviceChannelId = CtxUtils.getChannelId(ctx);
         // how to get user channel id
-        if (DATA_PACKET_USE_JSON) {
+        if (dataPacketUseJson) {
             byte[] packet = new byte[msg.readableBytes()];
             msg.readBytes(packet);
             exchangeChannel.writeAndFlush(
-                    ExProtocolUtils.createProtocolData(
+                    ExchangeProtocolUtils.buildProtocolByJson(
                             ExchangeType.C2S_SERVICE_DATA_PACKET,
                             DataPacket.builder()
                                     .from(ServiceDataPacket.class.getName())
@@ -89,10 +88,7 @@ public class ServiceHandler extends SimpleChannelInboundHandler<ByteBuf> {
             System.arraycopy(serviceChannelIdBytes, 0, prepareBytes, 1 + 4 + userChannelIdBytes.length, serviceChannelIdBytes.length);
 
             exchangeChannel.write(Unpooled.copiedBuffer(prepareBytes));
-
-            // 引用计数器+1 给exchangeChannel使用,节约内存
-            ReferenceCountUtil.retain(msg);
-            exchangeChannel.write(msg)
+            exchangeChannel.writeAndFlush(msg.retainedDuplicate())
                     .addListener((ChannelFutureListener) future -> {
                         if (future.isSuccess()) {
                             if (serviceChannel.isActive()) {
@@ -102,7 +98,6 @@ public class ServiceHandler extends SimpleChannelInboundHandler<ByteBuf> {
                             closeServiceChannel(serviceChannelId, "ServiceHandler.channelRead0");
                         }
                     });
-            exchangeChannel.flush();
         }
     }
 
@@ -110,7 +105,7 @@ public class ServiceHandler extends SimpleChannelInboundHandler<ByteBuf> {
     public void channelInactive(@NotNull ChannelHandlerContext ctx) throws Exception {
         String serviceChannelId = CtxUtils.getChannelId(ctx);
         exchangeChannel.writeAndFlush(
-                ExProtocolUtils.createProtocolData(
+                ExchangeProtocolUtils.buildProtocolByJson(
                         ExchangeType.C2S_LOST_REAL_SERVER_CONN,
                         ServiceBreakConn.builder()
                                 .listeningConfig(listeningConfig)
@@ -161,6 +156,24 @@ public class ServiceHandler extends SimpleChannelInboundHandler<ByteBuf> {
                             future.channel().close();
                         }
                     });
+        }
+    }
+
+    public static void dispatch(ExchangeProtocolDataPacket dataPacket) {
+        String serviceChannelId = dataPacket.serviceChannelId();
+
+        Channel serviceChannel = serviceChannelMap.get(serviceChannelId);
+        if (serviceChannel != null && serviceChannel.isActive()) {
+            log.info("dispatch ByteBuf to service|serviceChannelId={}", serviceChannelId);
+            serviceChannel.writeAndFlush(dataPacket.packet())
+                    .addListener((ChannelFutureListener) future -> {
+                        if (future.isSuccess()) {
+                            future.channel().read();
+                        } else {
+                            future.channel().close();
+                        }
+                    });
+
         }
     }
 

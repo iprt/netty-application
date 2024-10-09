@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * ListeningLocalResp
@@ -20,12 +21,10 @@ import java.util.List;
 @Builder
 @Data
 public class ListeningLocalResp {
-
     // 是否连接成功
     private boolean success;
-
     // 连接的配置
     private List<ListeningConfig> listeningConfigs;
 
-
+    private Map<Integer, Boolean> listeningStatus;
 }

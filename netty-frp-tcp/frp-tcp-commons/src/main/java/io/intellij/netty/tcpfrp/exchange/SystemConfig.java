@@ -7,9 +7,9 @@ package io.intellij.netty.tcpfrp.exchange;
  */
 public class SystemConfig {
 
-    private static final String DATA_FMT_PROPERTY_KEY = "dataPacketUseJson";
-
     // this is a test
-    public static final boolean DATA_PACKET_USE_JSON = Boolean.parseBoolean(System.getProperty(DATA_FMT_PROPERTY_KEY, "false"));
+    public static final boolean DATA_PACKET_USE_JSON = Boolean.parseBoolean(System.getProperty("dataPacketUseJson", "false"));
+
+    public static final boolean DISPATCH_LOG_ENABLE = Boolean.parseBoolean(System.getProperty("dispatchLogEnable", "false"));
 
 }

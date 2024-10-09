@@ -63,7 +63,7 @@ public class MultiPortNettyServer {
 
                 SERVER_CHANNEL.put(e.getKey(), channelFuture.channel());
 
-                log.info("{} service started and listening on port {}", e.getValue().getName(), e.getKey());
+                log.info("service <{}> started and listening on port {}", e.getValue().getName(), e.getKey());
             }
 
             ThreadPool.ES.execute(() -> {
@@ -86,16 +86,15 @@ public class MultiPortNettyServer {
     }
 
     public void stop() {
-        log.warn("multi port server stop start ...");
+        log.warn("Multi Port Server Stop begin ...");
         SERVER_CHANNEL.forEach((port, channel) -> {
             ListeningConfig listeningConfig = portToListeningConfig.get(port);
-            log.warn("{} service stopped and release listening port {}", listeningConfig.getName(), port);
+            log.warn("service <{}> stopped and release listening port {}", listeningConfig.getName(), port);
             if (channel != null && channel.isActive()) {
                 channel.close();
             }
         });
-        log.warn("multi port server stop end ...");
-
+        log.warn("Multi Port Server Stop end   ...");
     }
 
 }

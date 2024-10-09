@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static io.intellij.netty.tcpfrp.exchange.SystemConfig.DATA_PACKET_USE_JSON;
+import static io.intellij.netty.tcpfrp.exchange.SystemConfig.DISPATCH_LOG_ENABLE;
 
 /**
  * UserHandler
@@ -210,7 +211,9 @@ public class UserHandler extends ChannelInboundHandlerAdapter {
         String userChannelId = dataPacket.userChannelId();
         Channel userChannel = userChannelMap.get(userChannelId);
         if (userChannel != null && userChannel.isActive()) {
-            log.info("dispatch ByteBuf to user|userChannelId={}|realPacketLen={}", userChannelId, dataPacket.packet().readableBytes());
+            if (DISPATCH_LOG_ENABLE) {
+                log.info("dispatch ByteBuf to user|userChannelId={}|realPacketLen={}", userChannelId, dataPacket.packet().readableBytes());
+            }
             userChannel.writeAndFlush(dataPacket.packet())
                     .addListener((ChannelFutureListener) future -> {
                         if (future.isSuccess()) {

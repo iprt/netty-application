@@ -173,7 +173,7 @@ public class ExchangeHandler extends SimpleChannelInboundHandler<ExchangeProtoco
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        log.error("localAddress={}|remoteAddress={}", CtxUtils.getLocalAddress(ctx), CtxUtils.getRemoteAddress(ctx), cause);
+        log.error("exceptionCaught|localAddress={}|remoteAddress={}|{}", CtxUtils.getLocalAddress(ctx), CtxUtils.getRemoteAddress(ctx), cause.getMessage());
     }
 
 }

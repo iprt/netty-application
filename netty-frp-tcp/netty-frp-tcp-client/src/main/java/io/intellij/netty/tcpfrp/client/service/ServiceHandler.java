@@ -23,6 +23,8 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static io.intellij.netty.tcpfrp.exchange.SystemConfig.DISPATCH_LOG_ENABLE;
+
 /**
  * ServiceHandler
  *
@@ -168,7 +170,9 @@ public class ServiceHandler extends ChannelInboundHandlerAdapter {
         String serviceChannelId = dataPacket.serviceChannelId();
         Channel serviceChannel = serviceChannelMap.get(serviceChannelId);
         if (serviceChannel != null && serviceChannel.isActive()) {
-            log.info("dispatch ByteBuf to service|serviceChannelId={}|realPacketLen={}", serviceChannelId, dataPacket.packet().readableBytes());
+            if (DISPATCH_LOG_ENABLE) {
+                log.info("dispatch ByteBuf to service|serviceChannelId={}|realPacketLen={}", serviceChannelId, dataPacket.packet().readableBytes());
+            }
             serviceChannel.writeAndFlush(dataPacket.packet())
                     .addListener((ChannelFutureListener) future -> {
                         if (future.isSuccess()) {

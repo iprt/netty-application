@@ -2,7 +2,6 @@ package io.intellij.netty.tcpfrp.server;
 
 import io.intellij.netty.tcpfrp.config.ServerConfig;
 import io.intellij.netty.tcpfrp.server.handlers.FrpServerInitializer;
-import io.intellij.netty.tcpfrp.server.thread.EventLoopGroupContainer;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelOption;

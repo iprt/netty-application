@@ -1,8 +1,7 @@
 package io.intellij.netty.tcpfrp.server.listening;
 
 import io.intellij.netty.tcpfrp.config.ListeningConfig;
-import io.intellij.netty.tcpfrp.server.thread.EventLoopGroupContainer;
-import io.intellij.netty.tcpfrp.server.thread.ThreadPool;
+import io.intellij.netty.tcpfrp.server.EventLoopGroupContainer;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -65,16 +64,6 @@ public class MultiPortNettyServer {
 
                 log.info("service <{}> started and listening on port {}", e.getValue().getName(), e.getKey());
             }
-
-            ThreadPool.ES.execute(() -> {
-                try {
-                    // 等待直到所有的端口都绑定完成并开始接受连接
-                    // 阻塞
-                    bossGroup.terminationFuture().sync();
-                } catch (InterruptedException e) {
-                    log.error("", e);
-                }
-            });
 
             return true;
 

@@ -1,4 +1,4 @@
-package io.intellij.netty.tcpfrp.server.thread;
+package io.intellij.netty.tcpfrp.server;
 
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;

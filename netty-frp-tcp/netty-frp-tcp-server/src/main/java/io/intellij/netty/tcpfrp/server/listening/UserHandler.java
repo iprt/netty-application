@@ -26,7 +26,9 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static io.intellij.netty.tcpfrp.exchange.SystemConfig.DATA_PACKET_USE_JSON;
-import static io.intellij.netty.tcpfrp.exchange.SystemConfig.DISPATCH_LOG_ENABLE;
+import static io.intellij.netty.tcpfrp.exchange.SystemConfig.ENABLE_DISPATCH_LOG;
+import static io.intellij.netty.tcpfrp.exchange.SystemConfig.ENABLE_RANDOM_TYPE;
+import static io.intellij.netty.tcpfrp.exchange.codec.ExchangeType.encodeRandom;
 
 /**
  * UserHandler
@@ -122,7 +124,9 @@ public class UserHandler extends ChannelInboundHandlerAdapter {
                 int bodyLen = userChannelIdBytes.length + serviceChannelIdBytes.length + msg.readableBytes();
                 byte[] bodyLenBytes = ByteUtils.getIntBytes(bodyLen);
 
-                prepareBytes[0] = (byte) ExchangeType.S2C_USER_DATA_PACKET.getType();
+                int dataPacketType = ExchangeType.S2C_USER_DATA_PACKET.getType();
+                prepareBytes[0] = (byte) (ENABLE_RANDOM_TYPE ? encodeRandom(dataPacketType) : dataPacketType);
+
                 System.arraycopy(bodyLenBytes, 0, prepareBytes, 1, bodyLenBytes.length);
                 System.arraycopy(userChannelIdBytes, 0, prepareBytes, 1 + 4, userChannelIdBytes.length);
                 System.arraycopy(serviceChannelIdBytes, 0, prepareBytes, 1 + 4 + userChannelIdBytes.length, serviceChannelIdBytes.length);
@@ -211,7 +215,7 @@ public class UserHandler extends ChannelInboundHandlerAdapter {
         String userChannelId = dataPacket.userChannelId();
         Channel userChannel = userChannelMap.get(userChannelId);
         if (userChannel != null && userChannel.isActive()) {
-            if (DISPATCH_LOG_ENABLE) {
+            if (ENABLE_DISPATCH_LOG) {
                 log.info("dispatch ByteBuf to user|userChannelId={}|realPacketLen={}", userChannelId, dataPacket.packet().readableBytes());
             }
             userChannel.writeAndFlush(dataPacket.packet())

@@ -9,7 +9,6 @@ import io.intellij.netty.tcpfrp.exchange.c2s.ServiceConnSuccess;
 import io.intellij.netty.tcpfrp.exchange.codec.ExchangeProtocol;
 import io.intellij.netty.tcpfrp.exchange.codec.ExchangeProtocolUtils;
 import io.intellij.netty.tcpfrp.exchange.codec.ExchangeType;
-import io.intellij.netty.tcpfrp.exchange.codec.ProtocolParse;
 import io.intellij.netty.tcpfrp.exchange.s2c.ListeningLocalResp;
 import io.intellij.netty.tcpfrp.exchange.s2c.UserBreakConn;
 import io.intellij.netty.tcpfrp.exchange.s2c.UserCreateConn;
@@ -48,7 +47,7 @@ public class ExchangeHandler extends SimpleChannelInboundHandler<ExchangeProtoco
         switch (exchangeType) {
 
             case S2C_LISTENING_CONFIG_RESP -> {
-                ProtocolParse<ListeningLocalResp> parse = ExchangeProtocolUtils.parseProtocolByJson(msg, ListeningLocalResp.class);
+                ExchangeProtocolUtils.ProtocolParse<ListeningLocalResp> parse = ExchangeProtocolUtils.parseProtocolByJson(msg, ListeningLocalResp.class);
                 if (parse.valid()) {
                     log.info("frp-server response|{}", parse.data());
                 } else {
@@ -57,7 +56,7 @@ public class ExchangeHandler extends SimpleChannelInboundHandler<ExchangeProtoco
             }
 
             case S2C_RECEIVE_USER_CONN_CREATE -> {
-                ProtocolParse<UserCreateConn> parse = ExchangeProtocolUtils.parseProtocolByJson(msg, UserCreateConn.class);
+                ExchangeProtocolUtils.ProtocolParse<UserCreateConn> parse = ExchangeProtocolUtils.parseProtocolByJson(msg, UserCreateConn.class);
                 if (parse.valid()) {
                     UserCreateConn userCreateConn = parse.data();
                     final String userChannelId = userCreateConn.getUserChannelId();
@@ -128,7 +127,7 @@ public class ExchangeHandler extends SimpleChannelInboundHandler<ExchangeProtoco
             }
 
             case S2C_RECEIVE_USER_CONN_BREAK -> {
-                ProtocolParse<UserBreakConn> parse = ExchangeProtocolUtils.parseProtocolByJson(msg, UserBreakConn.class);
+                ExchangeProtocolUtils.ProtocolParse<UserBreakConn> parse = ExchangeProtocolUtils.parseProtocolByJson(msg, UserBreakConn.class);
                 if (parse.valid()) {
                     UserBreakConn userBreakConn = parse.data();
                     String serviceChannelId = userBreakConn.getServiceChannelId();
@@ -143,7 +142,7 @@ public class ExchangeHandler extends SimpleChannelInboundHandler<ExchangeProtoco
                     throw new RuntimeException("data packet parse type is not json !!!");
                 }
 
-                ProtocolParse<DataPacket> parse = ExchangeProtocolUtils.parseProtocolByJson(msg, DataPacket.class);
+                ExchangeProtocolUtils.ProtocolParse<DataPacket> parse = ExchangeProtocolUtils.parseProtocolByJson(msg, DataPacket.class);
                 if (parse.valid()) {
                     DataPacket userDataPacket = parse.data();
                     String serviceChannelId = userDataPacket.getServiceChannelId();

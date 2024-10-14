@@ -8,6 +8,8 @@ rootProject.name = "netty-application"
 
 include("commons-dep")
 
+include("example")
+
 include(
     "netty-client-reconnect:echo-server",
     "netty-client-reconnect:reconnect-client"

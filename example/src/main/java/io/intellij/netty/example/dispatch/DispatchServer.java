@@ -1,6 +1,6 @@
 package io.intellij.netty.example.dispatch;
 
-import io.intellij.netty.example.dispatch.handlers.server.ServerInitializer;
+import io.intellij.netty.example.dispatch.handlers.ServerInitializer;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.EventLoopGroup;

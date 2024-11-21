@@ -1,6 +1,6 @@
 package io.intellij.netty.example.dispatch;
 
-import io.intellij.netty.example.dispatch.handlers.client.ClientInitializer;
+import io.intellij.netty.example.dispatch.handlers.ClientInitializer;
 import io.intellij.netty.example.dispatch.model.HeartBeat;
 import io.intellij.netty.example.dispatch.model.msg.LoginReq;
 import io.intellij.netty.example.dispatch.model.msg.LogoutReq;

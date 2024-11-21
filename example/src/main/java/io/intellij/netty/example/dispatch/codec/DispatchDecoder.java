@@ -29,7 +29,7 @@ public class DispatchDecoder extends ByteToMessageDecoder {
         int type = byteBuf.readInt();
         ProtocolMsgType protocolMsgType = ProtocolMsgType.get(type);
         if (Objects.isNull(protocolMsgType)) {
-            throw new IllegalArgumentException("msgType is null");
+            throw new IllegalArgumentException("Illegal protocol type");
         }
 
         if (byteBuf.readableBytes() < 4) {

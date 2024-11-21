@@ -8,6 +8,7 @@ rootProject.name = "netty-application"
 
 include("commons-dep")
 
+include("example-github")
 include("example")
 
 include(

@@ -12,10 +12,19 @@ java {
     }
 }
 
+configurations {
+    compileOnly {
+        extendsFrom(configurations.annotationProcessor.get())
+    }
+}
+
 dependencies {
+    compileOnly("org.projectlombok:lombok:1.18.32")
+    annotationProcessor("org.projectlombok:lombok:1.18.32")
+
+    implementation("org.slf4j:slf4j-api:1.7.36")
+    implementation("ch.qos.logback:logback-classic:1.5.6")
+    implementation("ch.qos.logback:logback-core:1.5.6")
+
     api(project(":commons-dep"))
-
-    // https://mvnrepository.com/artifact/com.google.protobuf/protobuf-java
-    implementation("com.google.protobuf:protobuf-java:4.28.2")
-
 }

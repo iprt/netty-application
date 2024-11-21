@@ -1,6 +1,7 @@
 package io.intellij.netty.example.dispatch;
 
 import io.intellij.netty.example.dispatch.handlers.ClientInitializer;
+import io.intellij.netty.example.dispatch.model.DataBody;
 import io.intellij.netty.example.dispatch.model.HeartBeat;
 import io.intellij.netty.example.dispatch.model.msg.LoginReq;
 import io.intellij.netty.example.dispatch.model.msg.LogoutReq;
@@ -87,8 +88,11 @@ public class DispatchClient {
             }, 0, 3, TimeUnit.SECONDS);
 
             ses.scheduleAtFixedRate(() -> {
-                dispatchClient.send(LoginReq.create("admin", "admin"));
-                dispatchClient.send(LogoutReq.create("admin"));
+                LoginReq loginReq = LoginReq.builder().username("admin").password("admin").build();
+                dispatchClient.send(loginReq);
+
+                DataBody logoutDataBody = LogoutReq.create("admin");
+                dispatchClient.send(logoutDataBody);
             }, 0, 5, TimeUnit.SECONDS);
 
             ses.schedule(() -> {

@@ -23,6 +23,13 @@ public class LoginReq {
     private String username;
     private String password;
 
+    public DataBody toDataBody() {
+        return DataBody.builder()
+                .dataType(DataType.LOGIN.getCode())
+                .json(JSON.toJSONString(this))
+                .build();
+    }
+
     public static DataBody create(String username, String password) {
         return DataBody.builder()
                 .dataType(DataType.LOGIN.getCode())

@@ -9,13 +9,13 @@
   "clients": [
     {
       "name": "mysql",
-      "local_ip": "172.100.1.100",
+      "local_ip": "10.88.0.100",
       "local_port": 3306,
       "remote_port": 3306
     },
     {
       "name": "pgsql",
-      "local_ip": "172.100.1.100",
+      "local_ip": "10.88.0.100",
       "local_port": 5432,
       "remote_port": 5432
     },
@@ -27,7 +27,7 @@
     },
     {
       "name": "unknown",
-      "local_ip": "172.100.1.100",
+      "local_ip": "10.88.0.100",
       "local_port": 12345,
       "remote_port": 12345
     }

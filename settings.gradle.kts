@@ -4,6 +4,14 @@ dependencyResolutionManagement {
     }
 }
 
+buildCache {
+    local {
+        isEnabled = true
+        directory = file("${rootDir}/.gradle/build-cache")
+        removeUnusedEntriesAfterDays = 30
+    }
+}
+
 rootProject.name = "netty-application"
 
 include("commons-dep")
@@ -26,5 +34,6 @@ include(
     "netty-server-dns-proxy-u2t",
     "netty-server-socks",
     "netty-server-tcp",
-    "netty-server-tcp-proxy"
+    "netty-server-tcp-proxy",
+    "netty-spring-boot"
 )

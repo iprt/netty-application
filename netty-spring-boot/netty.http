@@ -1,0 +1,49 @@
+### start netty server
+POST http://127.0.0.1:8080/netty/server/start
+Content-Type: application/json
+
+{
+  "port": 8081
+}
+
+### netty server status
+POST http://127.0.0.1:8080/netty/server/status
+Content-Type: application/json
+
+{
+  "port": 8081
+}
+
+### stop netty server
+POST http://127.0.0.1:8080/netty/server/stop
+Content-Type: application/json
+
+{
+  "port": 8081
+}
+
+###############################################################################################################
+
+### start netty server 8082
+POST http://127.0.0.1:8080/netty/server/start
+Content-Type: application/json
+
+{
+  "port": 8082
+}
+
+### netty server status 8082
+POST http://127.0.0.1:8080/netty/server/status
+Content-Type: application/json
+
+{
+  "port": 8082
+}
+
+### stop netty server 8082
+POST http://127.0.0.1:8080/netty/server/stop
+Content-Type: application/json
+
+{
+  "port": 8082
+}

@@ -3,14 +3,9 @@ package io.intellij.netty.spring.boot.netty;
 import io.intellij.netty.spring.boot.entities.NettyServerConf;
 import io.intellij.netty.spring.boot.entities.NettySeverRunRes;
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelPipeline;
+import io.netty.channel.ChannelHandler;
 import io.netty.channel.EventLoopGroup;
-import io.netty.channel.SimpleChannelInboundHandler;
-import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,56 +28,55 @@ public class NettyTcpServer implements NettyServer {
     private static final Map<Integer, ChannelFuture> PORTS = new ConcurrentHashMap<>();
     private final EventLoopGroup bossGroup;
     private final EventLoopGroup workerGroup;
+    private final Map<String, ChannelHandler> channelHandlerMap;
 
     @Override
     public synchronized NettySeverRunRes start(NettyServerConf conf) {
-        if (PORTS.containsKey(conf.getPort())) {
-            log.warn("NettyTcpServer already running on port: {}", conf.getPort());
+        int port = conf.getPort();
+        if (PORTS.containsKey(port)) {
+            log.warn("NettyTcpServer already running on port: {}", port);
             return NettySeverRunRes.builder()
                     .status(false)
-                    .msg("NettyTcpServer already running on port: " + conf.getPort())
+                    .msg("NettyTcpServer already running on port: " + port)
+                    .build();
+        }
+
+        String key = conf.getHandlerKey();
+        ChannelHandler channelHandler = channelHandlerMap.get(key);
+
+        if (Objects.isNull(channelHandler)) {
+            log.error("ChannelHandler not found for key: {}", key);
+            return NettySeverRunRes.builder()
+                    .status(false)
+                    .msg("ChannelHandler not found for key: " + key)
                     .build();
         }
 
         ServerBootstrap bootstrap = new ServerBootstrap();
         bootstrap.group(bossGroup, workerGroup)
                 .channel(NioServerSocketChannel.class)
-                .childHandler(new ChannelInitializer<SocketChannel>() {
-                    @Override
-                    protected void initChannel(SocketChannel socketChannel) throws Exception {
-                        ChannelPipeline pipeline = socketChannel.pipeline();
-                        pipeline.addLast(new SimpleChannelInboundHandler<ByteBuf>() {
-                            @Override
-                            protected void channelRead0(ChannelHandlerContext channelHandlerContext, ByteBuf byteBuf) throws Exception {
-                                int i = byteBuf.readableBytes();
-                                byte[] bytes = new byte[i];
-                                byteBuf.readBytes(bytes);
-                                log.info("Received: {}", new String(bytes));
-                            }
-                        });
-                    }
-                });
+                .childHandler(channelHandler);
         try {
-            ChannelFuture bind = bootstrap.bind(conf.getPort());
+            ChannelFuture bind = bootstrap.bind(port);
             bind.addListener(future -> {
                 if (future.isSuccess()) {
-                    log.info("NettyTcpServer started on port: {}", conf.getPort());
+                    log.info("NettyTcpServer(key={}) started on port: {}", key, port);
                 } else {
-                    log.error("NettyTcpServer start failed", future.cause());
+                    log.error("NettyTcpServer(key={}) start failed", key, future.cause());
                 }
             });
             ChannelFuture channelFuture = bind.sync();
-            PORTS.put(conf.getPort(), channelFuture);
-            log.info("NettyTcpServer started on port: {}", conf.getPort());
+            PORTS.put(port, channelFuture);
+            log.info("NettyTcpServer(key={}) started on port: {}", key, port);
             return NettySeverRunRes.builder()
                     .status(true)
-                    .msg("NettyTcpServer started on port: " + conf.getPort())
+                    .msg("NettyTcpServer(key={" + key + "}) started on port: " + port)
                     .build();
         } catch (Exception e) {
-            log.error("NettyTcpServer start failed", e);
+            log.error("NettyTcpServer(key={}) start failed", key, e);
             return NettySeverRunRes.builder()
                     .status(false)
-                    .msg("NettyTcpServer start failed: " + e.getMessage())
+                    .msg("NettyTcpServer(key={" + key + "}) start failed: " + e.getMessage())
                     .build();
         }
     }

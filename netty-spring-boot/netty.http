@@ -3,7 +3,8 @@ POST http://127.0.0.1:8080/netty/server/start
 Content-Type: application/json
 
 {
-  "port": 8081
+  "port": 8081,
+  "handlerKey": "log"
 }
 
 ### netty server status
@@ -22,14 +23,13 @@ Content-Type: application/json
   "port": 8081
 }
 
-###############################################################################################################
-
 ### start netty server 8082
 POST http://127.0.0.1:8080/netty/server/start
 Content-Type: application/json
 
 {
-  "port": 8082
+  "port": 8082,
+  "handlerKey": "echo"
 }
 
 ### netty server status 8082

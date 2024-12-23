@@ -23,7 +23,7 @@ public class ReconnectClient {
 
         ScheduledExecutorService s = Executors.newSingleThreadScheduledExecutor();
 
-        Connector connector = new Connector("127.0.0.1", 9001, bootstrap -> {
+        Connector connector = new Connector("127.0.0.1", 8082, bootstrap -> {
             NioEventLoopGroup worker = new NioEventLoopGroup(1);
             bootstrap.group(worker)
                     .channel(NioSocketChannel.class)

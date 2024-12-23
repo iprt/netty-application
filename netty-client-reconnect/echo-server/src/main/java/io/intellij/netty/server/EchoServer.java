@@ -24,7 +24,7 @@ import org.jetbrains.annotations.NotNull;
 public class EchoServer {
 
     public static void main(String[] args) {
-        final int port = 9001;
+        final int port = 8082;
         EventLoopGroup boss = new NioEventLoopGroup(1);
         EventLoopGroup worker = new NioEventLoopGroup();
 

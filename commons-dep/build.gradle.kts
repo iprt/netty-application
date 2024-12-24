@@ -27,10 +27,10 @@ dependencies {
     api("io.netty:netty-all:4.1.116.Final")
 
     api("org.slf4j:slf4j-api:2.0.12")
-    api("ch.qos.logback:logback-classic:1.5.6")
-    api("ch.qos.logback:logback-core:1.5.6")
+    api("ch.qos.logback:logback-classic:1.5.15")
+    api("ch.qos.logback:logback-core:1.5.15")
 
-    api("com.alibaba.fastjson2:fastjson2:2.0.52")
+    api("com.alibaba.fastjson2:fastjson2:2.0.53")
 
     api("org.jetbrains:annotations:24.0.1")
 

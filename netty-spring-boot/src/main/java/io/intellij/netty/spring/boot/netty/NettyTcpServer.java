@@ -2,6 +2,7 @@ package io.intellij.netty.spring.boot.netty;
 
 import io.intellij.netty.spring.boot.entities.NettyServerConf;
 import io.intellij.netty.spring.boot.entities.NettySeverRunRes;
+import io.intellij.netty.utils.ServerSocketUtils;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandler;
@@ -38,6 +39,14 @@ public class NettyTcpServer implements NettyServer {
             return NettySeverRunRes.builder()
                     .status(false)
                     .msg("NettyTcpServer already running on port: " + port)
+                    .build();
+        }
+
+        if (ServerSocketUtils.isPortInUse(port)) {
+            log.error("Port {} is already in use", port);
+            return NettySeverRunRes.builder()
+                    .status(false)
+                    .msg("Port " + port + " is already in use")
                     .build();
         }
 

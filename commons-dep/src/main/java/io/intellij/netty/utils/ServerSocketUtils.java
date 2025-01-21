@@ -5,7 +5,7 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 
 /**
- * NetworkUtils
+ * ServerSocketUtils
  *
  * @author tech@intellij.io
  */

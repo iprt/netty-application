@@ -3,7 +3,7 @@ package io.intellij.netty.tcpfrp.client;
 import io.intellij.netty.tcpfrp.client.handlers.FrpClientInitializer;
 import io.intellij.netty.tcpfrp.config.ClientConfig;
 import io.intellij.netty.tcpfrp.config.ServerConfig;
-import io.intellij.netty.tcpfrp.exchange.SystemConfig;
+import io.intellij.netty.tcpfrp.exchange.SysConfig;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelOption;
@@ -23,7 +23,7 @@ public class FrpClientMain {
     public static void main(String[] args) throws InterruptedException {
         ClientConfig clientConfig = ClientConfig.init("");
         log.info("client config|{}", clientConfig);
-        log.info("system config|{}", SystemConfig.details());
+        SysConfig.logDetails();
 
         EventLoopGroup eventLoopGroup = new NioEventLoopGroup();
 

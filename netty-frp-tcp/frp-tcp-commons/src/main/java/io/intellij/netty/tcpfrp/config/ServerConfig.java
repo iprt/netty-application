@@ -1,6 +1,8 @@
 package io.intellij.netty.tcpfrp.config;
 
 import com.alibaba.fastjson2.JSONPath;
+import io.intellij.netty.tcpfrp.exchange.SslContextUtils;
+import io.netty.handler.ssl.SslContext;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -30,6 +32,7 @@ public class ServerConfig {
     private String host;
     private int port;
     private String authToken;
+    private SslContext sslContext;
 
     public static ServerConfig init(String where) {
 
@@ -48,10 +51,10 @@ public class ServerConfig {
             if (Objects.isNull(host) || Objects.isNull(port) || Objects.isNull(authToken)) {
                 return INVALID_CONFIG;
             }
-
             return ServerConfig.builder().valid(true)
                     .host(host).port(port)
                     .authToken(authToken)
+                    .sslContext(SslContextUtils.buildServer())
                     .build();
 
         } catch (Exception e) {

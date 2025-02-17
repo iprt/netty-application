@@ -9,7 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.List;
 import java.util.Objects;
 
-import static io.intellij.netty.tcpfrp.exchange.SystemConfig.ENABLE_RANDOM_TYPE;
+import static io.intellij.netty.tcpfrp.exchange.SysConfig.ENABLE_RANDOM_TYPE;
 import static io.intellij.netty.tcpfrp.exchange.codec.ExchangeProtocol.FIXED_CHANNEL_ID_LEN;
 import static io.intellij.netty.tcpfrp.exchange.codec.ExchangeType.C2S_SERVICE_DATA_PACKET;
 import static io.intellij.netty.tcpfrp.exchange.codec.ExchangeType.S2C_USER_DATA_PACKET;

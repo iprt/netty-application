@@ -25,9 +25,9 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static io.intellij.netty.tcpfrp.exchange.SystemConfig.DATA_PACKET_USE_JSON;
-import static io.intellij.netty.tcpfrp.exchange.SystemConfig.ENABLE_DISPATCH_LOG;
-import static io.intellij.netty.tcpfrp.exchange.SystemConfig.ENABLE_RANDOM_TYPE;
+import static io.intellij.netty.tcpfrp.exchange.SysConfig.DATA_PACKET_USE_JSON;
+import static io.intellij.netty.tcpfrp.exchange.SysConfig.ENABLE_DISPATCH_LOG;
+import static io.intellij.netty.tcpfrp.exchange.SysConfig.ENABLE_RANDOM_TYPE;
 import static io.intellij.netty.tcpfrp.exchange.codec.ExchangeType.encodeRandom;
 
 /**

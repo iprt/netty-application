@@ -27,8 +27,11 @@ public class FrpServerInitializer extends ChannelInitializer<SocketChannel> {
     private final ServerConfig serverConfig;
 
     @Override
-    protected void initChannel(@NotNull SocketChannel socketChannel) throws Exception {
-        ChannelPipeline pipeline = socketChannel.pipeline();
+    protected void initChannel(@NotNull SocketChannel ch) throws Exception {
+        ChannelPipeline pipeline = ch.pipeline();
+        if (serverConfig.getSslContext() != null) {
+            pipeline.addLast(serverConfig.getSslContext().newHandler(ch.alloc()));
+        }
 
         pipeline.addLast("FixedLengthFrameDecoder", new FixedLengthFrameDecoder(TOKEN_LEN));
         pipeline.addLast("StringEncoder", new StringEncoder(Charset.defaultCharset()));

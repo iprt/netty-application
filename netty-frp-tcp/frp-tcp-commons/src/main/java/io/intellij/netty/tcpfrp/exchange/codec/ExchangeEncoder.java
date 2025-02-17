@@ -4,7 +4,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToByteEncoder;
 
-import static io.intellij.netty.tcpfrp.exchange.SystemConfig.ENABLE_RANDOM_TYPE;
+import static io.intellij.netty.tcpfrp.exchange.SysConfig.ENABLE_RANDOM_TYPE;
 import static io.intellij.netty.tcpfrp.exchange.codec.ExchangeType.encodeRandom;
 
 /**

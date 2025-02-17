@@ -1,7 +1,7 @@
 package io.intellij.netty.tcpfrp.server;
 
 import io.intellij.netty.tcpfrp.config.ServerConfig;
-import io.intellij.netty.tcpfrp.exchange.SystemConfig;
+import io.intellij.netty.tcpfrp.exchange.SysConfig;
 import io.intellij.netty.tcpfrp.server.handlers.FrpServerInitializer;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
@@ -20,7 +20,7 @@ public class FrpServerMain {
     public static void main(String[] args) throws InterruptedException {
         ServerConfig serverConfig = ServerConfig.init("");
         log.info("server config|{}", serverConfig);
-        log.info("system config|{}", SystemConfig.details());
+        SysConfig.logDetails();
 
         EventLoopGroupContainer container = EventLoopGroupContainer.get();
         try {

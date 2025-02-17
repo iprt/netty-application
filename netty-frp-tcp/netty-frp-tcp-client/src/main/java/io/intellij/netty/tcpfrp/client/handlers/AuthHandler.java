@@ -1,7 +1,7 @@
 package io.intellij.netty.tcpfrp.client.handlers;
 
 import io.intellij.netty.tcpfrp.config.ListeningConfig;
-import io.intellij.netty.tcpfrp.exchange.SystemConfig;
+import io.intellij.netty.tcpfrp.exchange.SysConfig;
 import io.intellij.netty.tcpfrp.exchange.c2s.ListeningConfigReport;
 import io.intellij.netty.tcpfrp.exchange.codec.ExchangeDecoder;
 import io.intellij.netty.tcpfrp.exchange.codec.ExchangeEncoder;
@@ -50,7 +50,7 @@ public class AuthHandler extends SimpleChannelInboundHandler<String> {
             ctx.pipeline().remove("StringDecoder");
             ctx.pipeline().remove("StringEncoder");
 
-            boolean dataPacketUseJson = SystemConfig.DATA_PACKET_USE_JSON;
+            boolean dataPacketUseJson = SysConfig.DATA_PACKET_USE_JSON;
 
             ctx.pipeline().addLast(new ExchangeDecoder(dataPacketUseJson));
             ctx.pipeline().addLast(new ExchangeEncoder());

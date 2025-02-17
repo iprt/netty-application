@@ -43,15 +43,16 @@ function init() {
 init
 
 function detect_system_type() {
+  # https://stackoverflow.com/questions/31506158/running-openssl-from-a-bash-script-on-windows-subject-does-not-start-with
   local OS=$(uname -s)
   case $OS in
   Linux)
     system_type="Linux"
-    SUBJECT_PREFIX="\\"
+    SUBJECT_PREFIX="/"
     ;;
   Darwin)
     system_type="Mac"
-    SUBJECT_PREFIX="\\"
+    SUBJECT_PREFIX="/"
     ;;
   CYGWIN* | MINGW32* | MSYS* | MINGW*)
     system_type="Windows"

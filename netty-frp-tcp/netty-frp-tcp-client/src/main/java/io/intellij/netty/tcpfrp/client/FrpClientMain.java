@@ -2,7 +2,6 @@ package io.intellij.netty.tcpfrp.client;
 
 import io.intellij.netty.tcpfrp.client.handlers.FrpClientInitializer;
 import io.intellij.netty.tcpfrp.config.ClientConfig;
-import io.intellij.netty.tcpfrp.config.ServerConfig;
 import io.intellij.netty.tcpfrp.exchange.SysConfig;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelFuture;
@@ -21,8 +20,14 @@ import lombok.extern.slf4j.Slf4j;
 public class FrpClientMain {
 
     public static void main(String[] args) throws InterruptedException {
-        ClientConfig clientConfig = ClientConfig.init("");
-        log.info("client config|{}", clientConfig);
+        ClientConfig clientConfig = ClientConfig.init(ClientConfig.class.getClassLoader().getResourceAsStream("client-config.json"));
+        if (clientConfig.isValid()) {
+            log.info("client config|{}", clientConfig);
+        } else {
+            log.error("client config is invalid");
+            return;
+        }
+
         SysConfig.logDetails();
 
         EventLoopGroup eventLoopGroup = new NioEventLoopGroup();
@@ -35,11 +40,12 @@ public class FrpClientMain {
                     .option(ChannelOption.SO_KEEPALIVE, true);
 
             b.handler(new FrpClientInitializer(clientConfig));
-            ServerConfig serverConfig = clientConfig.getServerConfig();
+            String serverHost = clientConfig.getServerHost();
+            int serverPort = clientConfig.getServerPort();
 
-            ChannelFuture f = b.connect(serverConfig.getHost(), serverConfig.getPort()).sync();
+            ChannelFuture f = b.connect(serverHost, serverPort).sync();
 
-            log.info("Connect to frp-server |host={}|port={}", serverConfig.getHost(), serverConfig.getPort());
+            log.info("Connect to frp-server |host={}|port={}|ssl={}", serverHost, serverPort, clientConfig.isSsl());
 
             f.channel().closeFuture().sync();
         } finally {

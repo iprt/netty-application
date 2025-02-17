@@ -13,7 +13,7 @@ public class ClientConfigTest {
 
     @Test
     public void testGetClientConfig() {
-        ClientConfig clientConfig = ClientConfig.init("");
+        ClientConfig clientConfig = ClientConfig.init(ClientConfigTest.class.getClassLoader().getResourceAsStream("client-config.json"));
         System.err.println(clientConfig);
         Assertions.assertTrue(clientConfig.isValid());
     }

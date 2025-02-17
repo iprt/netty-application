@@ -18,8 +18,13 @@ import lombok.extern.slf4j.Slf4j;
 public class FrpServerMain {
 
     public static void main(String[] args) throws InterruptedException {
-        ServerConfig serverConfig = ServerConfig.init("");
-        log.info("server config|{}", serverConfig);
+        ServerConfig serverConfig = ServerConfig.init(ServerConfig.class.getClassLoader().getResourceAsStream("server-config.json"));
+        if (serverConfig.isValid()) {
+            log.info("server config|{}", serverConfig);
+        } else {
+            log.error("server config is invalid");
+            return;
+        }
         SysConfig.logDetails();
 
         EventLoopGroupContainer container = EventLoopGroupContainer.get();

@@ -13,7 +13,7 @@ public class ServerConfigTest {
 
     @Test
     public void testGetServerConfig() {
-        ServerConfig config = ServerConfig.init("");
+        ServerConfig config = ServerConfig.init(ServerConfigTest.class.getClassLoader().getResourceAsStream("server-config.json"));
         System.err.println(config);
         Assertions.assertTrue(config.isValid());
     }

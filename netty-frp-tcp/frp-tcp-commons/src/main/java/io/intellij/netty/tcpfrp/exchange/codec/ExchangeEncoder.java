@@ -5,7 +5,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToByteEncoder;
 
 import static io.intellij.netty.tcpfrp.exchange.SysConfig.ENABLE_RANDOM_TYPE;
-import static io.intellij.netty.tcpfrp.exchange.codec.ExchangeType.encodeRandom;
+import static io.intellij.netty.tcpfrp.exchange.codec.ExchangeType.encodeRealToRandom;
 
 /**
  * ExchangeProtocolEncoder
@@ -17,7 +17,7 @@ public class ExchangeEncoder extends MessageToByteEncoder<ExchangeProtocol> {
     protected void encode(ChannelHandlerContext ctx, ExchangeProtocol exchangeProtocol, ByteBuf byteBuf) throws Exception {
         ExchangeType type = exchangeProtocol.exchangeType();
         // 1 byte
-        byteBuf.writeByte(ENABLE_RANDOM_TYPE ? encodeRandom(type.getType()) : type.getType());
+        byteBuf.writeByte(ENABLE_RANDOM_TYPE ? encodeRealToRandom(type.getType()) : type.getType());
 
         byte[] bodyBytes = exchangeProtocol.body();
         int bodyLen = bodyBytes.length;

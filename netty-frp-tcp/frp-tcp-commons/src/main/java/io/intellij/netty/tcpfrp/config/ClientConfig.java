@@ -3,6 +3,7 @@ package io.intellij.netty.tcpfrp.config;
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONPath;
 import io.intellij.netty.tcpfrp.exchange.SslContextUtils;
+import io.intellij.netty.tcpfrp.exchange.SysConfig;
 import io.netty.handler.ssl.SslContext;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -32,23 +33,27 @@ public class ClientConfig {
     private static final ClientConfig INVALID_CONFIG = ClientConfig.builder().valid(false).build();
 
     private boolean valid;
-    private ServerConfig serverConfig;
+    // frp server config
+    private String serverHost;
+    private int serverPort;
+    private String authToken;
+
     private Map<String, ListeningConfig> listeningConfigMap;
 
+    private boolean ssl;
     private SslContext sslContext;
 
-    public static ClientConfig init(String where) {
-        ServerConfig serverConfig = ServerConfig.init(where);
-        if (!serverConfig.isValid()) {
-            return INVALID_CONFIG;
-        }
-
-        try (InputStream in = ServerConfig.class.getClassLoader()
-                .getResourceAsStream("config.json")) {
+    public static ClientConfig init(InputStream in) {
+        try {
             if (in == null) {
                 return INVALID_CONFIG;
             }
             String json = IOUtils.readLines(in, "UTF-8").stream().reduce("", (a, b) -> a + b);
+
+
+            String evalServerHost = (String) JSONPath.eval(json, "$.server.host");
+            int evalServerPort = (Integer) JSONPath.eval(json, "$.server.port");
+            String evalAuthToken = (String) JSONPath.eval(json, "$.server.auth.token");
 
             JSONArray array = (JSONArray) JSONPath.eval(json, "$.clients");
 
@@ -73,7 +78,11 @@ public class ClientConfig {
                 }
 
                 return ClientConfig.builder().valid(true)
-                        .serverConfig(serverConfig).listeningConfigMap(map)
+                        .serverHost(evalServerHost)
+                        .serverPort(evalServerPort)
+                        .authToken(evalAuthToken)
+                        .listeningConfigMap(map)
+                        .ssl(SysConfig.ENABLE_SSL.get())
                         .sslContext(SslContextUtils.buildClient())
                         .build();
             }
@@ -81,6 +90,14 @@ public class ClientConfig {
         } catch (Exception e) {
             log.error(e.getMessage());
             return INVALID_CONFIG;
+        } finally {
+            if (Objects.nonNull(in)) {
+                try {
+                    in.close();
+                } catch (Exception e) {
+                    log.error(e.getMessage());
+                }
+            }
         }
 
     }

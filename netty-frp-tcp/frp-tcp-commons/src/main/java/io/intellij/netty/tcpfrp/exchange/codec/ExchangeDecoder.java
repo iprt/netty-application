@@ -13,8 +13,8 @@ import static io.intellij.netty.tcpfrp.exchange.SysConfig.ENABLE_RANDOM_TYPE;
 import static io.intellij.netty.tcpfrp.exchange.codec.ExchangeProtocol.FIXED_CHANNEL_ID_LEN;
 import static io.intellij.netty.tcpfrp.exchange.codec.ExchangeType.C2S_SERVICE_DATA_PACKET;
 import static io.intellij.netty.tcpfrp.exchange.codec.ExchangeType.S2C_USER_DATA_PACKET;
-import static io.intellij.netty.tcpfrp.exchange.codec.ExchangeType.decodeRandom;
-import static io.intellij.netty.tcpfrp.exchange.codec.ExchangeType.getExchangeType;
+import static io.intellij.netty.tcpfrp.exchange.codec.ExchangeType.decodeRandomToReal;
+import static io.intellij.netty.tcpfrp.exchange.codec.ExchangeType.parseType;
 
 /**
  * ExchangeDecoder
@@ -32,7 +32,7 @@ public class ExchangeDecoder extends ByteToMessageDecoder {
     protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
         in.markReaderIndex();
         byte typeByte = in.readByte();
-        ExchangeType exchangeType = getExchangeType(ENABLE_RANDOM_TYPE ? decodeRandom(typeByte) : typeByte);
+        ExchangeType exchangeType = parseType(ENABLE_RANDOM_TYPE ? decodeRandomToReal(typeByte) : typeByte);
 
         if (Objects.isNull(exchangeType)) {
             log.error("unknown exchange exchangeType");

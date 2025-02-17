@@ -28,7 +28,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import static io.intellij.netty.tcpfrp.exchange.SysConfig.DATA_PACKET_USE_JSON;
 import static io.intellij.netty.tcpfrp.exchange.SysConfig.ENABLE_DISPATCH_LOG;
 import static io.intellij.netty.tcpfrp.exchange.SysConfig.ENABLE_RANDOM_TYPE;
-import static io.intellij.netty.tcpfrp.exchange.codec.ExchangeType.encodeRandom;
+import static io.intellij.netty.tcpfrp.exchange.codec.ExchangeType.encodeRealToRandom;
 
 /**
  * UserHandler
@@ -125,7 +125,7 @@ public class UserHandler extends ChannelInboundHandlerAdapter {
                 byte[] bodyLenBytes = ByteUtils.getIntBytes(bodyLen);
 
                 int dataPacketType = ExchangeType.S2C_USER_DATA_PACKET.getType();
-                prepareBytes[0] = (byte) (ENABLE_RANDOM_TYPE ? encodeRandom(dataPacketType) : dataPacketType);
+                prepareBytes[0] = (byte) (ENABLE_RANDOM_TYPE ? encodeRealToRandom(dataPacketType) : dataPacketType);
 
                 System.arraycopy(bodyLenBytes, 0, prepareBytes, 1, bodyLenBytes.length);
                 System.arraycopy(userChannelIdBytes, 0, prepareBytes, 1 + 4, userChannelIdBytes.length);

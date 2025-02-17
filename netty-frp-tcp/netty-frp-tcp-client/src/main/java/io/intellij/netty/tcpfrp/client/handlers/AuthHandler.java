@@ -78,4 +78,5 @@ public class AuthHandler extends SimpleChannelInboundHandler<String> {
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         log.error("{}|{}", CtxUtils.getRemoteAddress(ctx), cause.getMessage());
     }
+
 }

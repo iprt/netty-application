@@ -13,4 +13,6 @@ public record ExchangeProtocol(ExchangeType exchangeType, String className, byte
 
 | 1byte | 4byte len | ... msg |
 
+| type | length | body |
+
  */

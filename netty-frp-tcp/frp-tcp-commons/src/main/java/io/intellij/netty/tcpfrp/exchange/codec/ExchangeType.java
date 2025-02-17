@@ -85,7 +85,7 @@ public enum ExchangeType {
 
     private static final Random R = new Random();
 
-    public static ExchangeType getExchangeType(int type) {
+    public static ExchangeType parseType(int type) {
         for (ExchangeType exchangeType : ExchangeType.values()) {
             if (exchangeType.getType() == type) {
                 return exchangeType;
@@ -95,11 +95,11 @@ public enum ExchangeType {
     }
 
     // [ -2^7 ] 至 [ 2^7 - 1 ]
-    public static int decodeRandom(int type) {
+    public static int decodeRandomToReal(int type) {
         return type % TOTAL;
     }
 
-    public static int encodeRandom(int type) {
+    public static int encodeRealToRandom(int type) {
         int random = R.nextInt(1, 10);
         return type + random * TOTAL;
     }

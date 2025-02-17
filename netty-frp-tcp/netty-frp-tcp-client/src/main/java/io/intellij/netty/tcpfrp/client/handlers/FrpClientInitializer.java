@@ -28,7 +28,7 @@ public class FrpClientInitializer extends ChannelInitializer<SocketChannel> {
     protected void initChannel(@NotNull SocketChannel ch) throws Exception {
         ChannelPipeline pipeline = ch.pipeline();
 
-        if (clientConfig.getSslContext() != null) {
+        if (clientConfig.isSsl() && clientConfig.getSslContext() != null) {
             pipeline.addLast(clientConfig.getSslContext().newHandler(ch.alloc()));
         }
 
@@ -36,7 +36,7 @@ public class FrpClientInitializer extends ChannelInitializer<SocketChannel> {
         pipeline.addLast("StringDecoder", new StringDecoder(StandardCharsets.UTF_8));
         pipeline.addLast("StringEncoder", new StringEncoder(StandardCharsets.UTF_8));
         pipeline.addLast(AuthHandler.HANDLER_NAME,
-                new AuthHandler(clientConfig.getServerConfig().getAuthToken(), clientConfig.getListeningConfigMap()));
+                new AuthHandler(clientConfig.getAuthToken(), clientConfig.getListeningConfigMap()));
 
     }
 

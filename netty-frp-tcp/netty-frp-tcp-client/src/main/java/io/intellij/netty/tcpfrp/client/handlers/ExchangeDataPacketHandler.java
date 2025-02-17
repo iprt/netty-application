@@ -9,8 +9,6 @@ import io.netty.channel.SimpleChannelInboundHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 
-import static io.intellij.netty.tcpfrp.exchange.codec.ExchangeType.S2C_USER_DATA_PACKET;
-
 /**
  * DataPacketHandler
  *
@@ -22,7 +20,7 @@ public class ExchangeDataPacketHandler extends SimpleChannelInboundHandler<Excha
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, ExchangeProtocolDataPacket dataPacket) throws Exception {
         ExchangeType exchangeType = dataPacket.exchangeType();
-        if (S2C_USER_DATA_PACKET == exchangeType) {
+        if (ExchangeType.S2C_USER_DATA_PACKET == exchangeType) {
             ServiceHandler.dispatch(dataPacket);
         } else {
             log.error("error exchange type|{}", exchangeType);

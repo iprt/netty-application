@@ -7,4 +7,4 @@ echo -e "\033[0;32mROOT_URI=$ROOT_URI\033[0m"
 
 source <(curl -SL $ROOT_URI/func/log.sh)
 
-bash src/main/resources/ssl.sh
+bash frp-tcp-commons/src/main/resources/ssl.sh

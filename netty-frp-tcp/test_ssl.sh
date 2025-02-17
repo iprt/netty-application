@@ -3,7 +3,7 @@
 SHELL_FOLDER=$(cd "$(dirname "$0")" && pwd)
 cd "$SHELL_FOLDER"
 
-resource_dir="src/main/resources"
+resource_dir="frp-tcp-commons/src/main/resources"
 
 ca_file="ssl/ca.crt"
 

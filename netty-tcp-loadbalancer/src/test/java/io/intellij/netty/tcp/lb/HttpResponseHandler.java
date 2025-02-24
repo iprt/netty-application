@@ -35,6 +35,11 @@ public class HttpResponseHandler extends SimpleChannelInboundHandler<HttpObject>
     private final Condition condition;
 
     @Override
+    public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
+        ctx.flush();
+    }
+
+    @Override
     protected void channelRead0(ChannelHandlerContext ctx, HttpObject httpObject) throws Exception {
         String date = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(System.currentTimeMillis());
         if (httpObject instanceof HttpRequest req) {
@@ -49,7 +54,7 @@ public class HttpResponseHandler extends SimpleChannelInboundHandler<HttpObject>
                     .set(CONTENT_TYPE, APPLICATION_JSON)
                     .set(CONTENT_LENGTH, Integer.toString(bytes.length));
 
-            ctx.writeAndFlush(response)
+            ctx.write(response)
                     .addListener(ChannelFutureListener.CLOSE);
             // 获取 req 的uri
             String uri = req.uri();
@@ -63,7 +68,6 @@ public class HttpResponseHandler extends SimpleChannelInboundHandler<HttpObject>
             }
         }
     }
-
 
 }
 

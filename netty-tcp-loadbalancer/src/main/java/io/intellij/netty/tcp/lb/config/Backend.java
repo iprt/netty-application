@@ -15,6 +15,6 @@ public class Backend {
     private int port;
 
     public String detail() {
-        return "name:" + name + "|host:" + host + "|port:" + port;
+        return String.format("name=%s, host=%s, port=%d", name, host, port);
     }
 }

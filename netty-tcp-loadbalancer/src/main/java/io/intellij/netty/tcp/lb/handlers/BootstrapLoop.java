@@ -41,7 +41,7 @@ public class BootstrapLoop {
                 .option(ChannelOption.AUTO_READ, false)
                 .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 1000);
 
-        this.doConnect(chooser.receive(inboundChannel));
+        this.doConnect(chooser.receive());
     }
 
     private void doConnect(Backend backend) {
@@ -58,7 +58,7 @@ public class BootstrapLoop {
                         inboundChannel.read();
                     } else {
                         log.error("connect to backend failed: {}", channelFuture.cause().getMessage());
-                        Backend next = chooser.connectFailed(inboundChannel, backend);
+                        Backend next = chooser.next(backend);
                         if (next != null) {
                             doConnect(next);
                         } else {

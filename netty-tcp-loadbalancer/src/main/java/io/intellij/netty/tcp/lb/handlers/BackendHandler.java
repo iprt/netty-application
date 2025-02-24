@@ -25,7 +25,7 @@ public class BackendHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        chooser.active(inboundChannel, target);
+        chooser.active(target);
         ctx.read();
     }
 
@@ -44,7 +44,7 @@ public class BackendHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelInactive(@NotNull ChannelHandlerContext ctx) throws Exception {
-        chooser.inactive(inboundChannel, target);
+        chooser.inactive(target);
         ChannelUtils.closeOnFlush(inboundChannel);
     }
 

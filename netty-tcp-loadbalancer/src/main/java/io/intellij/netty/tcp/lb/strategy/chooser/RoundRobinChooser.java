@@ -2,7 +2,6 @@ package io.intellij.netty.tcp.lb.strategy.chooser;
 
 import io.intellij.netty.tcp.lb.config.Backend;
 import io.intellij.netty.tcp.lb.strategy.AbstractBackendChooser;
-import io.netty.channel.Channel;
 
 import java.util.HashMap;
 import java.util.List;
@@ -35,7 +34,7 @@ public class RoundRobinChooser extends AbstractBackendChooser {
     }
 
     @Override
-    protected void afterActive(Channel inBoundChannel, Backend target) {
+    protected void afterActive(Backend target) {
         String name = target.getName();
         ROUND_ROBIN_INDEX.set(backendIndex.get(name));
     }

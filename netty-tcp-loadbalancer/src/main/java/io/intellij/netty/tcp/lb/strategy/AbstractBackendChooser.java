@@ -1,7 +1,6 @@
 package io.intellij.netty.tcp.lb.strategy;
 
 import io.intellij.netty.tcp.lb.config.Backend;
-import io.netty.channel.Channel;
 import org.slf4j.Logger;
 
 import java.util.Map;
@@ -24,39 +23,39 @@ public abstract class AbstractBackendChooser implements BackendChooser {
     }
 
     @Override
-    public Backend receive(Channel inBoundChannel) {
+    public Backend receive() {
         return this.choose();
     }
 
     @Override
-    public Backend connectFailed(Channel inBoundChannel, Backend choose) {
+    public Backend next(Backend choose) {
         String key = choose.getName();
         ACCESS_STATUS.put(key, false);
         return this.choose();
     }
 
     @Override
-    public void active(Channel inBoundChannel, Backend target) {
+    public void active(Backend target) {
         String key = target.getName();
         ACCESS_STATUS.put(key, true);
         CONNECTION_COUNT.put(key, CONNECTION_COUNT.getOrDefault(key, 0) + 1);
 
-        this.afterActive(inBoundChannel, target);
+        this.afterActive(target);
     }
 
-    protected void afterActive(Channel inBoundChannel, Backend target) {
+    protected void afterActive(Backend target) {
         // do nothing
     }
 
     @Override
-    public void inactive(Channel inBoundChannel, Backend target) {
+    public void inactive(Backend target) {
         String key = target.getName();
         CONNECTION_COUNT.put(key, CONNECTION_COUNT.get(key) - 1);
 
-        this.afterInactive(inBoundChannel, target);
+        this.afterInactive(target);
     }
 
-    protected void afterInactive(Channel inBoundChannel, Backend target) {
+    protected void afterInactive(Backend target) {
         // do nothing
     }
 

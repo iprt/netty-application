@@ -4,7 +4,6 @@ import io.intellij.netty.tcp.lb.config.Backend;
 import io.intellij.netty.tcp.lb.config.LbStrategy;
 import io.intellij.netty.tcp.lb.strategy.chooser.RandomChooser;
 import io.intellij.netty.tcp.lb.strategy.chooser.RoundRobinChooser;
-import io.netty.channel.Channel;
 
 import java.util.Map;
 
@@ -16,13 +15,13 @@ import java.util.Map;
  */
 public interface BackendChooser {
 
-    Backend receive(Channel inboundChannel);
+    Backend receive();
 
-    Backend connectFailed(Channel inboundChannel, Backend choose);
+    Backend next(Backend choose);
 
-    void active(Channel inboundChannel, Backend target);
+    void active(Backend target);
 
-    void inactive(Channel inboundChannel, Backend target);
+    void inactive(Backend target);
 
     static BackendChooser get(LbStrategy strategy, Map<String, Backend> backends) {
         return switch (strategy) {

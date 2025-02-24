@@ -2,7 +2,6 @@ package io.intellij.netty.tcp.lb.strategy.chooser;
 
 import io.intellij.netty.tcp.lb.config.Backend;
 import io.intellij.netty.tcp.lb.strategy.AbstractBackendChooser;
-import io.netty.channel.Channel;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
@@ -22,14 +21,14 @@ public class RandomChooser extends AbstractBackendChooser {
     }
 
     @Override
-    protected void afterActive(Channel inBoundChannel, Backend target) {
+    protected void afterActive( Backend target) {
         log.info("========> active start ========== | target: {}", target.getName());
         this.logConnectionCount(log);
         log.info("========> active end   ==========");
     }
 
     @Override
-    protected void afterInactive(Channel inBoundChannel, Backend target) {
+    protected void afterInactive( Backend target) {
         log.info("========> inactive start ========== | target: {}", target.getName());
         this.logConnectionCount(log);
         log.info("========> inactive end   ==========");

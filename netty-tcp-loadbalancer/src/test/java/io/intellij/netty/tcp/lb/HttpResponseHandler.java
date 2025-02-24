@@ -13,7 +13,8 @@ import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
 import lombok.RequiredArgsConstructor;
 
-import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Map;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
@@ -30,6 +31,8 @@ import static io.netty.handler.codec.http.HttpHeaderValues.APPLICATION_JSON;
  */
 @RequiredArgsConstructor
 public class HttpResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
+    static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
+
     private final int port;
     private final Lock lock;
     private final Condition condition;
@@ -41,9 +44,8 @@ public class HttpResponseHandler extends SimpleChannelInboundHandler<HttpObject>
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, HttpObject httpObject) throws Exception {
-        String date = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(System.currentTimeMillis());
         if (httpObject instanceof HttpRequest req) {
-            String msg = JSON.toJSONString(Map.of("date", date, "port", port));
+            String msg = JSON.toJSONString(Map.of("time", LocalDateTime.now().format(TIME_FORMATTER), "port", port));
             byte[] bytes = msg.getBytes();
             FullHttpResponse response = new DefaultFullHttpResponse(
                     HttpVersion.HTTP_1_1,

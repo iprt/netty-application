@@ -1,0 +1,28 @@
+{
+  "local": {
+    "port": 8080
+  },
+  "lbStrategy": "random",
+  "backends": [
+    {
+      "name": "http-8081",
+      "host": "127.0.0.1",
+      "port": 8081
+    },
+    {
+      "name": "http-8082",
+      "host": "127.0.0.1",
+      "port": 8082
+    },
+    {
+      "name": "http-8083",
+      "host": "127.0.0.1",
+      "port": 8083
+    },
+    {
+      "name": "http-8084",
+      "host": "127.0.0.1",
+      "port": 8084
+    }
+  ]
+}

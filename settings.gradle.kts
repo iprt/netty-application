@@ -35,5 +35,6 @@ include(
     "netty-server-socks",
     "netty-server-tcp",
     "netty-server-tcp-proxy",
-    "netty-spring-boot"
+    "netty-spring-boot",
+    "netty-tcp-loadbalancer"
 )

@@ -24,7 +24,7 @@ dependencies {
     api("org.apache.commons:commons-lang3:3.14.0")
     api("commons-io:commons-io:2.16.1")
 
-    api("io.netty:netty-all:4.1.116.Final")
+    api("io.netty:netty-all:4.1.118.Final")
 
     api("org.slf4j:slf4j-api:2.0.12")
     api("ch.qos.logback:logback-classic:1.5.15")

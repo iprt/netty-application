@@ -29,8 +29,6 @@ public class FrontendInboundHandler extends ChannelInboundHandlerAdapter {
     private final LbStrategy strategy;
     private final Map<String, Backend> backends;
 
-    // private final AtomicReference<Channel> outRef = new AtomicReference<>(null);
-
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         Channel inboundChannel = ctx.channel();

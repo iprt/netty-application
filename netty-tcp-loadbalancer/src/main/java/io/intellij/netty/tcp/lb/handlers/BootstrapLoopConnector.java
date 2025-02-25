@@ -13,21 +13,20 @@ import io.netty.channel.socket.SocketChannel;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.concurrent.atomic.AtomicReference;
+import static io.intellij.netty.tcp.lb.handlers.FrontendInboundHandler.OUTBOUND_CHANNEL_KEY;
 
 /**
- * BootstrapLoop
+ * BootstrapLoopConnector
  *
  * @author tech@intellij.io
  * @since 2025-02-24
  */
 @RequiredArgsConstructor
 @Slf4j
-public class BootstrapLoop {
+public class BootstrapLoopConnector {
     private final Bootstrap b = new Bootstrap();
     private final BackendChooser chooser;
     private final Channel inboundChannel;
-    private final AtomicReference<Channel> outRef;
 
     public void connect() {
         b.group(inboundChannel.eventLoop())
@@ -35,7 +34,8 @@ public class BootstrapLoop {
                 .handler(new ChannelInitializer<SocketChannel>() {
                     @Override
                     protected void initChannel(SocketChannel ch) throws Exception {
-                        // do nothing
+                        // do nothing, just for pipeline
+                        // 避免 BackendOutboundHandler 需要 @Sharable
                     }
                 })
                 .option(ChannelOption.AUTO_READ, false)
@@ -46,14 +46,14 @@ public class BootstrapLoop {
 
     private void doConnect(Backend backend) {
         ChannelFuture f = b.connect(backend.getHost(), backend.getPort());
-        // this.outboundChannel = f.channel();
         f.addListener(
                 (ChannelFutureListener) channelFuture -> {
                     if (channelFuture.isSuccess()) {
                         log.info("connect to backend success: {}", backend.detail());
                         Channel outboundChannel = channelFuture.channel();
-                        outRef.set(outboundChannel);
-                        outboundChannel.pipeline().addLast(new BackendHandler(inboundChannel, chooser, backend));
+                        inboundChannel.attr(OUTBOUND_CHANNEL_KEY).set(outboundChannel);
+
+                        outboundChannel.pipeline().addLast(new BackendOutboundHandler(inboundChannel, chooser, backend));
                         // read after connected
                         inboundChannel.read();
                     } else {

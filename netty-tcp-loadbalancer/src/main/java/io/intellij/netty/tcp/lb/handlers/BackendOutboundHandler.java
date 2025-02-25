@@ -11,13 +11,13 @@ import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * BackendHandler
+ * BackendOutboundHandler
  *
  * @author tech@intellij.io
  * @since 2025-02-20
  */
 @RequiredArgsConstructor
-public class BackendHandler extends ChannelInboundHandlerAdapter {
+public class BackendOutboundHandler extends ChannelInboundHandlerAdapter {
     private final Channel inboundChannel;
 
     private final BackendChooser chooser;
@@ -31,10 +31,11 @@ public class BackendHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelRead(@NotNull ChannelHandlerContext ctx, @NotNull Object msg) throws Exception {
+        Channel outbound = ctx.channel();
         inboundChannel.writeAndFlush(msg).addListener(
                 (ChannelFutureListener) future -> {
                     if (future.isSuccess()) {
-                        ctx.channel().read();
+                        outbound.read();
                     } else {
                         future.channel().close();
                     }
@@ -44,6 +45,7 @@ public class BackendHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelInactive(@NotNull ChannelHandlerContext ctx) throws Exception {
+        // server close the connection
         chooser.inactive(target);
         ChannelUtils.closeOnFlush(inboundChannel);
     }

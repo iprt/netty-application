@@ -2,7 +2,7 @@
   "local": {
     "port": 8080
   },
-  "lbStrategy": "least_conn",
+  "lbStrategy": "random",
   "backends": [
     {
       "name": "http-8081",

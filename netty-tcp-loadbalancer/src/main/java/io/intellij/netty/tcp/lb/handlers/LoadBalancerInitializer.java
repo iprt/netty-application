@@ -21,7 +21,7 @@ public class LoadBalancerInitializer extends ChannelInitializer<SocketChannel> {
 
     @Override
     protected void initChannel(SocketChannel ch) throws Exception {
-        ch.pipeline().addLast(new FrontendHandler(strategy, backends));
+        ch.pipeline().addLast(new FrontendInboundHandler(strategy, backends));
     }
 
 }

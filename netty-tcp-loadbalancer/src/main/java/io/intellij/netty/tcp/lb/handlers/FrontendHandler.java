@@ -55,6 +55,11 @@ public class FrontendHandler extends ChannelInboundHandlerAdapter {
     }
 
     @Override
+    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+        ChannelUtils.closeOnFlush(outRef.get());
+    }
+
+    @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         log.error("FrontendHandler error", cause);
         ChannelUtils.closeOnFlush(ctx.channel());

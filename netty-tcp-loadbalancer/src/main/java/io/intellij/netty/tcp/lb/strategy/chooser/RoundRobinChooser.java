@@ -6,7 +6,6 @@ import io.intellij.netty.tcp.lb.strategy.AbstractBackendChooser;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -53,13 +52,6 @@ public class RoundRobinChooser extends AbstractBackendChooser {
 
         int index = (i + 1) % size;
         return indexBackend.get(index);
-    }
-
-
-    private List<String> availableList() {
-        return this.backends.keySet().stream().sorted()
-                .filter(name -> Objects.isNull(accessStatusMap().get(name)) || accessStatusMap().get(name))
-                .toList();
     }
 
 

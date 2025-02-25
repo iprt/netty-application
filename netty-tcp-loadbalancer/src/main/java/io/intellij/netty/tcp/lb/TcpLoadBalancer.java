@@ -27,6 +27,8 @@ public class TcpLoadBalancer {
         if (Objects.isNull(lbConfig)) {
             log.error("load config error");
             return;
+        } else {
+            log.info("load config success|config: {}", lbConfig);
         }
 
         EventLoopGroup boss = new NioEventLoopGroup(1);

@@ -3,7 +3,9 @@ package io.intellij.netty.tcp.lb.strategy;
 import io.intellij.netty.tcp.lb.config.Backend;
 import org.slf4j.Logger;
 
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -60,12 +62,17 @@ public abstract class AbstractBackendChooser implements BackendChooser {
     }
 
     protected Map<String, Boolean> accessStatusMap() {
-        // 转成不可变map
         return ACCESS_STATUS;
     }
 
     protected Map<String, Integer> connectionCountMap() {
         return CONNECTION_COUNT;
+    }
+
+    protected List<String> availableList() {
+        return this.backends.keySet().stream().sorted()
+                .filter(name -> Objects.isNull(accessStatusMap().get(name)) || accessStatusMap().get(name))
+                .toList();
     }
 
     protected void logAccessStatus(Logger log) {

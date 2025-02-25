@@ -14,7 +14,7 @@ buildCache {
 
 rootProject.name = "netty-application"
 
-include("commons-dep")
+include("commons-dependencies")
 
 include("example-github")
 include("example")

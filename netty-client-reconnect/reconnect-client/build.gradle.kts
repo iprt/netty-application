@@ -14,5 +14,5 @@ java {
 }
 
 dependencies {
-    api(project(":commons-dep"))
+    api(project(":commons-dependencies"))
 }

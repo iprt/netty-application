@@ -13,7 +13,7 @@ java {
 }
 
 dependencies {
-    implementation(project(":commons-dep"))
+    implementation(project(":commons-dependencies"))
 }
 
 tasks.register<Jar>("fatJar") {

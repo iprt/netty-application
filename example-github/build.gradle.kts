@@ -13,7 +13,7 @@ java {
 }
 
 dependencies {
-    api(project(":commons-dep"))
+    api(project(":commons-dependencies"))
 
     implementation("javax.activation:activation:1.1.1")
 

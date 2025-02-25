@@ -25,14 +25,14 @@ import lombok.Getter;
 public final class SocksServerInitializer extends ChannelInitializer<SocketChannel> {
 
     @Getter
-    private final boolean needAuth;
+    private final boolean enableAuth;
 
     private final SocksServerHandler socksServerHandler;
 
-    public SocksServerInitializer(boolean needAuth) {
-        this.needAuth = needAuth;
-        socksServerHandler = this.needAuth ? SocksServerHandler.INSTANCE_NEED_AUTH : SocksServerHandler.INSTANCE;
-        if (this.needAuth) {
+    public SocksServerInitializer(boolean enableAuth) {
+        this.enableAuth = enableAuth;
+        socksServerHandler = this.enableAuth ? SocksServerHandler.INSTANCE_ENABLE_AUTH : SocksServerHandler.INSTANCE;
+        if (this.enableAuth) {
             socksServerHandler.initUserAndPass();
         }
     }

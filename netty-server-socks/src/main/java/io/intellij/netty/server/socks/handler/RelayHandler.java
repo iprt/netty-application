@@ -15,7 +15,6 @@
  */
 package io.intellij.netty.server.socks.handler;
 
-import io.intellij.netty.utils.SocksServerUtils;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;

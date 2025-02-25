@@ -35,7 +35,7 @@ public class ExchangeHandler extends SimpleChannelInboundHandler<ExchangeProtoco
     private final boolean dataPacketUseJson;
 
     @Override
-    protected void channelRead0(ChannelHandlerContext ctx, ExchangeProtocol msg) throws Exception {
+    protected void channelRead0(ChannelHandlerContext ctx, @NotNull ExchangeProtocol msg) throws Exception {
         ExchangeType exchangeType = msg.exchangeType();
         // frp server 获取到 client 读取的 service 的数据
         switch (exchangeType) {

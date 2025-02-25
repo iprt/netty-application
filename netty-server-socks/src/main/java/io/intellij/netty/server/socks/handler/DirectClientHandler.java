@@ -30,6 +30,7 @@ public final class DirectClientHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) {
+        // Remove the handler from the pipeline as soon as the connection is established
         ctx.pipeline().remove(this);
         promise.setSuccess(ctx.channel());
     }

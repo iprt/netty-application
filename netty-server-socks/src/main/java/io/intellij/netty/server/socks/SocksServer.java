@@ -15,6 +15,7 @@
  */
 package io.intellij.netty.server.socks;
 
+import io.intellij.netty.server.socks.handler.SocksServerInitializer;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.epoll.EpollEventLoopGroup;
@@ -24,43 +25,34 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import lombok.extern.slf4j.Slf4j;
-import io.intellij.netty.server.socks.handler.SocksServerInitializer;
 
 @Slf4j
 public final class SocksServer {
+    private static final int PORT = Integer.parseInt(System.getProperty("port", "1080"));
 
-    static final int PORT = Integer.parseInt(System.getProperty("port", "1080"));
+    private static final boolean ENABLE_AUTH = Boolean.parseBoolean(System.getProperty("enableAuth", "false"));
 
-    static final boolean USE_AUTH = Boolean.parseBoolean(System.getProperty("useAuth", "false"));
-
-    static final boolean USE_EPOLL = Boolean.parseBoolean(System.getProperty("useEpoll", "false"));
+    private static final boolean ENABLE_EPOLL = Boolean.parseBoolean(System.getProperty("enableEpoll", "false"));
 
     public static void main(String[] args) throws Exception {
-        EventLoopGroup bossGroup;
-        EventLoopGroup workerGroup;
-
-        final boolean epoll = USE_EPOLL;
-
-        if (epoll) {
+        if (ENABLE_EPOLL) {
             log.info("netty use epoll");
-            bossGroup = new EpollEventLoopGroup(1);
-            workerGroup = new EpollEventLoopGroup();
-        } else {
-            log.info("netty use nio");
-            bossGroup = new NioEventLoopGroup(1);
-            workerGroup = new NioEventLoopGroup();
         }
-
+        EventLoopGroup[] groups = new EventLoopGroup[2];
+        groups[0] = ENABLE_EPOLL ? new EpollEventLoopGroup(1) : new NioEventLoopGroup(1);
+        groups[1] = ENABLE_EPOLL ? new EpollEventLoopGroup() : new NioEventLoopGroup();
         try {
             ServerBootstrap b = new ServerBootstrap();
-            b.group(bossGroup, workerGroup)
-                    .channel(epoll ? EpollServerSocketChannel.class : NioServerSocketChannel.class)
+            b.group(groups[0], groups[1])
+                    .channel(ENABLE_EPOLL ? EpollServerSocketChannel.class : NioServerSocketChannel.class)
                     .handler(new LoggingHandler(LogLevel.INFO))
-                    .childHandler(new SocksServerInitializer(USE_AUTH));
+                    .childHandler(new SocksServerInitializer(ENABLE_AUTH));
+            log.info("socks server started at port {}", PORT);
             b.bind(PORT).sync().channel().closeFuture().sync();
         } finally {
-            bossGroup.shutdownGracefully();
-            workerGroup.shutdownGracefully();
+            for (EventLoopGroup group : groups) {
+                group.shutdownGracefully();
+            }
         }
     }
 

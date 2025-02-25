@@ -15,7 +15,6 @@
  */
 package io.intellij.netty.server.socks.handler;
 
-import io.intellij.netty.utils.SocksServerUtils;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -53,27 +52,24 @@ public final class SocksServerConnectHandler extends SimpleChannelInboundHandler
         if (message instanceof Socks4CommandRequest request) {
             Promise<Channel> promise = ctx.executor().newPromise();
             promise.addListener(
-                    new FutureListener<Channel>() {
-                        @Override
-                        public void operationComplete(final Future<Channel> future) throws Exception {
-                            final Channel outboundChannel = future.getNow();
-                            if (future.isSuccess()) {
-                                ChannelFuture responseFuture = ctx.channel().writeAndFlush(
-                                        new DefaultSocks4CommandResponse(Socks4CommandStatus.SUCCESS));
+                    (FutureListener<Channel>) future -> {
+                        final Channel outboundChannel = future.getNow();
+                        if (future.isSuccess()) {
+                            ChannelFuture responseFuture = ctx.channel().writeAndFlush(
+                                    new DefaultSocks4CommandResponse(Socks4CommandStatus.SUCCESS));
 
-                                responseFuture.addListener(new ChannelFutureListener() {
-                                    @Override
-                                    public void operationComplete(ChannelFuture channelFuture) {
-                                        ctx.pipeline().remove(SocksServerConnectHandler.this);
-                                        outboundChannel.pipeline().addLast(new RelayHandler(ctx.channel()));
-                                        ctx.pipeline().addLast(new RelayHandler(outboundChannel));
-                                    }
-                                });
-                            } else {
-                                ctx.channel().writeAndFlush(
-                                        new DefaultSocks4CommandResponse(Socks4CommandStatus.REJECTED_OR_FAILED));
-                                SocksServerUtils.closeOnFlush(ctx.channel());
-                            }
+                            responseFuture.addListener(new ChannelFutureListener() {
+                                @Override
+                                public void operationComplete(ChannelFuture channelFuture) {
+                                    ctx.pipeline().remove(SocksServerConnectHandler.this);
+                                    outboundChannel.pipeline().addLast(new RelayHandler(ctx.channel()));
+                                    ctx.pipeline().addLast(new RelayHandler(outboundChannel));
+                                }
+                            });
+                        } else {
+                            ctx.channel().writeAndFlush(
+                                    new DefaultSocks4CommandResponse(Socks4CommandStatus.REJECTED_OR_FAILED));
+                            SocksServerUtils.closeOnFlush(ctx.channel());
                         }
                     });
 

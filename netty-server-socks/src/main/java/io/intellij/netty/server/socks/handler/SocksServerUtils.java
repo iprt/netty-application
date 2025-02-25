@@ -13,11 +13,10 @@
  * License for the specific language governing permissions and limitations
  * under the License.
  */
-package io.intellij.netty.utils;
+package io.intellij.netty.server.socks.handler;
 
-import io.netty.buffer.Unpooled;
+import io.intellij.netty.utils.ChannelUtils;
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelFutureListener;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -34,10 +33,8 @@ public final class SocksServerUtils {
      * Closes the specified channel after all queued write requests are flushed.
      */
     public static void closeOnFlush(Channel ch, String desc) {
-        if (ch.isActive()) {
-            log.info("close on flush : {}", desc);
-            ch.writeAndFlush(Unpooled.EMPTY_BUFFER).addListener(ChannelFutureListener.CLOSE);
-        }
+        log.info("close on flush : {}", desc);
+        ChannelUtils.closeOnFlush(ch);
     }
 
     private SocksServerUtils() {

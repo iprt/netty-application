@@ -47,7 +47,7 @@ public class TcpLoadBalancer {
             sync.channel().closeFuture().sync();
 
         } catch (Exception e) {
-            log.error("TcpLoadBalancer start error", e);
+            log.error("TcpLoadBalancer start error | {}", e.getMessage());
         } finally {
             boss.shutdownGracefully();
             worker.shutdownGracefully();

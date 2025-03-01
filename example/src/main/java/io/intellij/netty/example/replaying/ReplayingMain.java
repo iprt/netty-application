@@ -19,7 +19,7 @@ public class ReplayingMain {
     @SneakyThrows
     public static void main(String[] args) {
         EmbeddedChannel channel = new EmbeddedChannel(
-                new MyReplayingDecoder(),
+                new ReadDecoder(),
                 new JsonDecoder()
         );
 

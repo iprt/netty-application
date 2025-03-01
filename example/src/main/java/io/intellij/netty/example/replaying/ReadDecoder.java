@@ -7,12 +7,12 @@ import io.netty.handler.codec.ReplayingDecoder;
 import java.util.List;
 
 /**
- * MsgDecoder
+ * ReadDecoder
  *
  * @author tech@intellij.io
  * @since 2025-03-02
  */
-public class MyReplayingDecoder extends ReplayingDecoder<MyReplayingDecoder.State> {
+public class ReadDecoder extends ReplayingDecoder<ReadDecoder.State> {
     // 定义解码器状态：读取消息长度和消息内容
     enum State {
         READ_LENGTH,
@@ -22,7 +22,7 @@ public class MyReplayingDecoder extends ReplayingDecoder<MyReplayingDecoder.Stat
     private int length; // 保存读取到的消息长度
 
     // 构造函数指定初始状态为 READ_LENGTH
-    public MyReplayingDecoder() {
+    public ReadDecoder() {
         super(State.READ_LENGTH);
     }
 

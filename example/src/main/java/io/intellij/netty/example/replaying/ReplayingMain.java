@@ -18,10 +18,7 @@ public class ReplayingMain {
 
     @SneakyThrows
     public static void main(String[] args) {
-        EmbeddedChannel channel = new EmbeddedChannel(
-                new ReadDecoder(),
-                new JsonDecoder()
-        );
+        EmbeddedChannel channel = new EmbeddedChannel(new ReadDecoder(), new JsonDecoder());
 
         ObjectMapper mapper = new ObjectMapper();
         String json = mapper.writeValueAsString(Map.of("name", "intellij"));

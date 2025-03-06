@@ -27,16 +27,15 @@ import java.util.stream.Collectors;
 @Slf4j
 public class MultiPortNettyServer {
     private final Map<Integer, ListeningConfig> portToListeningConfig;
-    private final Channel exchangeChannel;
+    private final Channel frpcChannel;
 
     private final Map<Integer, Channel> SERVER_CHANNEL = new ConcurrentHashMap<>();
 
-    public MultiPortNettyServer(Map<String, ListeningConfig> listeningConfigMap, Channel exchangeChannel) {
-        this.exchangeChannel = exchangeChannel;
+    public MultiPortNettyServer(Map<String, ListeningConfig> listeningConfigMap, Channel frpcChannel) {
+        this.frpcChannel = frpcChannel;
         this.portToListeningConfig = listeningConfigMap.values().stream()
                 .collect(Collectors.toMap(ListeningConfig::getRemotePort, Function.identity()));
     }
-
 
     public boolean start() {
         EventLoopGroupContainer container = EventLoopGroupContainer.get();
@@ -53,7 +52,7 @@ public class MultiPortNettyServer {
                             @Override
                             protected void initChannel(@NotNull SocketChannel ch) throws Exception {
                                 ChannelPipeline pipeline = ch.pipeline();
-                                pipeline.addLast(new UserHandler(portToListeningConfig, exchangeChannel));
+                                pipeline.addLast(new UserChannelHandler(portToListeningConfig, frpcChannel));
                             }
                         });
 

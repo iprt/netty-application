@@ -1,8 +1,8 @@
 package io.intellij.netty.tcpfrp.config;
 
 import com.alibaba.fastjson2.JSONPath;
-import io.intellij.netty.tcpfrp.exchange.SslContextUtils;
-import io.intellij.netty.tcpfrp.exchange.SysConfig;
+import io.intellij.netty.tcpfrp.protocol.SslContextUtils;
+import io.intellij.netty.tcpfrp.SysConfig;
 import io.netty.handler.ssl.SslContext;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

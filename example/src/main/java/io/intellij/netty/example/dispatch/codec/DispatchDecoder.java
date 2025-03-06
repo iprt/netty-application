@@ -20,38 +20,38 @@ import java.util.Objects;
 @Slf4j
 public class DispatchDecoder extends ByteToMessageDecoder {
     @Override
-    protected void decode(ChannelHandlerContext channelHandlerContext, ByteBuf byteBuf, List<Object> list) throws Exception {
-        byteBuf.markReaderIndex();
-        if (byteBuf.readableBytes() < 4) {
-            byteBuf.resetReaderIndex();
+    protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
+        in.markReaderIndex();
+        if (in.readableBytes() < 4) {
+            in.resetReaderIndex();
             return;
         }
-        int type = byteBuf.readInt();
+        int type = in.readInt();
         ProtocolMsgType protocolMsgType = ProtocolMsgType.get(type);
         if (Objects.isNull(protocolMsgType)) {
             throw new IllegalArgumentException("Illegal protocol type");
         }
 
-        if (byteBuf.readableBytes() < 4) {
-            byteBuf.resetReaderIndex();
+        if (in.readableBytes() < 4) {
+            in.resetReaderIndex();
             return;
         }
 
-        int len = byteBuf.readInt();
-        if (byteBuf.readableBytes() < len) {
-            byteBuf.resetReaderIndex();
+        int len = in.readInt();
+        if (in.readableBytes() < len) {
+            in.resetReaderIndex();
             return;
         }
         byte[] bytes = new byte[len];
-        byteBuf.readBytes(bytes);
+        in.readBytes(bytes);
         String msgJson = new String(bytes);
 
         if (ProtocolMsgType.HEARTBEAT == protocolMsgType) {
-            list.add(JSON.parseObject(msgJson, HeartBeat.class));
+            out.add(JSON.parseObject(msgJson, HeartBeat.class));
         }
 
         if (ProtocolMsgType.DATA == protocolMsgType) {
-            list.add(JSON.parseObject(msgJson, DataBody.class));
+            out.add(JSON.parseObject(msgJson, DataBody.class));
         }
 
     }

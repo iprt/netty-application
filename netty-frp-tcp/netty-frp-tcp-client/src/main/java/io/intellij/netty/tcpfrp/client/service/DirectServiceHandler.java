@@ -12,7 +12,6 @@ import org.jetbrains.annotations.NotNull;
  * @author tech@intellij.io
  */
 public class DirectServiceHandler extends ChannelInboundHandlerAdapter {
-
     private final Promise<Channel> promise;
 
     public DirectServiceHandler(Promise<Channel> promise) {

@@ -38,5 +38,5 @@ dependencies {
 
 
 tasks.jar {
-    archiveFileName = "netty-application-commons-dep.jar"
+    archiveFileName = "netty-application-commons-dependencies.jar"
 }

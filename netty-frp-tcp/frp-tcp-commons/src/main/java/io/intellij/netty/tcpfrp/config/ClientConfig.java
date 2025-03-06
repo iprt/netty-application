@@ -2,8 +2,8 @@ package io.intellij.netty.tcpfrp.config;
 
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONPath;
-import io.intellij.netty.tcpfrp.exchange.SslContextUtils;
-import io.intellij.netty.tcpfrp.exchange.SysConfig;
+import io.intellij.netty.tcpfrp.SysConfig;
+import io.intellij.netty.tcpfrp.protocol.SslContextUtils;
 import io.netty.handler.ssl.SslContext;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -49,7 +49,6 @@ public class ClientConfig {
                 return INVALID_CONFIG;
             }
             String json = IOUtils.readLines(in, "UTF-8").stream().reduce("", (a, b) -> a + b);
-
 
             String evalServerHost = (String) JSONPath.eval(json, "$.server.host");
             int evalServerPort = (Integer) JSONPath.eval(json, "$.server.port");

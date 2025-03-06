@@ -1,10 +1,15 @@
 package io.intellij.netty.tcpfrp.client;
 
+import io.intellij.netty.tcpfrp.SysConfig;
 import io.intellij.netty.tcpfrp.client.handlers.FrpClientInitializer;
 import io.intellij.netty.tcpfrp.config.ClientConfig;
-import io.intellij.netty.tcpfrp.exchange.SysConfig;
+import io.intellij.netty.tcpfrp.protocol.FrpBasicMsg;
+import io.intellij.netty.tcpfrp.protocol.client.AuthRequest;
+import io.intellij.netty.utils.ChannelUtils;
 import io.netty.bootstrap.Bootstrap;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -37,15 +42,35 @@ public class FrpClientMain {
 
             b.group(eventLoopGroup)
                     .channel(NioSocketChannel.class)
+                    .option(ChannelOption.AUTO_READ, false)
                     .option(ChannelOption.SO_KEEPALIVE, true);
 
             b.handler(new FrpClientInitializer(clientConfig));
+
             String serverHost = clientConfig.getServerHost();
             int serverPort = clientConfig.getServerPort();
 
             ChannelFuture f = b.connect(serverHost, serverPort).sync();
+            f.addListener((ChannelFutureListener) channelFuture -> {
+                if (channelFuture.isSuccess()) {
+                    log.info("Connect to frp-server success|host={} |port={}", serverHost, serverPort);
 
-            log.info("Connect to frp-server |host={}|port={}|ssl={}", serverHost, serverPort, clientConfig.isSsl());
+                    log.info("send auth request");
+                    Channel channel = channelFuture.channel();
+                    channel.writeAndFlush(
+                            FrpBasicMsg.createAuthRequest(AuthRequest.builder().token(clientConfig.getAuthToken()).build())
+                    ).addListener((ChannelFutureListener) f1 -> {
+                        if (f1.isSuccess()) {
+                            // for read
+                            f1.channel().pipeline().fireChannelActive();
+                        } else {
+                            ChannelUtils.closeOnFlush(f1.channel());
+                        }
+                    });
+                } else {
+                    log.error("Connect to frp-server failed|host={} |port={}", serverHost, serverPort);
+                }
+            });
 
             f.channel().closeFuture().sync();
         } finally {

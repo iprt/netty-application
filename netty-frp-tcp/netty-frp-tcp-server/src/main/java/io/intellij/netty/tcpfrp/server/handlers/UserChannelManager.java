@@ -1,10 +1,13 @@
 package io.intellij.netty.tcpfrp.server.handlers;
 
+import io.intellij.netty.tcpfrp.protocol.channel.DataPacket;
 import io.intellij.netty.utils.ChannelUtils;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
 import io.netty.util.AttributeKey;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -25,7 +28,7 @@ public class UserChannelManager {
      * <p>
      * set from notifyUserChannelRead
      */
-    public static final AttributeKey<String> SERVER_ID_KEY = AttributeKey.valueOf("serverId");
+    public static final AttributeKey<String> SERVICE_ID_KEY = AttributeKey.valueOf("serverId");
 
     /**
      * 用户ID - 用户的Channel
@@ -68,6 +71,16 @@ public class UserChannelManager {
         log.warn("release all user channels");
         userChannelMap.values().forEach(ChannelUtils::close);
         userChannelMap.clear();
+    }
+
+    public ChannelFuture dispatch(@NotNull DataPacket dataPacket) {
+        Channel channel = getChannel(dataPacket.getUserId());
+        if (channel != null && channel.isActive()) {
+            return channel.writeAndFlush(dataPacket.getPacket());
+        } else {
+            log.warn("UserChannelHandler dispatch error| userId: {}, channel: {}, isActive: {}", dataPacket.getUserId(), channel, channel != null && channel.isActive());
+            return null;
+        }
     }
 
 }

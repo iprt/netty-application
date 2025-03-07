@@ -1,16 +1,19 @@
-package io.intellij.netty.tcpfrp.exchange;
+package io.intellij.netty.tcpfrp.protocol.channel;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
- * FrpsChannel
+ * FrpChannel
  *
  * @author tech@intellij.io
  * @since 2025-03-06
  */
 @RequiredArgsConstructor
+@Slf4j
 public class FrpChannel {
 
     private final Channel channel;
@@ -19,19 +22,20 @@ public class FrpChannel {
         return new FrpChannel(channel);
     }
 
-    public ChannelFuture writeAndFlush(Object msg) {
+    public ChannelFuture writeAndFlush(Object msg, ChannelFutureListener... listeners) {
         if (channel.isActive()) {
-            return channel.writeAndFlush(msg);
-        } else {
-            throw new IllegalStateException("Channel is not active");
+            return channel.writeAndFlush(msg).addListeners(listeners);
         }
+        log.error("Channel is not active, cannot write and flush message");
+        return null;
     }
 
     public void read() {
         if (channel.isActive()) {
             channel.read();
         } else {
-            throw new IllegalStateException("Channel is not active");
+            log.warn("Channel is not active, cannot read");
         }
     }
+
 }

@@ -12,8 +12,8 @@ import io.netty.channel.SimpleChannelInboundHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 
-import static io.intellij.netty.tcpfrp.server.handlers.FrpServerInitializer.MULTI_PORT_NETTY_SERVER_KEY;
-import static io.intellij.netty.tcpfrp.server.handlers.UserChannelManager.SERVER_ID_KEY;
+import static io.intellij.netty.tcpfrp.server.handlers.UserChannelManager.SERVICE_ID_KEY;
+import static io.intellij.netty.tcpfrp.server.handlers.initial.ListeningRequestHandler.MULTI_PORT_NETTY_SERVER_KEY;
 
 /**
  * ServiceConnStateHandler
@@ -43,48 +43,33 @@ public class ServiceConnStateHandler extends SimpleChannelInboundHandler<Service
             case SUCCESS:
                 // frp-client ---> service 连接成功 可以获取到 serviceId
                 ctx.writeAndFlush(Unpooled.EMPTY_BUFFER).addListeners(
-                        (ChannelFutureListener) channelFuture -> {
-                            if (channelFuture.isSuccess()) {
+                        (ChannelFutureListener) f -> {
+                            if (f.isSuccess()) {
                                 String userId = msg.getUserId();
                                 String serviceId = msg.getServiceId();
                                 log.info("ServiceConnStateHandler channelRead0 userId {} serviceId {}", userId, serviceId);
-                                // UserChannelHandler.notifyUserChannelRead(userId, serviceId);
-
-                                UserChannelManager.getInstance().setAttrThenChannelRead(userId, SERVER_ID_KEY, serviceId);
+                                UserChannelManager.getInstance()
+                                        .setAttrThenChannelRead(userId, SERVICE_ID_KEY, serviceId);
                             }
                         },
-                        (ChannelFutureListener) channelFuture -> {
-                            if (channelFuture.isSuccess()) {
-                                channelFuture.channel().read();
+                        (ChannelFutureListener) f -> {
+                            if (f.isSuccess()) {
+                                f.channel().read();
                             }
                         }
                 );
                 break;
             case FAILURE:
-                // frp-client ---> service 连接失败 只有userId 没有serviceId
-                ctx.writeAndFlush(Unpooled.EMPTY_BUFFER).addListeners(
-                        (ChannelFutureListener) channelFuture -> {
-                            if (channelFuture.isSuccess()) {
-                                UserChannelManager.getInstance().release(msg.getUserId());
-                            }
-                        },
-                        (ChannelFutureListener) channelFuture -> {
-                            if (channelFuture.isSuccess()) {
-                                ctx.read();
-                            }
-                        }
-                );
-                break;
             case BROKEN:
                 // frp-client ---> service 连接断开 只有userId 没有serviceId
                 ctx.writeAndFlush(Unpooled.EMPTY_BUFFER).addListeners(
-                        (ChannelFutureListener) channelFuture -> {
-                            if (channelFuture.isSuccess()) {
+                        (ChannelFutureListener) f -> {
+                            if (f.isSuccess()) {
                                 UserChannelManager.getInstance().release(msg.getUserId());
                             }
                         },
-                        (ChannelFutureListener) channelFuture -> {
-                            if (channelFuture.isSuccess()) {
+                        (ChannelFutureListener) f -> {
+                            if (f.isSuccess()) {
                                 ctx.read();
                             }
                         }

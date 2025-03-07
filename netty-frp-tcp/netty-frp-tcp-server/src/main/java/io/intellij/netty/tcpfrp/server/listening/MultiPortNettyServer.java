@@ -1,7 +1,7 @@
 package io.intellij.netty.tcpfrp.server.listening;
 
 import io.intellij.netty.tcpfrp.config.ListeningConfig;
-import io.intellij.netty.tcpfrp.exchange.FrpChannel;
+import io.intellij.netty.tcpfrp.protocol.channel.FrpChannel;
 import io.intellij.netty.tcpfrp.server.EventLoopGroupContainer;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
@@ -66,7 +66,6 @@ public class MultiPortNettyServer {
             }
 
             return true;
-
         } catch (Exception e) {
             log.error("", e);
             this.stop();

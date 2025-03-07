@@ -31,9 +31,9 @@ public class ServerAuthHandler extends ChannelInboundHandlerAdapter {
         if (msg instanceof AuthRequest authRequest) {
             if (authenticate(authRequest)) {
                 ctx.writeAndFlush(AuthResponse.success())
-                        .addListener((ChannelFutureListener) cf -> {
-                            if (cf.isSuccess()) {
-                                ChannelPipeline pipeline = cf.channel().pipeline();
+                        .addListener((ChannelFutureListener) f -> {
+                            if (f.isSuccess()) {
+                                ChannelPipeline pipeline = f.channel().pipeline();
                                 pipeline.remove(ServerAuthHandler.class);
                                 pipeline.addLast(new ListeningRequestHandler());
                                 pipeline.fireChannelActive();

@@ -5,11 +5,9 @@ import io.intellij.netty.tcpfrp.protocol.codec.DataPacketEncoder;
 import io.intellij.netty.tcpfrp.protocol.codec.FrpBasicMsgEncoder;
 import io.intellij.netty.tcpfrp.protocol.codec.FrpServerDecoder;
 import io.intellij.netty.tcpfrp.server.handlers.initial.ServerAuthHandler;
-import io.intellij.netty.tcpfrp.server.listening.MultiPortNettyServer;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
-import io.netty.util.AttributeKey;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 
@@ -21,8 +19,6 @@ import org.jetbrains.annotations.NotNull;
  */
 @RequiredArgsConstructor
 public class FrpServerInitializer extends ChannelInitializer<SocketChannel> {
-    public static final AttributeKey<MultiPortNettyServer> MULTI_PORT_NETTY_SERVER_KEY = AttributeKey.valueOf("multiPortNettyServer");
-
     private final ServerConfig serverConfig;
 
     @Override

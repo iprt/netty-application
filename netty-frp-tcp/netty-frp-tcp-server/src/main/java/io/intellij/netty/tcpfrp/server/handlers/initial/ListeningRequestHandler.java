@@ -11,13 +11,12 @@ import io.intellij.netty.tcpfrp.server.listening.MultiPortUtils;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.util.AttributeKey;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.Map;
-
-import static io.intellij.netty.tcpfrp.server.handlers.FrpServerInitializer.MULTI_PORT_NETTY_SERVER_KEY;
 
 /**
  * ListeningRequestHandler
@@ -29,6 +28,7 @@ import static io.intellij.netty.tcpfrp.server.handlers.FrpServerInitializer.MULT
  */
 @Slf4j
 public class ListeningRequestHandler extends SimpleChannelInboundHandler<ListeningRequest> {
+    public static final AttributeKey<MultiPortNettyServer> MULTI_PORT_NETTY_SERVER_KEY = AttributeKey.valueOf("multiPortNettyServer");
 
     @Override
     public void channelActive(@NotNull ChannelHandlerContext ctx) throws Exception {
@@ -49,8 +49,8 @@ public class ListeningRequestHandler extends SimpleChannelInboundHandler<Listeni
             MultiPortNettyServer multiPortNettyServer = new MultiPortNettyServer(msg.getConfigMap(), ctx.channel());
             if (multiPortNettyServer.start()) {
                 ctx.writeAndFlush(FrpBasicMsg.createListeningResponse(test)).addListener(
-                        (ChannelFutureListener) cf -> {
-                            if (cf.isSuccess()) {
+                        (ChannelFutureListener) f -> {
+                            if (f.isSuccess()) {
                                 // remote this
                                 ctx.pipeline().remove(ListeningRequestHandler.class);
 
@@ -65,7 +65,6 @@ public class ListeningRequestHandler extends SimpleChannelInboundHandler<Listeni
                             }
                         }
                 );
-
             } else {
                 test.setSuccess(false);
                 test.setReason("start multi port netty server failed");

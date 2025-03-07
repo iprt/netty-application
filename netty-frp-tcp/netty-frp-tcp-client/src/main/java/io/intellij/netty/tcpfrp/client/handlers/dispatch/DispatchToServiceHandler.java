@@ -1,7 +1,7 @@
 package io.intellij.netty.tcpfrp.client.handlers.dispatch;
 
-import io.intellij.netty.tcpfrp.client.service.ServiceChannelHandler;
-import io.intellij.netty.tcpfrp.protocol.DataPacket;
+import io.intellij.netty.tcpfrp.client.handlers.ServiceChannelManager;
+import io.intellij.netty.tcpfrp.protocol.channel.DataPacket;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
@@ -23,19 +23,29 @@ public class DispatchToServiceHandler extends SimpleChannelInboundHandler<DataPa
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, @NotNull DataPacket msg) throws Exception {
         // 获取到数据包，e.g. user --- frp-server:3306 的数据包
-        ChannelFuture dispatch = ServiceChannelHandler.dispatch(msg.getServiceId(), msg.getPacket());
+        ChannelFuture dispatch = ServiceChannelManager.getInstance().dispatch(msg);
         if (dispatch != null) {
-            dispatch.addListener((ChannelFutureListener) future -> {
-                if (future.isSuccess()) {
-                    // 读取下一个数据包
-                    ctx.channel().read();
-                    future.channel().read();
-                } else {
-                    log.error("ClientDispatchHandler channelRead0 dispatch failed", future.cause());
-                }
-            });
+            dispatch.addListeners(
+                    (ChannelFutureListener) f -> {
+                        if (f.isSuccess()) {
+                            // 读取下一个数据包
+                            ctx.channel().read();
+                        } else {
+                            log.error("ClientDispatchHandler channelRead0 dispatch failed", f.cause());
+                        }
+                    },
+                    (ChannelFutureListener) f -> {
+                        if (f.isSuccess()) {
+                            // 读取下一个数据包
+                            f.channel().read();
+                        } else {
+                            log.error("ClientDispatchHandler channelRead0 dispatch failed", f.cause());
+                        }
+                    }
+            );
         } else {
             log.error("ClientDispatchHandler channelRead0 dispatch is null");
+            ctx.close();
         }
     }
 

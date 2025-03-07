@@ -1,7 +1,9 @@
 package io.intellij.netty.tcpfrp.client.handlers;
 
+import io.intellij.netty.tcpfrp.protocol.channel.DataPacket;
 import io.intellij.netty.utils.ChannelUtils;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -44,6 +46,17 @@ public class ServiceChannelManager {
         log.warn("release all service channels");
         serviceId2Channel.values().forEach(ChannelUtils::close);
         serviceId2Channel.clear();
+    }
+
+    public ChannelFuture dispatch(DataPacket data) {
+        Channel channel = getChannel(data.getServiceId());
+        if (channel != null && channel.isActive()) {
+            return channel.writeAndFlush(data.getPacket());
+        } else {
+            // 可能是frp server 关闭了连接
+            log.error("ServiceChannelManager dispatch failed |serviceId={} |channel={}", data.getServiceId(), channel);
+            return null;
+        }
     }
 
 }

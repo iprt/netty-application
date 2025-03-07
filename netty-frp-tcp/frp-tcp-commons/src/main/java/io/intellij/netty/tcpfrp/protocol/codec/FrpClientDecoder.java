@@ -1,7 +1,7 @@
 package io.intellij.netty.tcpfrp.protocol.codec;
 
 import com.alibaba.fastjson2.JSONObject;
-import io.intellij.netty.tcpfrp.protocol.DataPacket;
+import io.intellij.netty.tcpfrp.protocol.channel.DataPacket;
 import io.intellij.netty.tcpfrp.protocol.FrpBasicMsg;
 import io.intellij.netty.tcpfrp.protocol.FrpMsgType;
 import io.intellij.netty.tcpfrp.protocol.server.AuthResponse;
@@ -100,7 +100,12 @@ public class FrpClientDecoder extends ReplayingDecoder<FrpBasicMsg.State> {
 
                 // 读取剩余的字节
                 int leftLen = length - 2 * DataPacket.ID_LENGTH;
-                out.add(new DataPacket(userId, serviceId, in.readSlice(leftLen).retain()));
+
+                if (leftLen <= 0) {
+                    throw new IllegalStateException("无效的消息长度");
+                }
+
+                out.add(DataPacket.createAndRetain(userId, serviceId, in.readSlice(leftLen)));
 
                 checkpoint(READ_TYPE);
                 break;

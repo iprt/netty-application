@@ -5,6 +5,7 @@ import io.intellij.netty.tcpfrp.client.handlers.initial.ListeningResponseHandler
 import io.intellij.netty.tcpfrp.client.service.DirectServiceHandler;
 import io.intellij.netty.tcpfrp.client.service.ServiceChannelHandler;
 import io.intellij.netty.tcpfrp.config.ListeningConfig;
+import io.intellij.netty.tcpfrp.protocol.channel.FrpChannel;
 import io.intellij.netty.tcpfrp.protocol.ConnState;
 import io.intellij.netty.tcpfrp.protocol.client.ServiceConnState;
 import io.intellij.netty.tcpfrp.protocol.server.UserConnState;
@@ -54,7 +55,7 @@ public class UserConnStateHandler extends SimpleChannelInboundHandler<UserConnSt
         switch (connState) {
             // accept connection ：user ---> frp-server:3306
             case ACCEPT:
-                final Channel frpsChannel = frpCtx.channel();
+                final Channel frpChannel = frpCtx.channel();
                 Promise<Channel> serviceChannelPromise = frpCtx.executor().newPromise();
                 final String userId = userConnState.getUserId();
 
@@ -66,7 +67,7 @@ public class UserConnStateHandler extends SimpleChannelInboundHandler<UserConnSt
                         String serviceId = serviceChannel.id().asLongText();
                         log.info("[ACCEPT] 接收到用户连接后，服务连接创建成功|userId={}|serviceId={}", userId, serviceId);
                         ChannelPipeline servicePipeline = serviceChannel.pipeline();
-                        servicePipeline.addLast(new ServiceChannelHandler(config, userId, serviceId, frpsChannel));
+                        servicePipeline.addLast(new ServiceChannelHandler(config, userId, serviceId, FrpChannel.build(frpChannel)));
                         // channelActive and Read
                         servicePipeline.fireChannelActive();
                     } else {
@@ -101,13 +102,13 @@ public class UserConnStateHandler extends SimpleChannelInboundHandler<UserConnSt
             case BROKEN:
                 log.warn("[BROKEN] 接收到用户断开连接|userId={}|serviceId={}|config={}", userConnState.getUserId(), userConnState.getServiceId(), userConnState.getListeningConfig());
                 frpCtx.writeAndFlush(Unpooled.EMPTY_BUFFER).addListeners(
-                        (ChannelFutureListener) channelFuture -> {
-                            if (channelFuture.isSuccess()) {
+                        (ChannelFutureListener) f -> {
+                            if (f.isSuccess()) {
                                 ServiceChannelManager.getInstance().release(userConnState.getServiceId());
                             }
                         },
-                        (ChannelFutureListener) channelFuture -> {
-                            if (channelFuture.isSuccess()) {
+                        (ChannelFutureListener) f -> {
+                            if (f.isSuccess()) {
                                 // must
                                 frpCtx.read();
                             }

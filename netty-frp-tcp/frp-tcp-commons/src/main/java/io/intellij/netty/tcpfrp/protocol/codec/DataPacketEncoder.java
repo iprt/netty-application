@@ -1,6 +1,6 @@
 package io.intellij.netty.tcpfrp.protocol.codec;
 
-import io.intellij.netty.tcpfrp.protocol.DataPacket;
+import io.intellij.netty.tcpfrp.protocol.channel.DataPacket;
 import io.intellij.netty.tcpfrp.protocol.FrpMsgType;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;

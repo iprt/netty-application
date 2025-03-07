@@ -1,7 +1,7 @@
 package io.intellij.netty.tcpfrp.server.handlers.dispatch;
 
-import io.intellij.netty.tcpfrp.protocol.DataPacket;
-import io.intellij.netty.tcpfrp.server.listening.UserChannelHandler;
+import io.intellij.netty.tcpfrp.protocol.channel.DataPacket;
+import io.intellij.netty.tcpfrp.server.handlers.UserChannelManager;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
@@ -23,11 +23,7 @@ public class DispatchToUserHandler extends SimpleChannelInboundHandler<DataPacke
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, DataPacket msg) throws Exception {
         // after UserChannel read0
-        String userId = msg.getUserId();
-        String serviceId = msg.getServiceId();
-        log.info("DispatchToUser channelRead0 |userId={}|serviceId={}", userId, serviceId);
-
-        ChannelFuture dispatch = UserChannelHandler.dispatch(msg);
+        ChannelFuture dispatch = UserChannelManager.getInstance().dispatch(msg);
         if (dispatch != null) {
             dispatch.addListener((ChannelFutureListener) f -> {
                 if (f.isSuccess()) {
@@ -37,6 +33,9 @@ public class DispatchToUserHandler extends SimpleChannelInboundHandler<DataPacke
                     ctx.channel().read();
                 }
             });
+        } else {
+            log.error("DispatchToUserHandler channelRead0 dispatch is null");
+            ctx.close();
         }
     }
 

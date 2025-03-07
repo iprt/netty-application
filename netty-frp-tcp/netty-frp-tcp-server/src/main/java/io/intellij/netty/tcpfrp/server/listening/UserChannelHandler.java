@@ -1,26 +1,22 @@
 package io.intellij.netty.tcpfrp.server.listening;
 
 import io.intellij.netty.tcpfrp.config.ListeningConfig;
-import io.intellij.netty.tcpfrp.exchange.FrpChannel;
-import io.intellij.netty.tcpfrp.protocol.DataPacket;
+import io.intellij.netty.tcpfrp.protocol.channel.FrpChannel;
+import io.intellij.netty.tcpfrp.protocol.channel.DataPacket;
 import io.intellij.netty.tcpfrp.protocol.server.UserConnState;
 import io.intellij.netty.tcpfrp.server.handlers.UserChannelManager;
 import io.intellij.netty.utils.CtxUtils;
 import io.netty.buffer.ByteBuf;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.util.AttributeKey;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
 
-import static io.intellij.netty.tcpfrp.server.handlers.UserChannelManager.SERVER_ID_KEY;
+import static io.intellij.netty.tcpfrp.server.handlers.UserChannelManager.SERVICE_ID_KEY;
 
 /**
  * UserChannelHandler
@@ -30,6 +26,8 @@ import static io.intellij.netty.tcpfrp.server.handlers.UserChannelManager.SERVER
 @RequiredArgsConstructor
 @Slf4j
 public class UserChannelHandler extends ChannelInboundHandlerAdapter {
+    private static final AttributeKey<ListeningConfig> LISTENING_CONFIG_KEY = AttributeKey.valueOf("listeningConfig");
+
     private final Map<Integer, ListeningConfig> portToServer;
     private final FrpChannel frpChannel;
 
@@ -43,14 +41,14 @@ public class UserChannelHandler extends ChannelInboundHandlerAdapter {
         UserChannelManager.getInstance().addChannel(userId, ctx.channel());
 
         ListeningConfig listeningConfig = portToServer.get(CtxUtils.getLocalAddress(ctx).getPort());
-        log.info("用户建立了连接 |userId={}|listeningConfig={}", userId, listeningConfig);
+        ctx.channel().attr(LISTENING_CONFIG_KEY).set(listeningConfig);
+        log.info("用户建立了连接 |userId={}|name={}", userId, listeningConfig.getName());
 
-        // 通知 frp-client，用户连接成功 但是userChannel不read数据 通过waitUserChannelRead
-        frpChannel.writeAndFlush(UserConnState.accept(userId, listeningConfig))
-                .addListener((ChannelFutureListener) f -> {
+        // 通知 frp-client，用户连接成功 但是userChannel不read数据, 在 setAttrThenChannelRead 之后 read
+        frpChannel.writeAndFlush(UserConnState.accept(userId, listeningConfig),
+                f -> {
                     if (f.isSuccess()) {
-                        // 读取数据
-                        f.channel().read();
+                        frpChannel.read();
                     }
                 });
     }
@@ -64,22 +62,21 @@ public class UserChannelHandler extends ChannelInboundHandlerAdapter {
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         if (msg instanceof ByteBuf byteBuf) {
             String userId = CtxUtils.getChannelId(ctx);
-            String serviceId = UserChannelManager.getInstance().getAttrValue(userId, SERVER_ID_KEY);
-            log.info("接收到用户的数据 |userId={}|len={}", userId, byteBuf.readableBytes());
-            frpChannel.writeAndFlush(DataPacket.create(userId, serviceId, byteBuf)).addListeners(
-                    (ChannelFutureListener) f -> {
+            log.info("接收到用户的数据 |userId={}|name={}|len={}", userId, ctx.channel().attr(LISTENING_CONFIG_KEY).get().getName(), byteBuf.readableBytes());
+
+            String serviceId = UserChannelManager.getInstance().getAttrValue(userId, SERVICE_ID_KEY);
+            frpChannel.writeAndFlush(DataPacket.create(userId, serviceId, byteBuf),
+                    f -> {
                         if (f.isSuccess()) {
                             ctx.read();
                         }
                     },
-                    (ChannelFutureListener) f -> {
+                    f -> {
                         if (f.isSuccess()) {
-                            f.channel().read();
+                            frpChannel.read();
                         }
                     }
-
             );
-
             return;
         }
         log.warn("unknown msg type|{}", msg.getClass());
@@ -91,15 +88,15 @@ public class UserChannelHandler extends ChannelInboundHandlerAdapter {
      */
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-        log.warn("用户断开了连接 |listeningConfig={}", portToServer.get(CtxUtils.getLocalAddress(ctx).getPort()));
+        log.warn("用户断开了连接 |name={}", portToServer.get(CtxUtils.getLocalAddress(ctx).getPort()).getName());
         String userId = CtxUtils.getChannelId(ctx);
         // String serviceId = ctx.channel().attr(SERVER_ID_KEY).get();
-        String serviceId = UserChannelManager.getInstance().getAttrValue(userId, SERVER_ID_KEY);
-        frpChannel.writeAndFlush(UserConnState.broken(userId, serviceId))
-                .addListener((ChannelFutureListener) f -> {
+        String serviceId = UserChannelManager.getInstance().getAttrValue(userId, SERVICE_ID_KEY);
+        frpChannel.writeAndFlush(UserConnState.broken(userId, serviceId),
+                f -> {
                     if (f.isSuccess()) {
                         // frp channel read
-                        f.channel().read();
+                        frpChannel.read();
                     }
                 });
     }
@@ -108,16 +105,6 @@ public class UserChannelHandler extends ChannelInboundHandlerAdapter {
     public void exceptionCaught(@NotNull ChannelHandlerContext ctx, Throwable cause) throws Exception {
         log.error("user channel exception caught|{}", cause.getMessage(), cause);
         ctx.close();
-    }
-
-    public static @Nullable ChannelFuture dispatch(@NotNull DataPacket dataPacket) {
-        Channel channel = UserChannelManager.getInstance().getChannel(dataPacket.getUserId());
-        if (channel != null && channel.isActive()) {
-            return channel.writeAndFlush(dataPacket.getPacket());
-        } else {
-            log.warn("UserChannelHandler dispatch error| userId: {}, channel: {}, isActive: {}", dataPacket.getUserId(), channel, channel != null && channel.isActive());
-            return null;
-        }
     }
 
 }

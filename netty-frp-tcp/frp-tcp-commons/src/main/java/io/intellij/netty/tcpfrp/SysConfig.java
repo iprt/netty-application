@@ -1,29 +1,33 @@
 package io.intellij.netty.tcpfrp;
 
 import io.intellij.netty.tcpfrp.protocol.SslContextUtils;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * SysConfig
  *
  * @author tech@intellij.io
  */
+@Data
 @Slf4j
 public class SysConfig {
+    private static final SysConfig instance = new SysConfig();
+    private boolean enableSsl;
 
-    public static final AtomicBoolean ENABLE_SSL = new AtomicBoolean(false);
-
-    public static void logDetails() {
-        log.info("======== SysConfig Details ========");
-        log.info("enableSSL={}", ENABLE_SSL.get());
-        log.info("===================================");
-
+    public static SysConfig get() {
+        return instance;
     }
 
-    static {
-        SslContextUtils.init();
+    private SysConfig() {
+        enableSsl = false;
+        SslContextUtils.init(this);
+    }
+
+    public void logDetails() {
+        log.info("======== SysConfig Details ========");
+        log.info("ENABLE_SSL={}", this.enableSsl);
+        log.info("===================================");
     }
 
 }

@@ -1,8 +1,8 @@
 package io.intellij.netty.tcpfrp.config;
 
 import com.alibaba.fastjson2.JSONPath;
-import io.intellij.netty.tcpfrp.protocol.SslContextUtils;
 import io.intellij.netty.tcpfrp.SysConfig;
+import io.intellij.netty.tcpfrp.protocol.SslContextUtils;
 import io.netty.handler.ssl.SslContext;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -14,6 +14,7 @@ import org.apache.commons.io.IOUtils;
 
 import java.io.InputStream;
 import java.util.Objects;
+import java.util.function.Consumer;
 
 /**
  * ServerConfig
@@ -34,7 +35,7 @@ public class ServerConfig {
     private int port;
     private String authToken;
 
-    private boolean ssl;
+    private boolean enableSSL;
     private SslContext sslContext;
 
     public static ServerConfig init(InputStream in) {
@@ -55,7 +56,7 @@ public class ServerConfig {
             return ServerConfig.builder().valid(true)
                     .host(host).port(port)
                     .authToken(authToken)
-                    .ssl(SysConfig.ENABLE_SSL.get())
+                    .enableSSL(SysConfig.get().isEnableSsl())
                     .sslContext(SslContextUtils.buildServer())
                     .build();
 
@@ -74,4 +75,11 @@ public class ServerConfig {
 
     }
 
+    public void then(Consumer<ServerConfig> consumer) {
+        if (this.valid) {
+            consumer.accept(this);
+        } else {
+            log.error("server config is invalid");
+        }
+    }
 }

@@ -1,7 +1,7 @@
 package io.intellij.netty.tcpfrp.server.listening;
 
 import io.intellij.netty.tcpfrp.protocol.channel.FrpChannel;
-import io.intellij.netty.tcpfrp.server.EventLoopGroupContainer;
+import io.intellij.netty.tcpfrp.commons.EventLoopGroups;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -36,7 +36,7 @@ public class MultiPortNettyServer {
     }
 
     public boolean start() {
-        EventLoopGroupContainer container = EventLoopGroupContainer.get();
+        EventLoopGroups container = EventLoopGroups.get();
         EventLoopGroup bossGroup = container.getBossGroup();
         EventLoopGroup workerGroup = container.getWorkerGroup();
 

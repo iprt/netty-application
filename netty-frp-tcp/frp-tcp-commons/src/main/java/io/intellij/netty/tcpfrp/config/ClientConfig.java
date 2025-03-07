@@ -17,6 +17,7 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Consumer;
 
 /**
  * ClientConfig
@@ -40,7 +41,7 @@ public class ClientConfig {
 
     private Map<String, ListeningConfig> listeningConfigMap;
 
-    private boolean ssl;
+    private boolean enableSSL;
     private SslContext sslContext;
 
     public static ClientConfig init(InputStream in) {
@@ -81,7 +82,7 @@ public class ClientConfig {
                         .serverPort(evalServerPort)
                         .authToken(evalAuthToken)
                         .listeningConfigMap(map)
-                        .ssl(SysConfig.ENABLE_SSL.get())
+                        .enableSSL(SysConfig.get().isEnableSsl())
                         .sslContext(SslContextUtils.buildClient())
                         .build();
             }
@@ -99,6 +100,14 @@ public class ClientConfig {
             }
         }
 
+    }
+
+    public void then(Consumer<ClientConfig> consumer) {
+        if (this.valid) {
+            consumer.accept(this);
+        } else {
+            log.error("client config is invalid");
+        }
     }
 
 }

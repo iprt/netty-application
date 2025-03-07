@@ -24,8 +24,16 @@ public class SslContextUtils {
     private static final String CLIENT_KEY = "ssl/client/client.key";
     private static final String CA_CERT = "ssl/ca.crt";
 
+    /**
+     * Builds and returns an SSL context for the server if SSL is enabled in the configuration.
+     * The method attempts to load server certificates, private key, and CA certificate to configure the SSL context.
+     * If an error occurs during the process, it logs the error and returns null.
+     *
+     * @return an instance of {@link SslContext} configured for the server, or null if SSL is not enabled
+     * or an error occurs during the setup.
+     */
     public static SslContext buildServer() {
-        if (SysConfig.ENABLE_SSL.get()) {
+        if (SysConfig.get().isEnableSsl()) {
             InputStream cert = null;
             InputStream key = null;
             InputStream caCert = null;
@@ -47,8 +55,16 @@ public class SslContextUtils {
         return null;
     }
 
+    /**
+     * Builds and returns an SSL context for a client connection if SSL is enabled in the system configuration.
+     * The method attempts to load the client certificate, key, and CA certificate to construct the SSL context.
+     * If an exception occurs during the process, it logs the error and returns null.
+     *
+     * @return the configured SslContext if SSL is enabled and configured correctly, or null if SSL is disabled
+     * or an error occurs during SSL context setup.
+     */
     public static SslContext buildClient() {
-        if (SysConfig.ENABLE_SSL.get()) {
+        if (SysConfig.get().isEnableSsl()) {
             InputStream cert = null;
             InputStream key = null;
             InputStream caCert = null;
@@ -70,7 +86,7 @@ public class SslContextUtils {
         return null;
     }
 
-    public static void init() {
+    public static void init(SysConfig sysConfig) {
         try {
             InputStream caCert = get(CA_CERT);
             InputStream serverCrt = get(SERVER_CERT);
@@ -78,13 +94,14 @@ public class SslContextUtils {
             InputStream clientCrt = get(CLIENT_CERT);
             InputStream clientKey = get(CLIENT_KEY);
 
-            if (Objects.nonNull(caCert) &&
-                    Objects.nonNull(serverCrt) &&
-                    Objects.nonNull(serverKey) &&
-                    Objects.nonNull(clientCrt) &&
-                    Objects.nonNull(clientKey)) {
-                SysConfig.ENABLE_SSL.set(true);
+            if (Objects.nonNull(caCert)
+                    && Objects.nonNull(serverCrt) && Objects.nonNull(serverKey)
+                    && Objects.nonNull(clientCrt) && Objects.nonNull(clientKey)
+            ) {
+                // 待完善验证
+                sysConfig.setEnableSsl(true);
             }
+
             close(caCert, serverKey, serverCrt, clientKey, clientCrt);
         } catch (Exception e) {
             log.error("init error", e);

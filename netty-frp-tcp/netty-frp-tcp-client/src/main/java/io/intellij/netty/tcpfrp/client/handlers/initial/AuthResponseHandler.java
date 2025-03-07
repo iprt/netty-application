@@ -28,9 +28,7 @@ public class AuthResponseHandler extends SimpleChannelInboundHandler<AuthRespons
 
     @Override
     public void channelActive(@NotNull ChannelHandlerContext ctx) throws Exception {
-        log.info("initialize frp channel");
-        FrpChannel frpChannel = FrpChannel.build(ctx.channel());
-        ctx.channel().attr(FRP_CHANNEL_KEY).set(frpChannel);
+        FrpChannel frpChannel = ctx.channel().attr(FRP_CHANNEL_KEY).get();
         // must
         frpChannel.read();
     }

@@ -23,13 +23,14 @@ public class FrpClientInitializer extends ChannelInitializer<SocketChannel> {
     @Override
     protected void initChannel(@NotNull SocketChannel ch) throws Exception {
         ChannelPipeline pipeline = ch.pipeline();
+        if (clientConfig.isEnableSSL()) {
+            pipeline.addLast(clientConfig.getSslContext().newHandler(ch.alloc()));
+        }
 
-        // 编解码器
         pipeline.addLast(FrpDecoder.clientDecoder())
                 .addLast(FrpEncoder.basicMsgEncoder())
                 .addLast(FrpEncoder.dispatchEncoder());
 
-        // 处理器
         pipeline.addLast(new AuthResponseHandler(clientConfig.getListeningConfigMap()));
 
     }

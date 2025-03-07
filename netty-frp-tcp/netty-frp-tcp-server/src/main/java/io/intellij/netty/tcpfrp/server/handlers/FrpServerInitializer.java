@@ -18,16 +18,22 @@ import org.jetbrains.annotations.NotNull;
  */
 @RequiredArgsConstructor
 public class FrpServerInitializer extends ChannelInitializer<SocketChannel> {
-    private final ServerConfig serverConfig;
+    private final ServerConfig config;
 
     @Override
     protected void initChannel(@NotNull SocketChannel ch) throws Exception {
         ChannelPipeline pipeline = ch.pipeline();
+
+        if (config.isEnableSSL()) {
+            pipeline.addLast(config.getSslContext().newHandler(ch.alloc()));
+        }
+
         pipeline.addLast(FrpDecoder.serverDecoder())
                 .addLast(FrpEncoder.basicMsgEncoder())
                 .addLast(FrpEncoder.dispatchEncoder());
 
-        pipeline.addLast(new AuthRequestHandler(serverConfig.getAuthToken()));
+
+        pipeline.addLast(new AuthRequestHandler(config.getAuthToken()));
     }
 
 }

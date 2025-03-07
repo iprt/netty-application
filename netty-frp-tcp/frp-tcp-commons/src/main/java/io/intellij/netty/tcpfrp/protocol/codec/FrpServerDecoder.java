@@ -1,9 +1,10 @@
 package io.intellij.netty.tcpfrp.protocol.codec;
 
 import com.alibaba.fastjson2.JSONObject;
-import io.intellij.netty.tcpfrp.protocol.channel.DataPacket;
 import io.intellij.netty.tcpfrp.protocol.FrpBasicMsg;
 import io.intellij.netty.tcpfrp.protocol.FrpMsgType;
+import io.intellij.netty.tcpfrp.protocol.channel.DataPacket;
+import io.intellij.netty.tcpfrp.protocol.channel.DispatchIdUtils;
 import io.intellij.netty.tcpfrp.protocol.client.AuthRequest;
 import io.intellij.netty.tcpfrp.protocol.client.ListeningRequest;
 import io.intellij.netty.tcpfrp.protocol.client.ServiceConnState;
@@ -89,22 +90,18 @@ public class FrpServerDecoder extends ReplayingDecoder<FrpBasicMsg.State> {
                 checkpoint(READ_TYPE);
                 break;
             case READ_DATA_PACKET:
-                byte[] userIdBytes = new byte[DataPacket.ID_LENGTH];
-                byte[] serviceIdBytes = new byte[DataPacket.ID_LENGTH];
-                in.readBytes(userIdBytes);
-                in.readBytes(serviceIdBytes);
+                byte[] dispatchIdBytes = new byte[DispatchIdUtils.ID_LENGTH];
+                in.readBytes(dispatchIdBytes);
 
-                String userId = new String(userIdBytes);
-                String serviceId = new String(serviceIdBytes);
+                String dispatchId = new String(dispatchIdBytes);
 
                 // 读取剩余的字节
-                int leftLen = length - 2 * DataPacket.ID_LENGTH;
-
+                int leftLen = length -  DispatchIdUtils.ID_LENGTH;
                 if (leftLen <= 0) {
                     throw new IllegalStateException("无效的消息长度");
                 }
 
-                out.add(DataPacket.createAndRetain(userId, serviceId, in.readSlice(leftLen)));
+                out.add(DataPacket.createAndRetain(dispatchId, in.readSlice(leftLen)));
 
                 checkpoint(READ_TYPE);
                 break;

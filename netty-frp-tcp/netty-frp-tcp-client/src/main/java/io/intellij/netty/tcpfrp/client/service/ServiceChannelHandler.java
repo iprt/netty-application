@@ -20,21 +20,18 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ServiceChannelHandler extends ChannelInboundHandlerAdapter {
     private final ListeningConfig listeningConfig;
-    private final String userId;
-    // serviceId 等价与当前 Handler 的 channelId
-    private final String serviceId;
+    private final String dispatchId;
 
     private final FrpChannel frpChannel;
-
 
     /**
      * 服务连接成功
      */
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        log.info("建立服务端连接 |name={}", listeningConfig.getName());
-        ServiceChannelManager.getInstance().addChannel(userId, ctx.channel());
-        // BootStrap AutoRead=false
+        log.info("建立服务端连接 |dispatchId={}|name={}", dispatchId, listeningConfig.getName());
+        ServiceChannelManager.getInstance().addChannel(dispatchId, ctx.channel());
+        // BootStrap set AUTO_READ=false
         ctx.read();
     }
 
@@ -44,8 +41,8 @@ public class ServiceChannelHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         if (msg instanceof ByteBuf byteBuf) {
-            log.info("接收到服务端的数据 |serviceId={}|name={}|len={}", serviceId, listeningConfig.getName(), byteBuf.readableBytes());
-            frpChannel.writeAndFlush(DataPacket.create(userId, serviceId, byteBuf),
+            log.info("接收到服务端的数据 |dispatchId={}|name={}|len={}", dispatchId, listeningConfig.getName(), byteBuf.readableBytes());
+            frpChannel.writeAndFlush(DataPacket.create(dispatchId, byteBuf),
                     f -> {
                         if (f.isSuccess()) {
                             frpChannel.read();
@@ -64,7 +61,6 @@ public class ServiceChannelHandler extends ChannelInboundHandlerAdapter {
         throw new IllegalArgumentException("msg is not ByteBuf");
     }
 
-
     /**
      * 服务连接断开
      * <p>
@@ -73,9 +69,9 @@ public class ServiceChannelHandler extends ChannelInboundHandlerAdapter {
      */
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-        log.info("丢失服务端连接 |serviceId={}|name={}", serviceId, listeningConfig.getName());
+        log.warn("丢失服务端连接 |dispatchId={}|name={}", dispatchId, listeningConfig.getName());
         // frp-client -x-> mysql:3306
-        frpChannel.writeAndFlush(ServiceConnState.connBroken(userId, serviceId),
+        frpChannel.writeAndFlush(ServiceConnState.connBroken(dispatchId),
                 f -> {
                     if (f.isSuccess()) {
                         frpChannel.read();
@@ -87,7 +83,7 @@ public class ServiceChannelHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        log.error("ServiceHandler exceptionCaught, userId={}, serviceId={}", userId, serviceId, cause);
+        log.error("ServiceHandler exceptionCaught|dispatchId={}", dispatchId, cause);
         ctx.close();
     }
 

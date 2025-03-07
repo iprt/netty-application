@@ -17,24 +17,23 @@ import lombok.NoArgsConstructor;
 @Data
 public class ServiceConnState {
     private String connState;
-    private String userId;
-    private String serviceId;
+    private String dispatchId;
 
-    public static FrpBasicMsg connSuccess(String userId, String serviceId) {
+    public static FrpBasicMsg connSuccess(String dispatchId) {
         return FrpBasicMsg.createServiceConnState(
-                new ServiceConnState(ConnState.SUCCESS.getName(), userId, serviceId)
+                new ServiceConnState(ConnState.SUCCESS.getName(), dispatchId)
         );
     }
 
-    public static FrpBasicMsg connFailure(String userId) {
+    public static FrpBasicMsg connFailure(String dispatchId) {
         return FrpBasicMsg.createServiceConnState(
-                new ServiceConnState(ConnState.FAILURE.getName(), userId, null)
+                new ServiceConnState(ConnState.FAILURE.getName(), dispatchId)
         );
     }
 
-    public static FrpBasicMsg connBroken(String userId, String serviceId) {
+    public static FrpBasicMsg connBroken(String dispatchId) {
         return FrpBasicMsg.createServiceConnState(
-                new ServiceConnState(ConnState.BROKEN.getName(), userId, serviceId)
+                new ServiceConnState(ConnState.BROKEN.getName(), dispatchId)
         );
     }
 

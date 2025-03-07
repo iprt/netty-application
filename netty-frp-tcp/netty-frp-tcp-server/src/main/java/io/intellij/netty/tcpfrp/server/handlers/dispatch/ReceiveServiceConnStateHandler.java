@@ -12,7 +12,6 @@ import io.netty.channel.SimpleChannelInboundHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 
-import static io.intellij.netty.tcpfrp.server.handlers.UserChannelManager.SERVICE_ID_KEY;
 import static io.intellij.netty.tcpfrp.server.handlers.initial.ListeningRequestHandler.MULTI_PORT_NETTY_SERVER_KEY;
 
 /**
@@ -41,15 +40,13 @@ public class ReceiveServiceConnStateHandler extends SimpleChannelInboundHandler<
         }
         switch (serviceState) {
             case SUCCESS:
-                // frp-client ---> service 连接成功 可以获取到 serviceId
+                // frp-client ---> service 连接成功 可以获取到 dispatchId
                 ctx.writeAndFlush(Unpooled.EMPTY_BUFFER).addListeners(
                         (ChannelFutureListener) f -> {
                             if (f.isSuccess()) {
-                                String userId = msg.getUserId();
-                                String serviceId = msg.getServiceId();
-                                log.info("ServiceConnStateHandler channelRead0 userId {} serviceId {}", userId, serviceId);
-                                UserChannelManager.getInstance()
-                                        .setAttrThenChannelRead(userId, SERVICE_ID_KEY, serviceId);
+                                String dispatchId = msg.getDispatchId();
+                                log.info("ServiceConnStateHandler channelRead0 |dispatchId={}", dispatchId);
+                                UserChannelManager.getInstance().initiativeChannelRead(dispatchId);
                             }
                         },
                         (ChannelFutureListener) f -> {
@@ -61,11 +58,11 @@ public class ReceiveServiceConnStateHandler extends SimpleChannelInboundHandler<
                 break;
             case FAILURE:
             case BROKEN:
-                // frp-client ---> service 连接断开 只有userId 没有serviceId
+                // frp-client ---> service 连接断开
                 ctx.writeAndFlush(Unpooled.EMPTY_BUFFER).addListeners(
                         (ChannelFutureListener) f -> {
                             if (f.isSuccess()) {
-                                UserChannelManager.getInstance().release(msg.getUserId());
+                                UserChannelManager.getInstance().release(msg.getDispatchId());
                             }
                         },
                         (ChannelFutureListener) f -> {

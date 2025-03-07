@@ -57,22 +57,21 @@ public class ReceiveUserConnStateHandler extends SimpleChannelInboundHandler<Use
             case ACCEPT:
                 final Channel frpChannel = frpCtx.channel();
                 Promise<Channel> serviceChannelPromise = frpCtx.executor().newPromise();
-                final String userId = userConnState.getUserId();
+                final String dispatchId = userConnState.getDispatchId();
 
                 ListeningConfig config = userConnState.getListeningConfig();
-                log.info("[ACCEPT] 接收到用户连接 |userId={}|config={}", userId, config);
+                log.info("[ACCEPT] 接收到用户连接 |dispatchId={}|config={}", dispatchId, config);
                 serviceChannelPromise.addListener((FutureListener<Channel>) future -> {
                     Channel serviceChannel = future.getNow();
                     if (future.isSuccess()) {
-                        String serviceId = serviceChannel.id().asLongText();
-                        log.info("[ACCEPT] 接收到用户连接后，服务连接创建成功|userId={}|serviceId={}", userId, serviceId);
+                        log.info("[ACCEPT] 接收到用户连接后，服务连接创建成功|dispatchId={}", dispatchId);
                         ChannelPipeline servicePipeline = serviceChannel.pipeline();
-                        servicePipeline.addLast(new ServiceChannelHandler(config, userId, serviceId, FrpChannel.build(frpChannel)));
+                        servicePipeline.addLast(new ServiceChannelHandler(config, dispatchId, FrpChannel.build(frpChannel)));
                         // channelActive and Read
                         servicePipeline.fireChannelActive();
                     } else {
-                        log.warn("[ACCEPT] 接收到用户连接后，服务连接创建失败|userId={}", userId);
-                        frpCtx.writeAndFlush(ServiceConnState.connFailure(userId)).addListeners(
+                        log.warn("[ACCEPT] 接收到用户连接后，服务连接创建失败|dispatchId={}", dispatchId);
+                        frpCtx.writeAndFlush(ServiceConnState.connFailure(dispatchId)).addListeners(
                                 (ChannelFutureListener) f -> {
                                     if (f.isSuccess()) {
                                         // must
@@ -93,8 +92,7 @@ public class ReceiveUserConnStateHandler extends SimpleChannelInboundHandler<Use
                 b.connect(config.getLocalIp(), config.getLocalPort())
                         .addListener((ChannelFutureListener) cf -> {
                             if (cf.isSuccess()) {
-                                String serviceId = cf.channel().id().asLongText();
-                                frpCtx.writeAndFlush(ServiceConnState.connSuccess(userId, serviceId))
+                                frpCtx.writeAndFlush(ServiceConnState.connSuccess(dispatchId))
                                         .addListener((ChannelFutureListener) f2 -> {
                                             if (f2.isSuccess()) {
                                                 frpCtx.read();
@@ -102,7 +100,7 @@ public class ReceiveUserConnStateHandler extends SimpleChannelInboundHandler<Use
                                         });
                             } else {
                                 log.warn("[ACCEPT] 接收到用户连接后，服务连接创建失败|config={}", config);
-                                frpCtx.writeAndFlush(ServiceConnState.connFailure(userId)).addListeners(
+                                frpCtx.writeAndFlush(ServiceConnState.connFailure(dispatchId)).addListeners(
                                         (ChannelFutureListener) f -> {
                                             if (f.isSuccess()) {
                                                 // must
@@ -115,11 +113,11 @@ public class ReceiveUserConnStateHandler extends SimpleChannelInboundHandler<Use
                 break;
             // broken connection：user -x-> frp-server:3306
             case BROKEN:
-                log.warn("[BROKEN] 接收到用户断开连接|userId={}|config={}", userConnState.getUserId(), userConnState.getListeningConfig());
+                log.warn("[BROKEN] 接收到用户断开连接|dispatchId={}|config={}", userConnState.getDispatchId(), userConnState.getListeningConfig());
                 frpCtx.writeAndFlush(Unpooled.EMPTY_BUFFER).addListeners(
                         (ChannelFutureListener) f -> {
                             if (f.isSuccess()) {
-                                ServiceChannelManager.getInstance().release(userConnState.getUserId());
+                                ServiceChannelManager.getInstance().release(userConnState.getDispatchId());
                             }
                         },
                         (ChannelFutureListener) f -> {

@@ -11,24 +11,21 @@ import lombok.Getter;
  */
 @Getter
 public class DataPacket {
-    public static final int ID_LENGTH = 60;
 
-    private final String userId;
-    private final String serviceId;
+    private final String dispatchId;
     private final ByteBuf packet;
 
-    private DataPacket(String userId, String serviceId, ByteBuf packet) {
-        this.userId = userId;
-        this.serviceId = serviceId;
+    private DataPacket(String dispatchId, ByteBuf packet) {
+        this.dispatchId = dispatchId;
         this.packet = packet;
     }
 
-    public static DataPacket create(String userId, String serviceId, ByteBuf packet) {
-        return new DataPacket(userId, serviceId, packet);
+    public static DataPacket create(String dispatchId, ByteBuf packet) {
+        return new DataPacket(dispatchId, packet);
     }
 
-    public static DataPacket createAndRetain(String userId, String serviceId, ByteBuf packet) {
-        return new DataPacket(userId, serviceId, packet.retain());
+    public static DataPacket createAndRetain(String dispatchId, ByteBuf packet) {
+        return new DataPacket(dispatchId, packet.retain());
     }
 
 }

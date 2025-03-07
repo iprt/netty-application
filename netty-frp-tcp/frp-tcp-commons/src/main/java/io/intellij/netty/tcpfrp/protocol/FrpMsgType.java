@@ -51,7 +51,7 @@ public enum FrpMsgType {
     SERVICE_CONN_STATE(5, "service conn state"),
 
     /**
-     * 客户端&服务端: 数据包，本质上结构一样 (type|userId:serviceId|data)
+     * 客户端&服务端: 数据包，本质上结构一样 (type|dispatchId|data)
      */
     DATA_PACKET(6, "data packet");
 

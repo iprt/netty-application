@@ -5,8 +5,8 @@ import io.intellij.netty.tcpfrp.client.handlers.initial.ListeningResponseHandler
 import io.intellij.netty.tcpfrp.client.service.DirectServiceHandler;
 import io.intellij.netty.tcpfrp.client.service.ServiceChannelHandler;
 import io.intellij.netty.tcpfrp.config.ListeningConfig;
-import io.intellij.netty.tcpfrp.protocol.channel.FrpChannel;
 import io.intellij.netty.tcpfrp.protocol.ConnState;
+import io.intellij.netty.tcpfrp.protocol.channel.FrpChannel;
 import io.intellij.netty.tcpfrp.protocol.client.ServiceConnState;
 import io.intellij.netty.tcpfrp.protocol.server.UserConnState;
 import io.netty.bootstrap.Bootstrap;
@@ -23,7 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * UserConnStateHandler
+ * ReceiveUserConnStateHandler
  * <p>
  * 处理 用户连接信息的handler
  *
@@ -31,7 +31,7 @@ import org.jetbrains.annotations.NotNull;
  * @since 2025-03-05
  */
 @Slf4j
-public class UserConnStateHandler extends SimpleChannelInboundHandler<UserConnState> {
+public class ReceiveUserConnStateHandler extends SimpleChannelInboundHandler<UserConnState> {
 
     /**
      * Triggered from {@link ListeningResponseHandler}
@@ -72,7 +72,14 @@ public class UserConnStateHandler extends SimpleChannelInboundHandler<UserConnSt
                         servicePipeline.fireChannelActive();
                     } else {
                         log.warn("[ACCEPT] 接收到用户连接后，服务连接创建失败|userId={}", userId);
-                        frpCtx.writeAndFlush(ServiceConnState.connFailure(userId));
+                        frpCtx.writeAndFlush(ServiceConnState.connFailure(userId)).addListeners(
+                                (ChannelFutureListener) f -> {
+                                    if (f.isSuccess()) {
+                                        // must
+                                        frpCtx.read();
+                                    }
+                                }
+                        );
                     }
 
                 });
@@ -95,16 +102,24 @@ public class UserConnStateHandler extends SimpleChannelInboundHandler<UserConnSt
                                         });
                             } else {
                                 log.warn("[ACCEPT] 接收到用户连接后，服务连接创建失败|config={}", config);
+                                frpCtx.writeAndFlush(ServiceConnState.connFailure(userId)).addListeners(
+                                        (ChannelFutureListener) f -> {
+                                            if (f.isSuccess()) {
+                                                // must
+                                                frpCtx.read();
+                                            }
+                                        }
+                                );
                             }
                         });
                 break;
             // broken connection：user -x-> frp-server:3306
             case BROKEN:
-                log.warn("[BROKEN] 接收到用户断开连接|userId={}|serviceId={}|config={}", userConnState.getUserId(), userConnState.getServiceId(), userConnState.getListeningConfig());
+                log.warn("[BROKEN] 接收到用户断开连接|userId={}|config={}", userConnState.getUserId(), userConnState.getListeningConfig());
                 frpCtx.writeAndFlush(Unpooled.EMPTY_BUFFER).addListeners(
                         (ChannelFutureListener) f -> {
                             if (f.isSuccess()) {
-                                ServiceChannelManager.getInstance().release(userConnState.getServiceId());
+                                ServiceChannelManager.getInstance().release(userConnState.getUserId());
                             }
                         },
                         (ChannelFutureListener) f -> {

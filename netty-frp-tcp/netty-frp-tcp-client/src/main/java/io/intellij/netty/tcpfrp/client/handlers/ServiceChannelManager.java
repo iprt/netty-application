@@ -22,34 +22,34 @@ public class ServiceChannelManager {
     @Getter
     private static final ServiceChannelManager instance = new ServiceChannelManager();
 
-    private final Map<String, Channel> serviceId2Channel;
+    private final Map<String, Channel> userId2ServiceChannel;
 
     private ServiceChannelManager() {
-        serviceId2Channel = new ConcurrentHashMap<>();
+        userId2ServiceChannel = new ConcurrentHashMap<>();
     }
 
-    public void addChannel(String serviceId, Channel channel) {
-        serviceId2Channel.put(serviceId, channel);
+    public void addChannel(String userId, Channel channel) {
+        userId2ServiceChannel.put(userId, channel);
     }
 
-    public Channel getChannel(String serviceId) {
-        return serviceId2Channel.get(serviceId);
+    public Channel getChannel(String userId) {
+        return userId2ServiceChannel.get(userId);
     }
 
-    public void release(String serviceId) {
-        log.warn("release service channel |serviceId={}", serviceId);
-        Channel channel = serviceId2Channel.remove(serviceId);
+    public void release(String userId) {
+        log.warn("release service channel |userId={}", userId);
+        Channel channel = userId2ServiceChannel.remove(userId);
         ChannelUtils.close(channel);
     }
 
     public void releaseAll() {
         log.warn("release all service channels");
-        serviceId2Channel.values().forEach(ChannelUtils::close);
-        serviceId2Channel.clear();
+        userId2ServiceChannel.values().forEach(ChannelUtils::close);
+        userId2ServiceChannel.clear();
     }
 
     public ChannelFuture dispatch(DataPacket data) {
-        Channel channel = getChannel(data.getServiceId());
+        Channel channel = getChannel(data.getUserId());
         if (channel != null && channel.isActive()) {
             return channel.writeAndFlush(data.getPacket());
         } else {

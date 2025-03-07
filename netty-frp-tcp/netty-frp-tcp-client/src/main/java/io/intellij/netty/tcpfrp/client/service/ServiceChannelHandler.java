@@ -2,8 +2,8 @@ package io.intellij.netty.tcpfrp.client.service;
 
 import io.intellij.netty.tcpfrp.client.handlers.ServiceChannelManager;
 import io.intellij.netty.tcpfrp.config.ListeningConfig;
-import io.intellij.netty.tcpfrp.protocol.channel.FrpChannel;
 import io.intellij.netty.tcpfrp.protocol.channel.DataPacket;
+import io.intellij.netty.tcpfrp.protocol.channel.FrpChannel;
 import io.intellij.netty.tcpfrp.protocol.client.ServiceConnState;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
@@ -33,7 +33,7 @@ public class ServiceChannelHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         log.info("建立服务端连接 |name={}", listeningConfig.getName());
-        ServiceChannelManager.getInstance().addChannel(serviceId, ctx.channel());
+        ServiceChannelManager.getInstance().addChannel(userId, ctx.channel());
         // BootStrap AutoRead=false
         ctx.read();
     }

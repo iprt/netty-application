@@ -19,18 +19,17 @@ import lombok.NoArgsConstructor;
 public class UserConnState {
     private String conState;
     private String userId;
-    private String serviceId;
     private ListeningConfig listeningConfig;
 
     public static FrpBasicMsg accept(String userId, ListeningConfig listeningConfig) {
         return FrpBasicMsg.createUserConnState(
-                new UserConnState(ConnState.ACCEPT.getName(), userId, null, listeningConfig)
+                new UserConnState(ConnState.ACCEPT.getName(), userId, listeningConfig)
         );
     }
 
-    public static FrpBasicMsg broken(String userId, String serviceId) {
+    public static FrpBasicMsg broken(String userId) {
         return FrpBasicMsg.createUserConnState(
-                new UserConnState(ConnState.BROKEN.getName(), userId, serviceId, null)
+                new UserConnState(ConnState.BROKEN.getName(), userId, null)
         );
     }
 

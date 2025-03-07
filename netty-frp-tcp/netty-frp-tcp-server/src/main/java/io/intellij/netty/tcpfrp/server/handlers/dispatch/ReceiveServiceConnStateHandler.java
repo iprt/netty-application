@@ -22,7 +22,7 @@ import static io.intellij.netty.tcpfrp.server.handlers.initial.ListeningRequestH
  * @since 2025-03-05
  */
 @Slf4j
-public class ServiceConnStateHandler extends SimpleChannelInboundHandler<ServiceConnState> {
+public class ReceiveServiceConnStateHandler extends SimpleChannelInboundHandler<ServiceConnState> {
 
     /**
      * Triggered from {@link ListeningRequestHandler}
@@ -84,7 +84,7 @@ public class ServiceConnStateHandler extends SimpleChannelInboundHandler<Service
 
     @Override
     public void channelInactive(@NotNull ChannelHandlerContext ctx) throws Exception {
-        log.warn("与 frp-client 断开连接，释放所有 userChannel, 关闭监听服务");
+        log.warn("与 frp-client 断开连接, 释放所有 userChannel, 关闭监听服务");
         UserChannelManager.getInstance().releaseAll();
 
         MultiPortNettyServer multiPortNettyServer = ctx.channel().attr(MULTI_PORT_NETTY_SERVER_KEY).get();

@@ -5,7 +5,7 @@ import io.intellij.netty.tcpfrp.protocol.FrpBasicMsg;
 import io.intellij.netty.tcpfrp.protocol.client.ListeningRequest;
 import io.intellij.netty.tcpfrp.protocol.server.ListeningResponse;
 import io.intellij.netty.tcpfrp.server.handlers.dispatch.DispatchToUserHandler;
-import io.intellij.netty.tcpfrp.server.handlers.dispatch.ServiceConnStateHandler;
+import io.intellij.netty.tcpfrp.server.handlers.dispatch.ReceiveServiceConnStateHandler;
 import io.intellij.netty.tcpfrp.server.listening.MultiPortNettyServer;
 import io.intellij.netty.tcpfrp.server.listening.MultiPortUtils;
 import io.netty.channel.ChannelFutureListener;
@@ -56,7 +56,7 @@ public class ListeningRequestHandler extends SimpleChannelInboundHandler<Listeni
 
                                 ctx.channel().attr(MULTI_PORT_NETTY_SERVER_KEY).set(multiPortNettyServer);
                                 ctx.pipeline()
-                                        .addLast(new ServiceConnStateHandler())
+                                        .addLast(new ReceiveServiceConnStateHandler())
                                         .addLast(new DispatchToUserHandler());
 
                                 ctx.pipeline().fireChannelActive();

@@ -92,7 +92,7 @@ public class UserChannelHandler extends ChannelInboundHandlerAdapter {
         String userId = CtxUtils.getChannelId(ctx);
         // String serviceId = ctx.channel().attr(SERVER_ID_KEY).get();
         String serviceId = UserChannelManager.getInstance().getAttrValue(userId, SERVICE_ID_KEY);
-        frpChannel.writeAndFlush(UserConnState.broken(userId, serviceId),
+        frpChannel.writeAndFlush(UserConnState.broken(userId),
                 f -> {
                     if (f.isSuccess()) {
                         // frp channel read

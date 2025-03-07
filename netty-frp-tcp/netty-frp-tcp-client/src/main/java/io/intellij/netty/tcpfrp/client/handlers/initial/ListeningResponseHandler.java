@@ -1,7 +1,7 @@
 package io.intellij.netty.tcpfrp.client.handlers.initial;
 
 import io.intellij.netty.tcpfrp.client.handlers.dispatch.DispatchToServiceHandler;
-import io.intellij.netty.tcpfrp.client.handlers.dispatch.UserConnStateHandler;
+import io.intellij.netty.tcpfrp.client.handlers.dispatch.ReceiveUserConnStateHandler;
 import io.intellij.netty.tcpfrp.protocol.server.ListeningResponse;
 import io.intellij.netty.utils.ChannelUtils;
 import io.netty.buffer.Unpooled;
@@ -34,7 +34,7 @@ public class ListeningResponseHandler extends SimpleChannelInboundHandler<Listen
                     .addListener((ChannelFutureListener) channelFuture -> {
                         if (channelFuture.isSuccess()) {
                             ctx.pipeline().remove(ListeningResponseHandler.class);
-                            ctx.pipeline().addLast(new UserConnStateHandler())
+                            ctx.pipeline().addLast(new ReceiveUserConnStateHandler())
                                     .addLast(new DispatchToServiceHandler());
                             // for UserConnStateHandler
                             ctx.pipeline().fireChannelActive();

@@ -1,13 +1,15 @@
 package io.intellij.netty.tcpfrp.client.handlers.initial;
 
 import io.intellij.netty.tcpfrp.client.handlers.dispatch.DispatchToServiceHandler;
-import io.intellij.netty.tcpfrp.client.handlers.dispatch.ReceiveUserConnStateHandler;
+import io.intellij.netty.tcpfrp.client.handlers.dispatch.ReceiveUserStateHandler;
+import io.intellij.netty.tcpfrp.config.ListeningConfig;
 import io.intellij.netty.tcpfrp.protocol.server.ListeningResponse;
 import io.intellij.netty.utils.ChannelUtils;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 
@@ -19,8 +21,10 @@ import java.util.Map;
  * @author tech@intellij.io
  * @since 2025-03-05
  */
+@RequiredArgsConstructor
 @Slf4j
 public class ListeningResponseHandler extends SimpleChannelInboundHandler<ListeningResponse> {
+    private final Map<String, ListeningConfig> configMap;
 
     @Override
     public void channelActive(@NotNull ChannelHandlerContext ctx) throws Exception {
@@ -34,7 +38,7 @@ public class ListeningResponseHandler extends SimpleChannelInboundHandler<Listen
                     .addListener((ChannelFutureListener) channelFuture -> {
                         if (channelFuture.isSuccess()) {
                             ctx.pipeline().remove(ListeningResponseHandler.class);
-                            ctx.pipeline().addLast(new ReceiveUserConnStateHandler())
+                            ctx.pipeline().addLast(new ReceiveUserStateHandler(configMap))
                                     .addLast(new DispatchToServiceHandler());
                             // for UserConnStateHandler
                             ctx.pipeline().fireChannelActive();

@@ -1,6 +1,6 @@
 package io.intellij.netty.tcpfrp.commons;
 
-import io.intellij.netty.tcpfrp.protocol.channel.DataPacket;
+import io.intellij.netty.tcpfrp.protocol.channel.DispatchPacket;
 import io.intellij.netty.utils.ChannelUtils;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -17,46 +17,52 @@ import java.util.concurrent.ConcurrentHashMap;
  * @since 2025-03-07
  */
 @Slf4j
-public class DispatchChannelManager {
-
+public class DispatchManager {
     @Getter
-    private static final DispatchChannelManager instance = new DispatchChannelManager();
+    private static final DispatchManager instance = new DispatchManager();
 
-    private final Map<String, Channel> dispatchChannelMap;
+    /**
+     * dispatch id -> channel
+     */
+    private final Map<String, Channel> idToChannelMap;
 
-    private DispatchChannelManager() {
-        dispatchChannelMap = new ConcurrentHashMap<>();
+    private DispatchManager() {
+        idToChannelMap = new ConcurrentHashMap<>();
     }
 
     public void addChannel(String dispatchId, Channel channel) {
-        dispatchChannelMap.put(dispatchId, channel);
+        idToChannelMap.put(dispatchId, channel);
     }
 
     public Channel getChannel(String dispatchId) {
-        return dispatchChannelMap.get(dispatchId);
+        return idToChannelMap.get(dispatchId);
     }
 
     public void release(String dispatchId) {
         log.warn("release service channel |dispatchId={}", dispatchId);
-        Channel channel = dispatchChannelMap.remove(dispatchId);
-        ChannelUtils.close(channel);
+        ChannelUtils.close(idToChannelMap.remove(dispatchId));
+    }
+
+    public void release(String dispatchId, String reason) {
+        log.warn("release service channel |dispatchId={}|reason={}", dispatchId, reason);
+        ChannelUtils.close(idToChannelMap.remove(dispatchId));
     }
 
     public void releaseAll() {
         log.warn("release all service channels");
-        dispatchChannelMap.values().forEach(ChannelUtils::close);
-        dispatchChannelMap.clear();
+        idToChannelMap.values().forEach(ChannelUtils::close);
+        idToChannelMap.clear();
     }
 
     public void initiativeChannelRead(String dispatchId) {
-        Channel channel = dispatchChannelMap.get(dispatchId);
+        Channel channel = idToChannelMap.get(dispatchId);
         if (channel != null && channel.isActive()) {
             // AUTO_READ = false
             channel.read();
         }
     }
 
-    public ChannelFuture dispatch(DataPacket data) {
+    public ChannelFuture dispatch(DispatchPacket data) {
         Channel channel = getChannel(data.getDispatchId());
         if (channel != null && channel.isActive()) {
             return channel.writeAndFlush(data.getPacket());

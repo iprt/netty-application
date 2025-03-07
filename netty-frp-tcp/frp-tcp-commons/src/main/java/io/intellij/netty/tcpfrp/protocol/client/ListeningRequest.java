@@ -1,12 +1,11 @@
 package io.intellij.netty.tcpfrp.protocol.client;
 
-import io.intellij.netty.tcpfrp.config.ListeningConfig;
 import io.intellij.netty.tcpfrp.protocol.FrpBasicMsg;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.Map;
+import java.util.List;
 
 /**
  * ListeningRequest
@@ -18,10 +17,11 @@ import java.util.Map;
 @NoArgsConstructor
 @Data
 public class ListeningRequest {
-    private Map<String, ListeningConfig> configMap;
+    // private Map<String, ListeningConfig> configMap;
+    private List<Integer> listeningPorts;
 
-    public static FrpBasicMsg create(Map<String, ListeningConfig> configMap) {
-        return FrpBasicMsg.createListeningRequest(new ListeningRequest(configMap));
+    public static FrpBasicMsg create(List<Integer> listeningPorts) {
+        return FrpBasicMsg.createListeningRequest(new ListeningRequest(listeningPorts));
     }
 
 }

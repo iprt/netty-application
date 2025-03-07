@@ -1,9 +1,8 @@
 package io.intellij.netty.tcpfrp.server.handlers;
 
 import io.intellij.netty.tcpfrp.config.ServerConfig;
-import io.intellij.netty.tcpfrp.protocol.codec.DataPacketEncoder;
-import io.intellij.netty.tcpfrp.protocol.codec.FrpBasicMsgEncoder;
-import io.intellij.netty.tcpfrp.protocol.codec.FrpServerDecoder;
+import io.intellij.netty.tcpfrp.protocol.codec.FrpDecoder;
+import io.intellij.netty.tcpfrp.protocol.codec.FrpEncoder;
 import io.intellij.netty.tcpfrp.server.handlers.initial.ServerAuthHandler;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
@@ -24,9 +23,9 @@ public class FrpServerInitializer extends ChannelInitializer<SocketChannel> {
     @Override
     protected void initChannel(@NotNull SocketChannel ch) throws Exception {
         ChannelPipeline pipeline = ch.pipeline();
-        pipeline.addLast(new FrpServerDecoder())
-                .addLast("FrpBasicMsgEncoder", new FrpBasicMsgEncoder())
-                .addLast("DataPacketEncoder", new DataPacketEncoder());
+        pipeline.addLast(FrpDecoder.serverDecoder())
+                .addLast(FrpEncoder.basicMsgEncoder())
+                .addLast(FrpEncoder.dispatchEncoder());
 
         pipeline.addLast(new ServerAuthHandler(serverConfig.getAuthToken()));
     }

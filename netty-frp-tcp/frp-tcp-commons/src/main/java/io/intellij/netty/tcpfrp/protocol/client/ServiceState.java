@@ -6,6 +6,10 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import static io.intellij.netty.tcpfrp.protocol.ConnState.BROKEN;
+import static io.intellij.netty.tcpfrp.protocol.ConnState.FAILURE;
+import static io.intellij.netty.tcpfrp.protocol.ConnState.SUCCESS;
+
 /**
  * ServiceConnState
  *
@@ -15,25 +19,26 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class ServiceConnState {
-    private String connState;
+public class ServiceState {
+    /**
+     * {@link ConnState}
+     */
+    private String stateName;
     private String dispatchId;
 
     public static FrpBasicMsg connSuccess(String dispatchId) {
-        return FrpBasicMsg.createServiceConnState(
-                new ServiceConnState(ConnState.SUCCESS.getName(), dispatchId)
+        return FrpBasicMsg.createServiceState(
+                new ServiceState(SUCCESS.getName(), dispatchId)
         );
     }
 
     public static FrpBasicMsg connFailure(String dispatchId) {
-        return FrpBasicMsg.createServiceConnState(
-                new ServiceConnState(ConnState.FAILURE.getName(), dispatchId)
-        );
+        return FrpBasicMsg.createServiceState(new ServiceState(FAILURE.getName(), dispatchId));
     }
 
     public static FrpBasicMsg connBroken(String dispatchId) {
-        return FrpBasicMsg.createServiceConnState(
-                new ServiceConnState(ConnState.BROKEN.getName(), dispatchId)
+        return FrpBasicMsg.createServiceState(
+                new ServiceState(BROKEN.getName(), dispatchId)
         );
     }
 

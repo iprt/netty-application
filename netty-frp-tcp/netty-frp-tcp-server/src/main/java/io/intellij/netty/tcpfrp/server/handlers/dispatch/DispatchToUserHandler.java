@@ -1,7 +1,7 @@
 package io.intellij.netty.tcpfrp.server.handlers.dispatch;
 
-import io.intellij.netty.tcpfrp.commons.DispatchChannelManager;
-import io.intellij.netty.tcpfrp.protocol.channel.DataPacket;
+import io.intellij.netty.tcpfrp.commons.DispatchManager;
+import io.intellij.netty.tcpfrp.protocol.channel.DispatchPacket;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
@@ -18,12 +18,12 @@ import lombok.extern.slf4j.Slf4j;
  * @since 2025-03-05
  */
 @Slf4j
-public class DispatchToUserHandler extends SimpleChannelInboundHandler<DataPacket> {
+public class DispatchToUserHandler extends SimpleChannelInboundHandler<DispatchPacket> {
 
     @Override
-    protected void channelRead0(ChannelHandlerContext ctx, DataPacket msg) throws Exception {
+    protected void channelRead0(ChannelHandlerContext ctx, DispatchPacket msg) throws Exception {
         // after UserChannel read0
-        ChannelFuture dispatch = DispatchChannelManager.getInstance().dispatch(msg);
+        ChannelFuture dispatch = DispatchManager.getInstance().dispatch(msg);
         if (dispatch != null) {
             dispatch.addListener((ChannelFutureListener) f -> {
                 if (f.isSuccess()) {

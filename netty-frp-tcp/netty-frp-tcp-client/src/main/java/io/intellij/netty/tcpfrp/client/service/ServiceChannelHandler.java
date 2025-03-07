@@ -1,10 +1,9 @@
 package io.intellij.netty.tcpfrp.client.service;
 
-import io.intellij.netty.tcpfrp.commons.DispatchChannelManager;
-import io.intellij.netty.tcpfrp.config.ListeningConfig;
-import io.intellij.netty.tcpfrp.protocol.channel.DataPacket;
+import io.intellij.netty.tcpfrp.commons.DispatchManager;
+import io.intellij.netty.tcpfrp.protocol.channel.DispatchPacket;
 import io.intellij.netty.tcpfrp.protocol.channel.FrpChannel;
-import io.intellij.netty.tcpfrp.protocol.client.ServiceConnState;
+import io.intellij.netty.tcpfrp.protocol.client.ServiceState;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -19,9 +18,8 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 @Slf4j
 public class ServiceChannelHandler extends ChannelInboundHandlerAdapter {
-    private final ListeningConfig listeningConfig;
+    private final String serviceName;
     private final String dispatchId;
-
     private final FrpChannel frpChannel;
 
     /**
@@ -29,11 +27,10 @@ public class ServiceChannelHandler extends ChannelInboundHandlerAdapter {
      */
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        log.info("建立服务端连接 |dispatchId={}|name={}", dispatchId, listeningConfig.getName());
-        DispatchChannelManager.getInstance().addChannel(dispatchId, ctx.channel());
+        log.info("建立服务端连接 |dispatchId={}|serviceName={}", dispatchId, serviceName);
+        DispatchManager.getInstance().addChannel(dispatchId, ctx.channel());
         // BootStrap set AUTO_READ=false
         // 等待frp-server 发送 UserConnState(READY)
-        // ctx.read();
     }
 
     /**
@@ -42,8 +39,8 @@ public class ServiceChannelHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         if (msg instanceof ByteBuf byteBuf) {
-            log.info("接收到服务端的数据 |dispatchId={}|name={}|len={}", dispatchId, listeningConfig.getName(), byteBuf.readableBytes());
-            frpChannel.writeAndFlush(DataPacket.create(dispatchId, byteBuf),
+            log.info("接收到服务端的数据 |dispatchId={}|serviceName={}|len={}", dispatchId, serviceName, byteBuf.readableBytes());
+            frpChannel.writeAndFlush(DispatchPacket.create(dispatchId, byteBuf),
                     f -> {
                         if (f.isSuccess()) {
                             frpChannel.read();
@@ -70,9 +67,9 @@ public class ServiceChannelHandler extends ChannelInboundHandlerAdapter {
      */
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-        log.warn("丢失服务端连接 |dispatchId={}|name={}", dispatchId, listeningConfig.getName());
+        log.warn("丢失服务端连接 |dispatchId={}|serviceName{}", dispatchId, serviceName);
         // frp-client -x-> mysql:3306
-        frpChannel.writeAndFlush(ServiceConnState.connBroken(dispatchId),
+        frpChannel.writeAndFlush(ServiceState.connBroken(dispatchId),
                 f -> {
                     if (f.isSuccess()) {
                         frpChannel.read();
@@ -84,7 +81,7 @@ public class ServiceChannelHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        log.error("ServiceHandler exceptionCaught|dispatchId={}", dispatchId, cause);
+        log.error("exception caught|dispatchId={}", dispatchId, cause);
         ctx.close();
     }
 

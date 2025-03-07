@@ -1,6 +1,5 @@
 package io.intellij.netty.tcpfrp.server.listening;
 
-import io.intellij.netty.tcpfrp.config.ListeningConfig;
 import io.intellij.netty.tcpfrp.protocol.channel.FrpChannel;
 import io.intellij.netty.tcpfrp.server.EventLoopGroupContainer;
 import io.netty.bootstrap.ServerBootstrap;
@@ -15,10 +14,9 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 /**
  * MultiPortNettyServer
@@ -27,15 +25,14 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 public class MultiPortNettyServer {
-    private final Map<Integer, ListeningConfig> portToListeningConfig;
+    private final List<Integer> ports;
     private final FrpChannel frpChannel;
 
     private final Map<Integer, Channel> SERVER_CHANNEL = new ConcurrentHashMap<>();
 
-    public MultiPortNettyServer(@NotNull Map<String, ListeningConfig> listeningConfigMap, Channel frpChannel) {
+    public MultiPortNettyServer(@NotNull List<Integer> ports, Channel frpChannel) {
         this.frpChannel = FrpChannel.build(frpChannel);
-        this.portToListeningConfig = listeningConfigMap.values().stream()
-                .collect(Collectors.toMap(ListeningConfig::getRemotePort, Function.identity()));
+        this.ports = ports;
     }
 
     public boolean start() {
@@ -44,7 +41,7 @@ public class MultiPortNettyServer {
         EventLoopGroup workerGroup = container.getWorkerGroup();
 
         try {
-            for (Map.Entry<Integer, ListeningConfig> e : portToListeningConfig.entrySet()) {
+            for (int port : ports) {
                 ServerBootstrap b = new ServerBootstrap();
                 b.group(bossGroup, workerGroup)
                         .channel(NioServerSocketChannel.class)
@@ -53,16 +50,16 @@ public class MultiPortNettyServer {
                             @Override
                             protected void initChannel(@NotNull SocketChannel ch) throws Exception {
                                 ChannelPipeline pipeline = ch.pipeline();
-                                pipeline.addLast(new UserChannelHandler(portToListeningConfig, frpChannel));
+                                pipeline.addLast(new UserChannelHandler(port, frpChannel));
                             }
                         });
 
                 // 绑定端口并启动服务器
-                ChannelFuture channelFuture = b.bind(e.getKey()).sync();
+                ChannelFuture channelFuture = b.bind(port).sync();
 
-                SERVER_CHANNEL.put(e.getKey(), channelFuture.channel());
+                SERVER_CHANNEL.put(port, channelFuture.channel());
 
-                log.info("service <{}> started and listening on port {}", e.getValue().getName(), e.getKey());
+                log.info("frp-server listening on port {}", port);
             }
 
             return true;
@@ -74,15 +71,14 @@ public class MultiPortNettyServer {
     }
 
     public void stop() {
-        log.warn("Multi Port Server Stop begin ...");
+        log.warn("Multi Port Server Stop Begin ...");
         SERVER_CHANNEL.forEach((port, channel) -> {
-            ListeningConfig listeningConfig = portToListeningConfig.get(port);
-            log.warn("service <{}> stopped and release listening port {}", listeningConfig.getName(), port);
+            log.warn("stopped and release listening port {}", port);
             if (channel != null && channel.isActive()) {
                 channel.close();
             }
         });
-        log.warn("Multi Port Server Stop end   ...");
+        log.warn("Multi Port Server Stop End   ...");
     }
 
 }

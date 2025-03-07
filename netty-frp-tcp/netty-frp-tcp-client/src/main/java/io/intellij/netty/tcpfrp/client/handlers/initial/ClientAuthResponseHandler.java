@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -22,7 +23,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 @Slf4j
 public class ClientAuthResponseHandler extends SimpleChannelInboundHandler<AuthResponse> {
-    private final Map<String, ListeningConfig> listeningConfigMap;
+    private final Map<String, ListeningConfig> configMap;
 
     @Override
     public void channelActive(@NotNull ChannelHandlerContext ctx) throws Exception {
@@ -34,11 +35,13 @@ public class ClientAuthResponseHandler extends SimpleChannelInboundHandler<AuthR
     protected void channelRead0(ChannelHandlerContext ctx, @NotNull AuthResponse authResponse) throws Exception {
         if (authResponse.isSuccess()) {
             log.info("authenticate success");
-            ctx.writeAndFlush(ListeningRequest.create(listeningConfigMap))
+            List<Integer> listeningPorts = configMap.values().stream().map(ListeningConfig::getRemotePort).toList();
+            log.info("send listening request, ports: {}", listeningPorts);
+            ctx.writeAndFlush(ListeningRequest.create(listeningPorts))
                     .addListener((ChannelFutureListener) cf -> {
                         if (cf.isSuccess()) {
                             ctx.pipeline().remove(ClientAuthResponseHandler.class);
-                            ctx.pipeline().addLast(new ListeningResponseHandler());
+                            ctx.pipeline().addLast(new ListeningResponseHandler(configMap));
 
                             // for UserConnStateHandler
                             ctx.pipeline().fireChannelActive();

@@ -2,9 +2,8 @@ package io.intellij.netty.tcpfrp.client.handlers;
 
 import io.intellij.netty.tcpfrp.client.handlers.initial.ClientAuthResponseHandler;
 import io.intellij.netty.tcpfrp.config.ClientConfig;
-import io.intellij.netty.tcpfrp.protocol.codec.DataPacketEncoder;
-import io.intellij.netty.tcpfrp.protocol.codec.FrpBasicMsgEncoder;
-import io.intellij.netty.tcpfrp.protocol.codec.FrpClientDecoder;
+import io.intellij.netty.tcpfrp.protocol.codec.FrpDecoder;
+import io.intellij.netty.tcpfrp.protocol.codec.FrpEncoder;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
@@ -26,9 +25,9 @@ public class FrpClientInitializer extends ChannelInitializer<SocketChannel> {
         ChannelPipeline pipeline = ch.pipeline();
 
         // 编解码器
-        pipeline.addLast("FrpClientDecoder", new FrpClientDecoder())
-                .addLast("FrpBasicMsgEncoder", new FrpBasicMsgEncoder())
-                .addLast("DataPacketEncoder", new DataPacketEncoder());
+        pipeline.addLast(FrpDecoder.clientDecoder())
+                .addLast(FrpEncoder.basicMsgEncoder())
+                .addLast(FrpEncoder.dispatchEncoder());
 
         // 处理器
         pipeline.addLast(new ClientAuthResponseHandler(clientConfig.getListeningConfigMap()));

@@ -3,11 +3,11 @@ package io.intellij.netty.tcpfrp.protocol.codec;
 import com.alibaba.fastjson2.JSONObject;
 import io.intellij.netty.tcpfrp.protocol.FrpBasicMsg;
 import io.intellij.netty.tcpfrp.protocol.FrpMsgType;
-import io.intellij.netty.tcpfrp.protocol.channel.DataPacket;
+import io.intellij.netty.tcpfrp.protocol.channel.DispatchPacket;
 import io.intellij.netty.tcpfrp.protocol.channel.DispatchIdUtils;
 import io.intellij.netty.tcpfrp.protocol.client.AuthRequest;
 import io.intellij.netty.tcpfrp.protocol.client.ListeningRequest;
-import io.intellij.netty.tcpfrp.protocol.client.ServiceConnState;
+import io.intellij.netty.tcpfrp.protocol.client.ServiceState;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ReplayingDecoder;
@@ -78,11 +78,11 @@ public class FrpServerDecoder extends ReplayingDecoder<FrpBasicMsg.State> {
                         out.add(listeningRequest);
                         break;
                     case SERVICE_CONN_STATE:
-                        ServiceConnState serviceConnState = JSONObject.parseObject(json, ServiceConnState.class);
-                        if (serviceConnState == null) {
+                        ServiceState serviceState = JSONObject.parseObject(json, ServiceState.class);
+                        if (serviceState == null) {
                             throw new IllegalStateException("service conn state is null");
                         }
-                        out.add(serviceConnState);
+                        out.add(serviceState);
                         break;
                     default:
                         throw new IllegalStateException("无效的消息类型: " + type);
@@ -101,7 +101,7 @@ public class FrpServerDecoder extends ReplayingDecoder<FrpBasicMsg.State> {
                     throw new IllegalStateException("无效的消息长度");
                 }
 
-                out.add(DataPacket.createAndRetain(dispatchId, in.readSlice(leftLen)));
+                out.add(DispatchPacket.createAndRetain(dispatchId, in.readSlice(leftLen)));
 
                 checkpoint(READ_TYPE);
                 break;
@@ -112,7 +112,7 @@ public class FrpServerDecoder extends ReplayingDecoder<FrpBasicMsg.State> {
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        log.error("localAddress={}|remoteAddress={}", ctx.channel().localAddress(), ctx.channel().remoteAddress(), cause);
+        log.error("exception caught|{}", cause.getMessage(), cause);
         ctx.close();
     }
 

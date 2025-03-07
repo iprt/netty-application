@@ -1,6 +1,5 @@
 package io.intellij.netty.tcpfrp.server.listening;
 
-import io.intellij.netty.tcpfrp.config.ListeningConfig;
 import io.intellij.netty.tcpfrp.protocol.server.ListeningResponse;
 import io.intellij.netty.utils.ServerSocketUtils;
 import org.jetbrains.annotations.NotNull;
@@ -16,16 +15,14 @@ import java.util.Map;
  */
 public class MultiPortUtils {
 
-    public static ListeningResponse test(@NotNull List<ListeningConfig> listeningConfigs) {
+    public static ListeningResponse test(@NotNull List<Integer> listeningPorts) {
         Map<Integer, Boolean> listeningStatus = new HashMap<>();
-        for (ListeningConfig config : listeningConfigs) {
-            int remotePort = config.getRemotePort();
-            boolean portInUse = ServerSocketUtils.isPortInUse(remotePort);
-            listeningStatus.put(remotePort, portInUse);
+        for (int port : listeningPorts) {
+            boolean portInUse = ServerSocketUtils.isPortInUse(port);
+            listeningStatus.put(port, portInUse);
         }
         return ListeningResponse.builder()
                 .success(listeningStatus.values().stream().noneMatch(b -> b))
-                .listeningConfigs(listeningConfigs)
                 .listeningStatus(listeningStatus).build();
     }
 

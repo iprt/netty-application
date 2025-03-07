@@ -1,16 +1,14 @@
 package io.intellij.netty.tcpfrp.protocol.codec;
 
 import com.alibaba.fastjson2.JSONObject;
-import io.intellij.netty.tcpfrp.protocol.FrpBasicMsg;
 import io.intellij.netty.tcpfrp.protocol.FrpMsgType;
-import io.intellij.netty.tcpfrp.protocol.channel.DataPacket;
+import io.intellij.netty.tcpfrp.protocol.channel.DispatchPacket;
 import io.intellij.netty.tcpfrp.protocol.channel.DispatchIdUtils;
 import io.intellij.netty.tcpfrp.protocol.server.AuthResponse;
 import io.intellij.netty.tcpfrp.protocol.server.ListeningResponse;
-import io.intellij.netty.tcpfrp.protocol.server.UserConnState;
+import io.intellij.netty.tcpfrp.protocol.server.UserState;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.ReplayingDecoder;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
@@ -30,8 +28,7 @@ import static io.intellij.netty.tcpfrp.protocol.FrpMsgType.DATA_PACKET;
  * @since 2025-03-05
  */
 @Slf4j
-public class FrpClientDecoder extends ReplayingDecoder<FrpBasicMsg.State> {
-
+public class FrpClientDecoder extends FrpDecoder {
     public FrpClientDecoder() {
         super(READ_TYPE);
     }
@@ -79,11 +76,11 @@ public class FrpClientDecoder extends ReplayingDecoder<FrpBasicMsg.State> {
                         out.add(listeningResponse);
                         break;
                     case USER_CONN_STATE:
-                        UserConnState userConnState = JSONObject.parseObject(json, UserConnState.class);
-                        if (userConnState == null) {
+                        UserState userState = JSONObject.parseObject(json, UserState.class);
+                        if (userState == null) {
                             throw new IllegalStateException("user conn state is null");
                         }
-                        out.add(userConnState);
+                        out.add(userState);
                         break;
                     default:
                         throw new IllegalStateException("无效的消息类型: " + type);
@@ -97,12 +94,12 @@ public class FrpClientDecoder extends ReplayingDecoder<FrpBasicMsg.State> {
                 String dispatchId = new String(dispatchIdBytes);
 
                 // 读取剩余的字节
-                int leftLen = length -  DispatchIdUtils.ID_LENGTH;
+                int leftLen = length - DispatchIdUtils.ID_LENGTH;
                 if (leftLen <= 0) {
                     throw new IllegalStateException("无效的消息长度");
                 }
 
-                out.add(DataPacket.createAndRetain(dispatchId, in.readSlice(leftLen)));
+                out.add(DispatchPacket.createAndRetain(dispatchId, in.readSlice(leftLen)));
 
                 checkpoint(READ_TYPE);
                 break;
@@ -113,7 +110,7 @@ public class FrpClientDecoder extends ReplayingDecoder<FrpBasicMsg.State> {
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        log.error("FrpClientDecoder|exceptionCaught", cause);
+        log.error("exception caught|{}", cause.getMessage(), cause);
         ctx.close();
     }
 

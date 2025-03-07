@@ -1,7 +1,7 @@
 package io.intellij.netty.tcpfrp.client.handlers.dispatch;
 
-import io.intellij.netty.tcpfrp.commons.DispatchChannelManager;
-import io.intellij.netty.tcpfrp.protocol.channel.DataPacket;
+import io.intellij.netty.tcpfrp.commons.DispatchManager;
+import io.intellij.netty.tcpfrp.protocol.channel.DispatchPacket;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
@@ -18,12 +18,12 @@ import org.jetbrains.annotations.NotNull;
  * @since 2025-03-05
  */
 @Slf4j
-public class DispatchToServiceHandler extends SimpleChannelInboundHandler<DataPacket> {
+public class DispatchToServiceHandler extends SimpleChannelInboundHandler<DispatchPacket> {
 
     @Override
-    protected void channelRead0(ChannelHandlerContext ctx, @NotNull DataPacket msg) throws Exception {
+    protected void channelRead0(ChannelHandlerContext ctx, @NotNull DispatchPacket msg) throws Exception {
         // 获取到数据包，e.g. user --- frp-server:3306 的数据包
-        ChannelFuture dispatch = DispatchChannelManager.getInstance().dispatch(msg);
+        ChannelFuture dispatch = DispatchManager.getInstance().dispatch(msg);
         if (dispatch != null) {
             dispatch.addListeners(
                     (ChannelFutureListener) f -> {

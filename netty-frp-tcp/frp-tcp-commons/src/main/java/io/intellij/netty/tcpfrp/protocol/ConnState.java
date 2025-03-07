@@ -13,13 +13,16 @@ import lombok.RequiredArgsConstructor;
 @Getter
 public enum ConnState {
 
-    ACCEPT("ACCEPT", "连接创建"),
+    /**
+     * frp-client -> frp-server
+     */
+    ACCEPT("ACCEPT", "用户创建连接"),
 
-    READY("READY", "连接准备就绪"),
+    READY("READY", "用户连接准备就绪"),
 
-    SUCCESS("SUCCESS", "连接成功"),
+    SUCCESS("SUCCESS", "服务连接成功"),
 
-    FAILURE("FAILURE", "连接失败"),
+    FAILURE("FAILURE", "服务连接失败"),
 
     BROKEN("BROKEN", "连接断开");
 

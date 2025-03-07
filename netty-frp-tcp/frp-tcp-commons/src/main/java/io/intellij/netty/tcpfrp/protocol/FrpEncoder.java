@@ -1,4 +1,7 @@
-package io.intellij.netty.tcpfrp.protocol.codec;
+package io.intellij.netty.tcpfrp.protocol;
+
+import io.intellij.netty.tcpfrp.protocol.codec.DispatchEncoder;
+import io.intellij.netty.tcpfrp.protocol.codec.FrpBasicMsgEncoder;
 
 /**
  * FrpEncoder

@@ -17,7 +17,6 @@ import java.util.List;
 @NoArgsConstructor
 @Data
 public class ListeningRequest {
-    // private Map<String, ListeningConfig> configMap;
     private List<Integer> listeningPorts;
 
     public static FrpBasicMsg create(List<Integer> listeningPorts) {

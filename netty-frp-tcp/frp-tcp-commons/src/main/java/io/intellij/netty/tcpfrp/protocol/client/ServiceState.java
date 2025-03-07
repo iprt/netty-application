@@ -26,17 +26,17 @@ public class ServiceState {
     private String stateName;
     private String dispatchId;
 
-    public static FrpBasicMsg connSuccess(String dispatchId) {
+    public static FrpBasicMsg success(String dispatchId) {
         return FrpBasicMsg.createServiceState(
                 new ServiceState(SUCCESS.getName(), dispatchId)
         );
     }
 
-    public static FrpBasicMsg connFailure(String dispatchId) {
+    public static FrpBasicMsg failure(String dispatchId) {
         return FrpBasicMsg.createServiceState(new ServiceState(FAILURE.getName(), dispatchId));
     }
 
-    public static FrpBasicMsg connBroken(String dispatchId) {
+    public static FrpBasicMsg broken(String dispatchId) {
         return FrpBasicMsg.createServiceState(
                 new ServiceState(BROKEN.getName(), dispatchId)
         );

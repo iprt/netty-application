@@ -2,12 +2,11 @@ package io.intellij.netty.tcpfrp.server.handlers.dispatch;
 
 import io.intellij.netty.tcpfrp.commons.DispatchManager;
 import io.intellij.netty.tcpfrp.protocol.ConnState;
+import io.intellij.netty.tcpfrp.protocol.channel.FrpChannel;
 import io.intellij.netty.tcpfrp.protocol.client.ServiceState;
 import io.intellij.netty.tcpfrp.protocol.server.UserState;
 import io.intellij.netty.tcpfrp.server.handlers.initial.ListeningRequestHandler;
 import io.intellij.netty.tcpfrp.server.listening.MultiPortNettyServer;
-import io.netty.buffer.Unpooled;
-import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import lombok.extern.slf4j.Slf4j;
@@ -15,6 +14,7 @@ import org.jetbrains.annotations.NotNull;
 
 import static io.intellij.netty.tcpfrp.protocol.ConnState.BROKEN;
 import static io.intellij.netty.tcpfrp.protocol.ConnState.FAILURE;
+import static io.intellij.netty.tcpfrp.protocol.channel.FrpChannel.FRP_CHANNEL_KEY;
 import static io.intellij.netty.tcpfrp.server.handlers.initial.ListeningRequestHandler.MULTI_PORT_NETTY_SERVER_KEY;
 
 /**
@@ -30,12 +30,16 @@ public class ReceiveServiceStateHandler extends SimpleChannelInboundHandler<Serv
      */
     @Override
     public void channelActive(@NotNull ChannelHandlerContext ctx) throws Exception {
-        log.info("channelActive: server conn state handler ");
-        ctx.read();
+        log.info("channelActive: server conn state handler");
+        FrpChannel frpChannel = FrpChannel.build(ctx.channel());
+        ctx.channel().attr(FRP_CHANNEL_KEY).set(frpChannel);
+        frpChannel.read();
     }
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, @NotNull ServiceState connState) throws Exception {
+        FrpChannel frpChannel = ctx.channel().attr(FRP_CHANNEL_KEY).get();
+
         ConnState serviceState = ConnState.getByName(connState.getStateName());
         if (serviceState == null) {
             throw new IllegalArgumentException("ServiceConnStateHandler channelRead0 unknown state " + connState.getStateName());
@@ -43,45 +47,45 @@ public class ReceiveServiceStateHandler extends SimpleChannelInboundHandler<Serv
         switch (serviceState) {
             case SUCCESS:
                 // frp-client ---> service 连接成功 可以获取到 dispatchId
-                ctx.writeAndFlush(UserState.ready(connState.getDispatchId())).addListeners(
-                        (ChannelFutureListener) f -> {
+                frpChannel.writeAndFlush(UserState.ready(connState.getDispatchId()),
+                        f -> {
                             if (f.isSuccess()) {
                                 DispatchManager.getInstance().initiativeChannelRead(connState.getDispatchId());
                             }
                         },
-                        (ChannelFutureListener) f -> {
+                        f -> {
                             if (f.isSuccess()) {
-                                ctx.read();
+                                frpChannel.read();
                             }
                         }
                 );
                 break;
             case FAILURE:
                 // frp-client ---> service 连接断开
-                ctx.writeAndFlush(Unpooled.EMPTY_BUFFER).addListeners(
-                        (ChannelFutureListener) f -> {
+                frpChannel.writeAndFlush(
+                        f -> {
                             if (f.isSuccess()) {
                                 DispatchManager.getInstance().release(connState.getDispatchId(), FAILURE.getDesc());
                             }
                         },
-                        (ChannelFutureListener) f -> {
+                        f -> {
                             if (f.isSuccess()) {
-                                ctx.read();
+                                frpChannel.read();
                             }
                         }
                 );
                 break;
             case BROKEN:
                 // frp-client ---> service 连接断开
-                ctx.writeAndFlush(Unpooled.EMPTY_BUFFER).addListeners(
-                        (ChannelFutureListener) f -> {
+                frpChannel.writeAndFlush(
+                        f -> {
                             if (f.isSuccess()) {
                                 DispatchManager.getInstance().release(connState.getDispatchId(), BROKEN.getDesc());
                             }
                         },
-                        (ChannelFutureListener) f -> {
+                        f -> {
                             if (f.isSuccess()) {
-                                ctx.read();
+                                frpChannel.read();
                             }
                         }
                 );
@@ -102,7 +106,9 @@ public class ReceiveServiceStateHandler extends SimpleChannelInboundHandler<Serv
         if (multiPortNettyServer != null) {
             multiPortNettyServer.stop();
         }
-        ctx.close();
+
+        FrpChannel frpChannel = ctx.channel().attr(FRP_CHANNEL_KEY).get();
+        frpChannel.close();
     }
 
 }

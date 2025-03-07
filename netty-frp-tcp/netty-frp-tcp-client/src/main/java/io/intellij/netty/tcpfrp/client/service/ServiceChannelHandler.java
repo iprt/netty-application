@@ -69,7 +69,7 @@ public class ServiceChannelHandler extends ChannelInboundHandlerAdapter {
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         log.warn("丢失服务端连接 |dispatchId={}|serviceName{}", dispatchId, serviceName);
         // frp-client -x-> mysql:3306
-        frpChannel.writeAndFlush(ServiceState.connBroken(dispatchId),
+        frpChannel.writeAndFlush(ServiceState.broken(dispatchId),
                 f -> {
                     if (f.isSuccess()) {
                         frpChannel.read();

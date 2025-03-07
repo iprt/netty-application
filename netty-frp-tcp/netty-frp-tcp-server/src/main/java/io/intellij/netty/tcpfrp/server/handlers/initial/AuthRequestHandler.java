@@ -1,49 +1,53 @@
 package io.intellij.netty.tcpfrp.server.handlers.initial;
 
+import io.intellij.netty.tcpfrp.protocol.channel.FrpChannel;
 import io.intellij.netty.tcpfrp.protocol.client.AuthRequest;
 import io.intellij.netty.tcpfrp.protocol.server.AuthResponse;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.channel.ChannelPipeline;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 
+import static io.intellij.netty.tcpfrp.protocol.channel.FrpChannel.FRP_CHANNEL_KEY;
+
 /**
- * ServerAuthHandler
+ * AuthRequestHandler
  *
  * @author tech@intellij.io
  * @since 2025-03-05
  */
 @RequiredArgsConstructor
 @Slf4j
-public class ServerAuthHandler extends ChannelInboundHandlerAdapter {
+public class AuthRequestHandler extends ChannelInboundHandlerAdapter {
     private final String configToken;
 
     @Override
     public void channelActive(@NotNull ChannelHandlerContext ctx) throws Exception {
-        ctx.read();
+        log.info("initialize frp channel");
+        FrpChannel frpChannel = FrpChannel.build(ctx.channel());
+        ctx.channel().attr(FRP_CHANNEL_KEY).set(frpChannel);
+        frpChannel.read();
     }
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+        FrpChannel frpChannel = ctx.channel().attr(FRP_CHANNEL_KEY).get();
         if (msg instanceof AuthRequest authRequest) {
             if (authenticate(authRequest)) {
-                ctx.writeAndFlush(AuthResponse.success())
-                        .addListener((ChannelFutureListener) f -> {
-                            if (f.isSuccess()) {
-                                ChannelPipeline pipeline = f.channel().pipeline();
-                                pipeline.remove(ServerAuthHandler.class);
-                                pipeline.addLast(new ListeningRequestHandler());
-                                pipeline.fireChannelActive();
+                frpChannel.writeAndFlush(AuthResponse.success(),
+                        channelFuture -> {
+                            if (channelFuture.isSuccess()) {
+                                ctx.pipeline().remove(AuthRequestHandler.class);
+                                ctx.pipeline().addLast(new ListeningRequestHandler());
+                                ctx.pipeline().fireChannelActive();
                             } else {
-                                ctx.close();
+                                frpChannel.close();
                             }
                         });
             } else {
-                ctx.writeAndFlush(AuthResponse.failure())
-                        .addListener(ChannelFutureListener.CLOSE);
+                frpChannel.writeAndFlush(AuthResponse.failure(), ChannelFutureListener.CLOSE);
             }
         } else {
             // 第一个消息不是认证消息，关闭连接

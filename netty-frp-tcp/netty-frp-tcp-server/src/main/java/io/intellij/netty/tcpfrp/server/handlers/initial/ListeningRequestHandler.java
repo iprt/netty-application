@@ -1,6 +1,7 @@
 package io.intellij.netty.tcpfrp.server.handlers.initial;
 
 import io.intellij.netty.tcpfrp.protocol.FrpBasicMsg;
+import io.intellij.netty.tcpfrp.protocol.channel.FrpChannel;
 import io.intellij.netty.tcpfrp.protocol.client.ListeningRequest;
 import io.intellij.netty.tcpfrp.protocol.server.ListeningResponse;
 import io.intellij.netty.tcpfrp.server.handlers.dispatch.DispatchToUserHandler;
@@ -15,6 +16,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+
+import static io.intellij.netty.tcpfrp.protocol.channel.FrpChannel.FRP_CHANNEL_KEY;
 
 /**
  * ListeningRequestHandler
@@ -31,11 +34,14 @@ public class ListeningRequestHandler extends SimpleChannelInboundHandler<Listeni
     @Override
     public void channelActive(@NotNull ChannelHandlerContext ctx) throws Exception {
         // Triggered from ServerAuthHandler
-        ctx.read();
+        // ctx.read();
+        ctx.channel().attr(FRP_CHANNEL_KEY).get().read();
     }
 
     @Override
-    protected void channelRead0(ChannelHandlerContext ctx, ListeningRequest listeningRequest) throws Exception {
+    protected void channelRead0(@NotNull ChannelHandlerContext ctx, ListeningRequest listeningRequest) throws Exception {
+        FrpChannel frpChannel = ctx.channel().attr(FRP_CHANNEL_KEY).get();
+
         log.info("get listening request: {}", listeningRequest);
         List<Integer> listeningPorts = listeningRequest.getListeningPorts();
         // 测试可以监听
@@ -43,7 +49,7 @@ public class ListeningRequestHandler extends SimpleChannelInboundHandler<Listeni
         if (test.isSuccess()) {
             MultiPortNettyServer multiPortNettyServer = new MultiPortNettyServer(listeningPorts, ctx.channel());
             if (multiPortNettyServer.start()) {
-                ctx.writeAndFlush(FrpBasicMsg.createListeningResponse(test)).addListener(
+                frpChannel.writeAndFlush(FrpBasicMsg.createListeningResponse(test)).addListener(
                         (ChannelFutureListener) f -> {
                             if (f.isSuccess()) {
                                 // remote this
@@ -56,18 +62,20 @@ public class ListeningRequestHandler extends SimpleChannelInboundHandler<Listeni
 
                                 ctx.pipeline().fireChannelActive();
                             } else {
-                                ctx.close();
+                                frpChannel.close();
                             }
                         }
                 );
             } else {
                 test.setSuccess(false);
                 test.setReason("start multi port netty server failed");
-                ctx.writeAndFlush(test).addListener(ChannelFutureListener.CLOSE);
+                frpChannel.writeAndFlush(FrpBasicMsg.createListeningResponse(test))
+                        .addListener(ChannelFutureListener.CLOSE);
             }
 
         } else {
-            ctx.writeAndFlush(test).addListener(ChannelFutureListener.CLOSE);
+            frpChannel.writeAndFlush(FrpBasicMsg.createListeningResponse(test))
+                    .addListener(ChannelFutureListener.CLOSE);
         }
     }
 

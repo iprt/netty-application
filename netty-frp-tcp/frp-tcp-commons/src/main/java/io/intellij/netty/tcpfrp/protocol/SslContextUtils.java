@@ -101,7 +101,7 @@ public class SslContextUtils {
                 try {
                     inputStream.close();
                 } catch (Exception e) {
-                    log.error("close error", e);
+                    log.error("inputStream close occurred error", e);
                 }
             }
         }

@@ -1,5 +1,7 @@
 package io.intellij.netty.tcpfrp.protocol;
 
+import io.intellij.netty.tcpfrp.protocol.client.ServiceState;
+import io.intellij.netty.tcpfrp.protocol.server.UserState;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -12,18 +14,41 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Getter
 public enum ConnState {
-
     /**
-     * frp-client -> frp-server
+     * frp-server ---> frp-client
+     * <p>
+     * {@link UserState#accept(String, int)}
      */
     ACCEPT("ACCEPT", "用户创建连接"),
 
+    /**
+     * frp-server ---> frp-client
+     * <p>
+     * {@link UserState#ready(String)}
+     */
     READY("READY", "用户连接准备就绪"),
 
+    /**
+     * frp-client ---> frp-server
+     * <p>
+     * {@link ServiceState#success(String)}
+     */
     SUCCESS("SUCCESS", "服务连接成功"),
 
+    /**
+     * frp-client ---> frp-server
+     * /**
+     * {@link ServiceState#failure(String)}
+     */
     FAILURE("FAILURE", "服务连接失败"),
 
+    /**
+     * frp-client <==> frp-server
+     * <p>
+     * {@link UserState#broken(String)}
+     * <p>
+     * {@link ServiceState#broken(String)}
+     */
     BROKEN("BROKEN", "连接断开");
 
     private final String name;

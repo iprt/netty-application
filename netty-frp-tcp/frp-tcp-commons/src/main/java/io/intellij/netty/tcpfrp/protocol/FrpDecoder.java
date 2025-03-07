@@ -1,6 +1,7 @@
-package io.intellij.netty.tcpfrp.protocol.codec;
+package io.intellij.netty.tcpfrp.protocol;
 
-import io.intellij.netty.tcpfrp.protocol.FrpBasicMsg;
+import io.intellij.netty.tcpfrp.protocol.codec.FrpClientDecoder;
+import io.intellij.netty.tcpfrp.protocol.codec.FrpServerDecoder;
 import io.netty.handler.codec.ReplayingDecoder;
 
 /**

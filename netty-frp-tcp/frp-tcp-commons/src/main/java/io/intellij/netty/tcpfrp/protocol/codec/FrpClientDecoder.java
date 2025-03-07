@@ -1,6 +1,7 @@
 package io.intellij.netty.tcpfrp.protocol.codec;
 
 import com.alibaba.fastjson2.JSONObject;
+import io.intellij.netty.tcpfrp.protocol.FrpDecoder;
 import io.intellij.netty.tcpfrp.protocol.FrpMsgType;
 import io.intellij.netty.tcpfrp.protocol.channel.DispatchPacket;
 import io.intellij.netty.tcpfrp.protocol.channel.DispatchIdUtils;

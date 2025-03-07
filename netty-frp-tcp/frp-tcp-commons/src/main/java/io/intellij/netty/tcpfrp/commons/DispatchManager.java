@@ -11,7 +11,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * ServiceChannelManager
+ * DispatchManager
  *
  * @author tech@intellij.io
  * @since 2025-03-07
@@ -39,17 +39,17 @@ public class DispatchManager {
     }
 
     public void release(String dispatchId) {
-        log.warn("release service channel |dispatchId={}", dispatchId);
+        log.warn("release channel|dispatchId={}", dispatchId);
         ChannelUtils.close(idToChannelMap.remove(dispatchId));
     }
 
     public void release(String dispatchId, String reason) {
-        log.warn("release service channel |dispatchId={}|reason={}", dispatchId, reason);
+        log.warn("release channel|dispatchId={}|reason={}", dispatchId, reason);
         ChannelUtils.close(idToChannelMap.remove(dispatchId));
     }
 
     public void releaseAll() {
-        log.warn("release all service channels");
+        log.warn("release all channels");
         idToChannelMap.values().forEach(ChannelUtils::close);
         idToChannelMap.clear();
     }
@@ -68,7 +68,7 @@ public class DispatchManager {
             return channel.writeAndFlush(data.getPacket());
         } else {
             // 可能是frp server 关闭了连接
-            log.error("ServiceChannelManager dispatch failed |dispatchId={} |channel={}", data.getDispatchId(), channel);
+            log.error("DispatchManager dispatch failed|dispatchId={}|channel={}", data.getDispatchId(), channel);
             return null;
         }
     }

@@ -15,6 +15,8 @@ public enum ConnState {
 
     ACCEPT("ACCEPT", "连接创建"),
 
+    READY("READY", "连接准备就绪"),
+
     SUCCESS("SUCCESS", "连接成功"),
 
     FAILURE("FAILURE", "连接失败"),

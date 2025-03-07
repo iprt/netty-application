@@ -1,11 +1,11 @@
 package io.intellij.netty.tcpfrp.server.listening;
 
+import io.intellij.netty.tcpfrp.commons.DispatchChannelManager;
 import io.intellij.netty.tcpfrp.config.ListeningConfig;
 import io.intellij.netty.tcpfrp.protocol.channel.DataPacket;
 import io.intellij.netty.tcpfrp.protocol.channel.DispatchIdUtils;
 import io.intellij.netty.tcpfrp.protocol.channel.FrpChannel;
 import io.intellij.netty.tcpfrp.protocol.server.UserConnState;
-import io.intellij.netty.tcpfrp.server.handlers.UserChannelManager;
 import io.intellij.netty.utils.CtxUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
@@ -34,12 +34,11 @@ public class UserChannelHandler extends ChannelInboundHandlerAdapter {
      * 用户连接成功
      */
     @Override
-    public void channelActive(ChannelHandlerContext ctx) throws Exception {
+    public void channelActive(@NotNull ChannelHandlerContext ctx) throws Exception {
         // e.g. user ---> frp-server:3306
         final String dispatchId = DispatchIdUtils.getDispatchId(ctx.channel());
 
-        UserChannelManager.getInstance()
-                .addChannel(dispatchId, ctx.channel());
+        DispatchChannelManager.getInstance().addChannel(dispatchId, ctx.channel());
 
         ListeningConfig listeningConfig = portToServer.get(CtxUtils.getLocalAddress(ctx).getPort());
         ctx.channel().attr(LISTENING_CONFIG_KEY).set(listeningConfig);

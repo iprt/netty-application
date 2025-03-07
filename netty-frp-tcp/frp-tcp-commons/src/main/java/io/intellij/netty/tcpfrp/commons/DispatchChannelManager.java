@@ -1,4 +1,4 @@
-package io.intellij.netty.tcpfrp.client.handlers;
+package io.intellij.netty.tcpfrp.commons;
 
 import io.intellij.netty.tcpfrp.protocol.channel.DataPacket;
 import io.intellij.netty.utils.ChannelUtils;
@@ -17,14 +17,14 @@ import java.util.concurrent.ConcurrentHashMap;
  * @since 2025-03-07
  */
 @Slf4j
-public class ServiceChannelManager {
+public class DispatchChannelManager {
 
     @Getter
-    private static final ServiceChannelManager instance = new ServiceChannelManager();
+    private static final DispatchChannelManager instance = new DispatchChannelManager();
 
     private final Map<String, Channel> dispatchChannelMap;
 
-    private ServiceChannelManager() {
+    private DispatchChannelManager() {
         dispatchChannelMap = new ConcurrentHashMap<>();
     }
 
@@ -46,6 +46,14 @@ public class ServiceChannelManager {
         log.warn("release all service channels");
         dispatchChannelMap.values().forEach(ChannelUtils::close);
         dispatchChannelMap.clear();
+    }
+
+    public void initiativeChannelRead(String dispatchId) {
+        Channel channel = dispatchChannelMap.get(dispatchId);
+        if (channel != null && channel.isActive()) {
+            // AUTO_READ = false
+            channel.read();
+        }
     }
 
     public ChannelFuture dispatch(DataPacket data) {

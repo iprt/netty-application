@@ -1,6 +1,6 @@
 package io.intellij.netty.tcpfrp.client.handlers.dispatch;
 
-import io.intellij.netty.tcpfrp.client.handlers.ServiceChannelManager;
+import io.intellij.netty.tcpfrp.commons.DispatchChannelManager;
 import io.intellij.netty.tcpfrp.protocol.channel.DataPacket;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
@@ -23,7 +23,7 @@ public class DispatchToServiceHandler extends SimpleChannelInboundHandler<DataPa
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, @NotNull DataPacket msg) throws Exception {
         // 获取到数据包，e.g. user --- frp-server:3306 的数据包
-        ChannelFuture dispatch = ServiceChannelManager.getInstance().dispatch(msg);
+        ChannelFuture dispatch = DispatchChannelManager.getInstance().dispatch(msg);
         if (dispatch != null) {
             dispatch.addListeners(
                     (ChannelFutureListener) f -> {

@@ -27,6 +27,12 @@ public class UserConnState {
         );
     }
 
+    public static FrpBasicMsg ready(String dispatchId){
+        return FrpBasicMsg.createUserConnState(
+                new UserConnState(ConnState.READY.getName(), dispatchId, null)
+        );
+    }
+
     public static FrpBasicMsg broken(String dispatchId) {
         return FrpBasicMsg.createUserConnState(
                 new UserConnState(ConnState.BROKEN.getName(), dispatchId, null)

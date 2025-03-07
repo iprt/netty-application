@@ -1,9 +1,9 @@
 package io.intellij.netty.tcpfrp.client.handlers.dispatch;
 
-import io.intellij.netty.tcpfrp.client.handlers.ServiceChannelManager;
 import io.intellij.netty.tcpfrp.client.handlers.initial.ListeningResponseHandler;
 import io.intellij.netty.tcpfrp.client.service.DirectServiceHandler;
 import io.intellij.netty.tcpfrp.client.service.ServiceChannelHandler;
+import io.intellij.netty.tcpfrp.commons.DispatchChannelManager;
 import io.intellij.netty.tcpfrp.config.ListeningConfig;
 import io.intellij.netty.tcpfrp.protocol.ConnState;
 import io.intellij.netty.tcpfrp.protocol.channel.FrpChannel;
@@ -44,19 +44,19 @@ public class ReceiveUserConnStateHandler extends SimpleChannelInboundHandler<Use
     }
 
     @Override
-    protected void channelRead0(ChannelHandlerContext frpCtx, @NotNull UserConnState userConnState) throws Exception {
+    protected void channelRead0(ChannelHandlerContext ctx, @NotNull UserConnState userConnState) throws Exception {
         ConnState connState = ConnState.getByName(userConnState.getConState());
         if (connState == null) {
             log.error("Unknown conn state: {}", userConnState.getConState());
-            frpCtx.close();
+            ctx.close();
             return;
         }
 
         switch (connState) {
             // accept connection ：user ---> frp-server:3306
             case ACCEPT:
-                final Channel frpChannel = frpCtx.channel();
-                Promise<Channel> serviceChannelPromise = frpCtx.executor().newPromise();
+                final Channel frpChannel = ctx.channel();
+                Promise<Channel> serviceChannelPromise = ctx.executor().newPromise();
                 final String dispatchId = userConnState.getDispatchId();
 
                 ListeningConfig config = userConnState.getListeningConfig();
@@ -71,11 +71,11 @@ public class ReceiveUserConnStateHandler extends SimpleChannelInboundHandler<Use
                         servicePipeline.fireChannelActive();
                     } else {
                         log.warn("[ACCEPT] 接收到用户连接后，服务连接创建失败|dispatchId={}", dispatchId);
-                        frpCtx.writeAndFlush(ServiceConnState.connFailure(dispatchId)).addListeners(
+                        ctx.writeAndFlush(ServiceConnState.connFailure(dispatchId)).addListeners(
                                 (ChannelFutureListener) f -> {
                                     if (f.isSuccess()) {
                                         // must
-                                        frpCtx.read();
+                                        ctx.read();
                                     }
                                 }
                         );
@@ -84,53 +84,63 @@ public class ReceiveUserConnStateHandler extends SimpleChannelInboundHandler<Use
                 });
 
                 Bootstrap b = new Bootstrap();
-                b.group(frpCtx.channel().eventLoop())
-                        .channel(frpCtx.channel().getClass())
+                b.group(ctx.channel().eventLoop())
+                        .channel(ctx.channel().getClass())
                         .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 1000)
                         .option(ChannelOption.AUTO_READ, false)
                         .handler(new DirectServiceHandler(serviceChannelPromise));
                 b.connect(config.getLocalIp(), config.getLocalPort())
                         .addListener((ChannelFutureListener) cf -> {
                             if (cf.isSuccess()) {
-                                frpCtx.writeAndFlush(ServiceConnState.connSuccess(dispatchId))
+                                ctx.writeAndFlush(ServiceConnState.connSuccess(dispatchId))
                                         .addListener((ChannelFutureListener) f2 -> {
                                             if (f2.isSuccess()) {
-                                                frpCtx.read();
+                                                ctx.read();
                                             }
                                         });
                             } else {
                                 log.warn("[ACCEPT] 接收到用户连接后，服务连接创建失败|config={}", config);
-                                frpCtx.writeAndFlush(ServiceConnState.connFailure(dispatchId)).addListeners(
+                                ctx.writeAndFlush(ServiceConnState.connFailure(dispatchId)).addListeners(
                                         (ChannelFutureListener) f -> {
                                             if (f.isSuccess()) {
                                                 // must
-                                                frpCtx.read();
+                                                ctx.read();
                                             }
                                         }
                                 );
                             }
                         });
                 break;
-            // broken connection：user -x-> frp-server:3306
-            case BROKEN:
-                log.warn("[BROKEN] 接收到用户断开连接|dispatchId={}|config={}", userConnState.getDispatchId(), userConnState.getListeningConfig());
-                frpCtx.writeAndFlush(Unpooled.EMPTY_BUFFER).addListeners(
+            case READY:
+                log.info("[READY] 接收到用户连接就绪的状态，可以读取数据了|dispatchId={}", userConnState.getDispatchId());
+                ctx.writeAndFlush(Unpooled.EMPTY_BUFFER).addListeners(
                         (ChannelFutureListener) f -> {
                             if (f.isSuccess()) {
-                                ServiceChannelManager.getInstance().release(userConnState.getDispatchId());
+                                DispatchChannelManager.getInstance().initiativeChannelRead(userConnState.getDispatchId());
+                            }
+                        }
+                );
+                break;
+            // broken connection：user -x-> frp-server:3306
+            case BROKEN:
+                log.warn("[BROKEN] 接收到用户断开连接|dispatchId={}", userConnState.getDispatchId());
+                ctx.writeAndFlush(Unpooled.EMPTY_BUFFER).addListeners(
+                        (ChannelFutureListener) f -> {
+                            if (f.isSuccess()) {
+                                DispatchChannelManager.getInstance().release(userConnState.getDispatchId());
                             }
                         },
                         (ChannelFutureListener) f -> {
                             if (f.isSuccess()) {
                                 // must
-                                frpCtx.read();
+                                ctx.read();
                             }
                         }
                 );
                 break;
             default:
                 log.error("Unknown conn state: {}", connState);
-                frpCtx.close();
+                ctx.close();
         }
 
     }
@@ -138,7 +148,7 @@ public class ReceiveUserConnStateHandler extends SimpleChannelInboundHandler<Use
     @Override
     public void channelInactive(@NotNull ChannelHandlerContext ctx) throws Exception {
         log.warn("与 frp-server 断开连接，关闭所有服务连接");
-        ServiceChannelManager.getInstance().releaseAll();
+        DispatchChannelManager.getInstance().releaseAll();
         ctx.close();
     }
 

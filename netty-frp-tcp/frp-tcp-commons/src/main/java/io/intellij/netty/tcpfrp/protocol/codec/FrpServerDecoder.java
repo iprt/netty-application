@@ -96,7 +96,7 @@ public class FrpServerDecoder extends ReplayingDecoder<FrpBasicMsg.State> {
                 String dispatchId = new String(dispatchIdBytes);
 
                 // 读取剩余的字节
-                int leftLen = length -  DispatchIdUtils.ID_LENGTH;
+                int leftLen = length - DispatchIdUtils.ID_LENGTH;
                 if (leftLen <= 0) {
                     throw new IllegalStateException("无效的消息长度");
                 }

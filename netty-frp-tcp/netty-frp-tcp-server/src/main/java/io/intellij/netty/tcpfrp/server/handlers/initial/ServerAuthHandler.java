@@ -8,6 +8,7 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.ChannelPipeline;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * ServerAuthHandler
@@ -21,7 +22,7 @@ public class ServerAuthHandler extends ChannelInboundHandlerAdapter {
     private final String configToken;
 
     @Override
-    public void channelActive(ChannelHandlerContext ctx) throws Exception {
+    public void channelActive(@NotNull ChannelHandlerContext ctx) throws Exception {
         ctx.read();
     }
 
@@ -50,12 +51,12 @@ public class ServerAuthHandler extends ChannelInboundHandlerAdapter {
         }
     }
 
-    private boolean authenticate(AuthRequest authRequest) {
+    private boolean authenticate(@NotNull AuthRequest authRequest) {
         boolean authResult = authRequest.getToken().equals(configToken);
         if (authResult) {
-            log.info("authenticate success");
+            log.info("authenticate client success");
         } else {
-            log.error("authenticate failed");
+            log.error("authenticate client failed");
         }
         return authResult;
     }

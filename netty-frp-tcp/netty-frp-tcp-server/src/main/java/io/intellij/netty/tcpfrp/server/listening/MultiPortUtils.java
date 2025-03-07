@@ -3,6 +3,7 @@ package io.intellij.netty.tcpfrp.server.listening;
 import io.intellij.netty.tcpfrp.config.ListeningConfig;
 import io.intellij.netty.tcpfrp.protocol.server.ListeningResponse;
 import io.intellij.netty.utils.ServerSocketUtils;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 import java.util.List;
@@ -15,7 +16,7 @@ import java.util.Map;
  */
 public class MultiPortUtils {
 
-    public static ListeningResponse test(List<ListeningConfig> listeningConfigs) {
+    public static ListeningResponse test(@NotNull List<ListeningConfig> listeningConfigs) {
         Map<Integer, Boolean> listeningStatus = new HashMap<>();
         for (ListeningConfig config : listeningConfigs) {
             int remotePort = config.getRemotePort();

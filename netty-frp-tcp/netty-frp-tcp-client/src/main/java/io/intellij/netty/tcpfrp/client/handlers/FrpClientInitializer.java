@@ -9,6 +9,7 @@ import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
 import lombok.RequiredArgsConstructor;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * FrpClientInitializer
@@ -21,7 +22,7 @@ public class FrpClientInitializer extends ChannelInitializer<SocketChannel> {
     private final ClientConfig clientConfig;
 
     @Override
-    protected void initChannel(SocketChannel ch) throws Exception {
+    protected void initChannel(@NotNull SocketChannel ch) throws Exception {
         ChannelPipeline pipeline = ch.pipeline();
 
         // 编解码器

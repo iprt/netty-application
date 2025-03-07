@@ -10,7 +10,7 @@ import io.netty.channel.SimpleChannelInboundHandler;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * ServerDispatchHandler
+ * DispatchToUserHandler
  * <p>
  * 接收到 frp-client 和 frp-server 封装的数据包，并分发
  *
@@ -18,22 +18,16 @@ import lombok.extern.slf4j.Slf4j;
  * @since 2025-03-05
  */
 @Slf4j
-public class ServerDispatchHandler extends SimpleChannelInboundHandler<DataPacket> {
-
-    @Override
-    public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        log.info("ServerDispatchHandler channelActive");
-        ctx.read();
-    }
+public class DispatchToUserHandler extends SimpleChannelInboundHandler<DataPacket> {
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, DataPacket msg) throws Exception {
         // after UserChannel read0
         String userId = msg.getUserId();
         String serviceId = msg.getServiceId();
-        log.info("ServerDispatchHandler channelRead0 userId {} serviceId {}", userId, serviceId);
-        ChannelFuture dispatch = UserChannelHandler.dispatch(msg);
+        log.info("DispatchToUser channelRead0 |userId={}|serviceId={}", userId, serviceId);
 
+        ChannelFuture dispatch = UserChannelHandler.dispatch(msg);
         if (dispatch != null) {
             dispatch.addListener((ChannelFutureListener) f -> {
                 if (f.isSuccess()) {
@@ -44,6 +38,11 @@ public class ServerDispatchHandler extends SimpleChannelInboundHandler<DataPacke
                 }
             });
         }
+    }
+
+    @Override
+    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+        log.warn("channelInactive: dispatch to user handler");
     }
 
     @Override

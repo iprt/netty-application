@@ -4,7 +4,7 @@ import io.intellij.netty.tcpfrp.config.ListeningConfig;
 import io.intellij.netty.tcpfrp.protocol.FrpBasicMsg;
 import io.intellij.netty.tcpfrp.protocol.client.ListeningRequest;
 import io.intellij.netty.tcpfrp.protocol.server.ListeningResponse;
-import io.intellij.netty.tcpfrp.server.handlers.dispatch.ServerDispatchHandler;
+import io.intellij.netty.tcpfrp.server.handlers.dispatch.DispatchToUserHandler;
 import io.intellij.netty.tcpfrp.server.handlers.dispatch.ServiceConnStateHandler;
 import io.intellij.netty.tcpfrp.server.listening.MultiPortNettyServer;
 import io.intellij.netty.tcpfrp.server.listening.MultiPortUtils;
@@ -12,6 +12,7 @@ import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.Map;
@@ -30,8 +31,8 @@ import static io.intellij.netty.tcpfrp.server.handlers.FrpServerInitializer.MULT
 public class ListeningRequestHandler extends SimpleChannelInboundHandler<ListeningRequest> {
 
     @Override
-    public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        // from ServerAuthHandler
+    public void channelActive(@NotNull ChannelHandlerContext ctx) throws Exception {
+        // Triggered from ServerAuthHandler
         ctx.read();
     }
 
@@ -54,10 +55,10 @@ public class ListeningRequestHandler extends SimpleChannelInboundHandler<Listeni
                                 ctx.pipeline().remove(ListeningRequestHandler.class);
 
                                 ctx.channel().attr(MULTI_PORT_NETTY_SERVER_KEY).set(multiPortNettyServer);
-                                ctx.pipeline().addLast(new ServiceConnStateHandler())
-                                        .addLast(new ServerDispatchHandler());
+                                ctx.pipeline()
+                                        .addLast(new ServiceConnStateHandler())
+                                        .addLast(new DispatchToUserHandler());
 
-                                // {@link ServiceConnStateHandler}
                                 ctx.pipeline().fireChannelActive();
                             } else {
                                 ctx.close();

@@ -1,6 +1,7 @@
 package io.intellij.netty.tcpfrp.server.listening;
 
 import io.intellij.netty.tcpfrp.config.ListeningConfig;
+import io.intellij.netty.tcpfrp.exchange.FrpChannel;
 import io.intellij.netty.tcpfrp.server.EventLoopGroupContainer;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
@@ -27,12 +28,12 @@ import java.util.stream.Collectors;
 @Slf4j
 public class MultiPortNettyServer {
     private final Map<Integer, ListeningConfig> portToListeningConfig;
-    private final Channel frpcChannel;
+    private final FrpChannel frpChannel;
 
     private final Map<Integer, Channel> SERVER_CHANNEL = new ConcurrentHashMap<>();
 
-    public MultiPortNettyServer(Map<String, ListeningConfig> listeningConfigMap, Channel frpcChannel) {
-        this.frpcChannel = frpcChannel;
+    public MultiPortNettyServer(@NotNull Map<String, ListeningConfig> listeningConfigMap, Channel frpChannel) {
+        this.frpChannel = FrpChannel.build(frpChannel);
         this.portToListeningConfig = listeningConfigMap.values().stream()
                 .collect(Collectors.toMap(ListeningConfig::getRemotePort, Function.identity()));
     }
@@ -52,7 +53,7 @@ public class MultiPortNettyServer {
                             @Override
                             protected void initChannel(@NotNull SocketChannel ch) throws Exception {
                                 ChannelPipeline pipeline = ch.pipeline();
-                                pipeline.addLast(new UserChannelHandler(portToListeningConfig, frpcChannel));
+                                pipeline.addLast(new UserChannelHandler(portToListeningConfig, frpChannel));
                             }
                         });
 

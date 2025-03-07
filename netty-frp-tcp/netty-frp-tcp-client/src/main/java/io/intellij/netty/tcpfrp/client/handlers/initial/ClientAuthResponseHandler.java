@@ -9,6 +9,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
 
@@ -24,13 +25,14 @@ public class ClientAuthResponseHandler extends SimpleChannelInboundHandler<AuthR
     private final Map<String, ListeningConfig> listeningConfigMap;
 
     @Override
-    public void channelActive(ChannelHandlerContext ctx) throws Exception {
+    public void channelActive(@NotNull ChannelHandlerContext ctx) throws Exception {
+        // must
         ctx.read();
     }
 
     @Override
-    protected void channelRead0(ChannelHandlerContext ctx, AuthResponse msg) throws Exception {
-        if (msg.isSuccess()) {
+    protected void channelRead0(ChannelHandlerContext ctx, @NotNull AuthResponse authResponse) throws Exception {
+        if (authResponse.isSuccess()) {
             log.info("authenticate success");
             ctx.writeAndFlush(ListeningRequest.create(listeningConfigMap))
                     .addListener((ChannelFutureListener) cf -> {

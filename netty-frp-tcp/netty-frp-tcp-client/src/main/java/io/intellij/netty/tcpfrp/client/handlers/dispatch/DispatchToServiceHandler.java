@@ -7,9 +7,10 @@ import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 
 /**
- * DataPacketDispatchHandler
+ * DispatchToServiceHandler
  * <p>
  * after ListeningResponseHandler
  *
@@ -17,16 +18,10 @@ import lombok.extern.slf4j.Slf4j;
  * @since 2025-03-05
  */
 @Slf4j
-public class ClientDispatchHandler extends SimpleChannelInboundHandler<DataPacket> {
+public class DispatchToServiceHandler extends SimpleChannelInboundHandler<DataPacket> {
 
     @Override
-    public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        log.info("ClientDispatchHandler channelActive");
-        ctx.read();
-    }
-
-    @Override
-    protected void channelRead0(ChannelHandlerContext ctx, DataPacket msg) throws Exception {
+    protected void channelRead0(ChannelHandlerContext ctx, @NotNull DataPacket msg) throws Exception {
         // 获取到数据包，e.g. user --- frp-server:3306 的数据包
         ChannelFuture dispatch = ServiceChannelHandler.dispatch(msg.getServiceId(), msg.getPacket());
         if (dispatch != null) {

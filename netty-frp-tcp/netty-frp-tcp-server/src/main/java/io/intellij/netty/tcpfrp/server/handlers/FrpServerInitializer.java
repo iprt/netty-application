@@ -11,6 +11,7 @@ import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.util.AttributeKey;
 import lombok.RequiredArgsConstructor;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * FrpServerInitializer
@@ -25,7 +26,7 @@ public class FrpServerInitializer extends ChannelInitializer<SocketChannel> {
     private final ServerConfig serverConfig;
 
     @Override
-    protected void initChannel(SocketChannel ch) throws Exception {
+    protected void initChannel(@NotNull SocketChannel ch) throws Exception {
         ChannelPipeline pipeline = ch.pipeline();
         pipeline.addLast(new FrpServerDecoder())
                 .addLast("FrpBasicMsgEncoder", new FrpBasicMsgEncoder())

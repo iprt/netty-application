@@ -15,4 +15,9 @@ public class ChannelUtils {
             ch.writeAndFlush(Unpooled.EMPTY_BUFFER).addListener(ChannelFutureListener.CLOSE);
         }
     }
+    public static void close(Channel ch){
+        if (ch != null && ch.isActive()) {
+            ch.close();
+        }
+    }
 }

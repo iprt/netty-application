@@ -1,10 +1,11 @@
 package io.intellij.netty.tcpfrp.client.handlers.initial;
 
-import io.intellij.netty.tcpfrp.config.ListeningConfig;
+import io.intellij.netty.tcpfrp.protocol.client.ListeningConfig;
 import io.intellij.netty.tcpfrp.protocol.channel.FrpChannel;
 import io.intellij.netty.tcpfrp.protocol.client.ListeningRequest;
 import io.intellij.netty.tcpfrp.protocol.server.AuthResponse;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelPipeline;
 import io.netty.channel.SimpleChannelInboundHandler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -12,8 +13,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.Map;
-
-import static io.intellij.netty.tcpfrp.protocol.channel.FrpChannel.FRP_CHANNEL_KEY;
 
 /**
  * AuthResponseHandler
@@ -28,26 +27,24 @@ public class AuthResponseHandler extends SimpleChannelInboundHandler<AuthRespons
 
     @Override
     public void channelActive(@NotNull ChannelHandlerContext ctx) throws Exception {
-        FrpChannel frpChannel = FrpChannel.build(ctx.channel());
-        ctx.channel().attr(FRP_CHANNEL_KEY).set(frpChannel);
         // must
-        frpChannel.read();
+        FrpChannel.get(ctx.channel()).read();
     }
 
     @Override
     protected void channelRead0(@NotNull ChannelHandlerContext ctx, @NotNull AuthResponse authResponse) throws Exception {
-        FrpChannel frpChannel = ctx.channel().attr(FRP_CHANNEL_KEY).get();
+        FrpChannel frpChannel = FrpChannel.get(ctx.channel());
         if (authResponse.isSuccess()) {
             log.info("authenticate success");
             List<Integer> listeningPorts = configMap.values().stream().map(ListeningConfig::getRemotePort).toList();
             log.info("send listening request, ports: {}", listeningPorts);
             frpChannel.writeAndFlush(ListeningRequest.create(listeningPorts), channelFuture -> {
                         if (channelFuture.isSuccess()) {
-                            ctx.pipeline().remove(AuthResponseHandler.class);
-                            ctx.pipeline().addLast(new ListeningResponseHandler(configMap));
-
-                            // for UserConnStateHandler
-                            ctx.pipeline().fireChannelActive();
+                            ChannelPipeline p = ctx.pipeline();
+                            p.remove(this);
+                            p.addLast(new ListeningResponseHandler(configMap));
+                            // for ReceiveUserStateHandler
+                            p.fireChannelActive();
                         }
                     }
             );

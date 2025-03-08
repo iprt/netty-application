@@ -3,7 +3,7 @@ package io.intellij.netty.tcpfrp.commons;
 import io.intellij.netty.tcpfrp.protocol.channel.DispatchPacket;
 import io.intellij.netty.utils.ChannelUtils;
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -20,7 +20,6 @@ import java.util.concurrent.ConcurrentHashMap;
 public class DispatchManager {
     @Getter
     private static final DispatchManager instance = new DispatchManager();
-
     /**
      * dispatch id -> channel
      */
@@ -54,22 +53,12 @@ public class DispatchManager {
         idToChannelMap.clear();
     }
 
-    public void initiativeChannelRead(String dispatchId) {
-        Channel channel = idToChannelMap.get(dispatchId);
-        if (channel != null && channel.isActive()) {
-            // AUTO_READ = false
-            channel.read();
-        }
-    }
-
-    public ChannelFuture dispatch(DispatchPacket data) {
+    public void dispatch(DispatchPacket data, ChannelFutureListener... listeners) {
         Channel channel = getChannel(data.getDispatchId());
         if (channel != null && channel.isActive()) {
-            return channel.writeAndFlush(data.getPacket());
+            channel.writeAndFlush(data.getPacket()).addListeners(listeners);
         } else {
-            // 可能是frp server 关闭了连接
             log.error("DispatchManager dispatch failed|dispatchId={}|channel={}", data.getDispatchId(), channel);
-            return null;
         }
     }
 

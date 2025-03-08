@@ -3,12 +3,15 @@ package io.intellij.netty.tcpfrp.server.handlers;
 import io.intellij.netty.tcpfrp.config.ServerConfig;
 import io.intellij.netty.tcpfrp.protocol.FrpDecoder;
 import io.intellij.netty.tcpfrp.protocol.FrpEncoder;
+import io.intellij.netty.tcpfrp.protocol.channel.FrpChannel;
 import io.intellij.netty.tcpfrp.server.handlers.initial.AuthRequestHandler;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
+
+import static io.intellij.netty.tcpfrp.protocol.channel.FrpChannel.FRP_CHANNEL_KEY;
 
 /**
  * FrpServerInitializer
@@ -22,6 +25,8 @@ public class FrpServerInitializer extends ChannelInitializer<SocketChannel> {
 
     @Override
     protected void initChannel(@NotNull SocketChannel ch) throws Exception {
+        ch.attr(FRP_CHANNEL_KEY).set(FrpChannel.build(ch));
+
         ChannelPipeline pipeline = ch.pipeline();
 
         if (config.isEnableSSL()) {

@@ -1,11 +1,13 @@
 package io.intellij.netty.tcpfrp.server.listening;
 
 import io.intellij.netty.tcpfrp.commons.DispatchManager;
-import io.intellij.netty.tcpfrp.protocol.channel.DispatchPacket;
+import io.intellij.netty.tcpfrp.commons.Listeners;
 import io.intellij.netty.tcpfrp.protocol.channel.DispatchIdUtils;
+import io.intellij.netty.tcpfrp.protocol.channel.DispatchPacket;
 import io.intellij.netty.tcpfrp.protocol.channel.FrpChannel;
 import io.intellij.netty.tcpfrp.protocol.server.UserState;
 import io.netty.buffer.ByteBuf;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import lombok.RequiredArgsConstructor;
@@ -36,13 +38,8 @@ public class UserChannelHandler extends ChannelInboundHandlerAdapter {
         log.info("用户建立了连接 |dispatchId={}|port={}", dispatchId, this.listeningPort);
 
         // 通知 frp-client，用户连接成功 但是userChannel不read数据, 在 setAttrThenChannelRead 之后 read
-        frpChannel.writeAndFlush(UserState.accept(dispatchId, this.listeningPort),
-                f -> {
-                    if (f.isSuccess()) {
-                        frpChannel.read();
-                    }
-                });
-
+        frpChannel.writeAndFlush(UserState.accept(dispatchId, this.listeningPort))
+                .addListeners(Listeners.read(frpChannel));
         // 等待frp-client 发送 ServiceConnState(SUCCESS),然后READ
         // AUTO_READ = false
     }
@@ -50,14 +47,13 @@ public class UserChannelHandler extends ChannelInboundHandlerAdapter {
     /**
      * 用户发送数据
      * <p>
-     * after {@link DispatchManager#initiativeChannelRead(String)}
+     * after {@link Listeners#read(Channel)}
      */
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         if (msg instanceof ByteBuf byteBuf) {
             String dispatchId = DispatchIdUtils.getDispatchId(ctx.channel());
-            log.info("接收到用户的数据 |dispatchId={}|port={}|len={}", dispatchId, this.listeningPort, byteBuf.readableBytes());
-
+            log.debug("接收到用户的数据 |dispatchId={}|port={}|len={}", dispatchId, this.listeningPort, byteBuf.readableBytes());
             frpChannel.writeAndFlush(DispatchPacket.create(dispatchId, byteBuf),
                     f -> {
                         if (f.isSuccess()) {
@@ -83,13 +79,7 @@ public class UserChannelHandler extends ChannelInboundHandlerAdapter {
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         String dispatchId = DispatchIdUtils.getDispatchId(ctx.channel());
         log.warn("用户断开了连接 |dispatchId={}", dispatchId);
-        frpChannel.writeAndFlush(UserState.broken(dispatchId),
-                f -> {
-                    if (f.isSuccess()) {
-                        // frp channel read
-                        frpChannel.read();
-                    }
-                });
+        frpChannel.writeAndFlush(UserState.broken(dispatchId), Listeners.read(frpChannel));
     }
 
     @Override

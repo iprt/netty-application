@@ -33,6 +33,14 @@ public class EventLoopGroups {
         return this.workerGroup;
     }
 
+    public EventLoopGroup getWorkerGroup(int nThreads) {
+        if (this.workerGroup == null) {
+            this.workerGroup = new NioEventLoopGroup(nThreads);
+        }
+        return this.workerGroup;
+    }
+
+
     public static EventLoopGroups get() {
         return instance;
     }

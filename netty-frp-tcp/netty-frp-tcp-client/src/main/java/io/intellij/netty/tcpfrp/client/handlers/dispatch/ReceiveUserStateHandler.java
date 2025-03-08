@@ -4,7 +4,8 @@ import io.intellij.netty.tcpfrp.client.handlers.initial.ListeningResponseHandler
 import io.intellij.netty.tcpfrp.client.service.DirectServiceHandler;
 import io.intellij.netty.tcpfrp.client.service.ServiceChannelHandler;
 import io.intellij.netty.tcpfrp.commons.DispatchManager;
-import io.intellij.netty.tcpfrp.config.ListeningConfig;
+import io.intellij.netty.tcpfrp.commons.Listeners;
+import io.intellij.netty.tcpfrp.protocol.client.ListeningConfig;
 import io.intellij.netty.tcpfrp.protocol.ConnState;
 import io.intellij.netty.tcpfrp.protocol.channel.FrpChannel;
 import io.intellij.netty.tcpfrp.protocol.client.ServiceState;
@@ -51,9 +52,9 @@ public class ReceiveUserStateHandler extends SimpleChannelInboundHandler<UserSta
      */
     @Override
     public void channelActive(@NotNull ChannelHandlerContext ctx) throws Exception {
-        log.info("channelActive: user conn state handler");
+        log.info("[channelActive]: ReceiveUserStateHandler");
         // must but just once
-        ctx.channel().attr(FRP_CHANNEL_KEY).get().read();
+        FrpChannel.get(ctx.channel()).read();
     }
 
     @Override
@@ -62,7 +63,7 @@ public class ReceiveUserStateHandler extends SimpleChannelInboundHandler<UserSta
 
         ConnState userState = ConnState.getByName(connState.getStateName());
         if (userState == null) {
-            log.error("Unknown conn state: {}", connState.getStateName());
+            log.error("channelRead0 unknown state : {}", connState.getStateName());
             frpChannel.close();
             return;
         }
@@ -86,14 +87,8 @@ public class ReceiveUserStateHandler extends SimpleChannelInboundHandler<UserSta
                         servicePipeline.fireChannelActive();
                     } else {
                         log.warn("[ACCEPT] 接收到用户连接后，服务连接创建失败|dispatchId={}", dispatchId);
-                        frpChannel.writeAndFlush(ServiceState.failure(dispatchId)).addListeners(
-                                (ChannelFutureListener) f -> {
-                                    if (f.isSuccess()) {
-                                        // must
-                                        frpChannel.read();
-                                    }
-                                }
-                        );
+                        frpChannel.writeAndFlush(ServiceState.failure(dispatchId))
+                                .addListeners(Listeners.read(frpChannel));
                     }
 
                 });
@@ -109,49 +104,27 @@ public class ReceiveUserStateHandler extends SimpleChannelInboundHandler<UserSta
                         .addListener((ChannelFutureListener) cf -> {
                             if (cf.isSuccess()) {
                                 frpChannel.writeAndFlush(ServiceState.success(dispatchId))
-                                        .addListener((ChannelFutureListener) f2 -> {
-                                            if (f2.isSuccess()) {
-                                                frpChannel.read();
-                                            }
-                                        });
+                                        .addListener(Listeners.read(frpChannel));
                             } else {
                                 log.warn("[ACCEPT] 接收到用户连接后，服务连接创建失败|name={}", config.getName());
-                                frpChannel.writeAndFlush(ServiceState.failure(dispatchId)).addListeners(
-                                        (ChannelFutureListener) f -> {
-                                            if (f.isSuccess()) {
-                                                // must
-                                                frpChannel.read();
-                                            }
-                                        }
-                                );
+                                frpChannel.writeAndFlush(ServiceState.failure(dispatchId))
+                                        .addListeners(Listeners.read(frpChannel));
                             }
                         });
                 break;
             case READY:
                 log.info("[READY] 接收到用户连接就绪状态，可以读取数据了|dispatchId={}", connState.getDispatchId());
-                frpChannel.writeAndFlush(
-                        f -> {
-                            if (f.isSuccess()) {
-                                DispatchManager.getInstance().initiativeChannelRead(connState.getDispatchId());
-                            }
-                        }
-                );
+                frpChannel.writeAndFlushEmpty()
+                        .addListeners(
+                                Listeners.read(DispatchManager.getInstance().getChannel(connState.getDispatchId()))
+                        );
                 break;
             // broken connection：user -x-> frp-server:3306
             case BROKEN:
                 log.warn("[BROKEN] 接收到用户断开连接|dispatchId={}", connState.getDispatchId());
-                frpChannel.writeAndFlush(
-                        f -> {
-                            if (f.isSuccess()) {
-                                DispatchManager.getInstance().release(connState.getDispatchId());
-                            }
-                        },
-                        f -> {
-                            if (f.isSuccess()) {
-                                // must
-                                frpChannel.read();
-                            }
-                        }
+                frpChannel.writeAndFlushEmpty(
+                        Listeners.read(frpChannel),
+                        Listeners.releaseDispatchChannel(connState.getDispatchId())
                 );
                 break;
             default:
@@ -165,9 +138,7 @@ public class ReceiveUserStateHandler extends SimpleChannelInboundHandler<UserSta
     public void channelInactive(@NotNull ChannelHandlerContext ctx) throws Exception {
         log.warn("disconnected from frp-server,then release all channels and close ctx");
         DispatchManager.getInstance().releaseAll();
-
-        FrpChannel frpChannel = ctx.channel().attr(FRP_CHANNEL_KEY).get();
-        frpChannel.close();
+        FrpChannel.get(ctx.channel()).close();
     }
 
 }

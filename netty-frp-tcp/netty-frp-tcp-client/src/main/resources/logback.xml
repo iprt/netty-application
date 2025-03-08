@@ -26,7 +26,9 @@
     </appender>
 
     <logger name="io.netty" level="INFO"/>
-    <logger name="io.intellij" level="INFO"/>
+    <logger name="io.intellij.netty.tcpfrp.client" level="INFO"/>
+    <logger name="io.intellij.netty.tcpfrp.client.handlers.dispatch.DispatchToServiceHandler" level="DEBUG"
+            additivity="false"/>
 
     <root level="info">
         <appender-ref ref="console"/>

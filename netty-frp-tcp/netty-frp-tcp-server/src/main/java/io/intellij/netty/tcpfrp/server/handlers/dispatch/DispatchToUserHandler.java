@@ -1,10 +1,9 @@
 package io.intellij.netty.tcpfrp.server.handlers.dispatch;
 
 import io.intellij.netty.tcpfrp.commons.DispatchManager;
+import io.intellij.netty.tcpfrp.commons.Listeners;
 import io.intellij.netty.tcpfrp.protocol.channel.DispatchPacket;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
+import io.intellij.netty.tcpfrp.protocol.channel.FrpChannel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import lombok.extern.slf4j.Slf4j;
@@ -23,20 +22,10 @@ public class DispatchToUserHandler extends SimpleChannelInboundHandler<DispatchP
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, DispatchPacket msg) throws Exception {
         // after UserChannel read0
-        ChannelFuture dispatch = DispatchManager.getInstance().dispatch(msg);
-        if (dispatch != null) {
-            dispatch.addListener((ChannelFutureListener) f -> {
-                if (f.isSuccess()) {
-                    Channel useChannel = f.channel();
-                    useChannel.read();
-                    // for ServerDispatchHandler read again
-                    ctx.channel().read();
-                }
-            });
-        } else {
-            log.error("DispatchToUserHandler channelRead0 dispatch is null");
-            ctx.close();
-        }
+        DispatchManager.getInstance().dispatch(msg,
+                Listeners.read(),
+                Listeners.read(FrpChannel.get(ctx.channel()))
+        );
     }
 
     @Override

@@ -1,6 +1,7 @@
 package io.intellij.netty.tcpfrp.client.service;
 
 import io.intellij.netty.tcpfrp.commons.DispatchManager;
+import io.intellij.netty.tcpfrp.commons.Listeners;
 import io.intellij.netty.tcpfrp.protocol.channel.DispatchPacket;
 import io.intellij.netty.tcpfrp.protocol.channel.FrpChannel;
 import io.intellij.netty.tcpfrp.protocol.client.ServiceState;
@@ -39,20 +40,9 @@ public class ServiceChannelHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         if (msg instanceof ByteBuf byteBuf) {
-            log.info("接收到服务端的数据 |dispatchId={}|serviceName={}|len={}", dispatchId, serviceName, byteBuf.readableBytes());
-            frpChannel.writeAndFlush(DispatchPacket.create(dispatchId, byteBuf),
-                    f -> {
-                        if (f.isSuccess()) {
-                            frpChannel.read();
-                        }
-                    },
-                    channelFuture -> {
-                        if (channelFuture.isSuccess()) {
-                            ctx.read();
-                        }
-                    }
-            );
-
+            log.debug("接收到服务端的数据 |dispatchId={}|serviceName={}|len={}", dispatchId, serviceName, byteBuf.readableBytes());
+            frpChannel.writeAndFlush(DispatchPacket.create(dispatchId, byteBuf))
+                    .addListeners(Listeners.read(frpChannel), Listeners.read(ctx.channel()));
             return;
         }
         log.error("ServiceHandler channelRead error, msg: {}", msg);

@@ -4,11 +4,14 @@ import io.intellij.netty.tcpfrp.client.handlers.initial.AuthResponseHandler;
 import io.intellij.netty.tcpfrp.config.ClientConfig;
 import io.intellij.netty.tcpfrp.protocol.FrpDecoder;
 import io.intellij.netty.tcpfrp.protocol.FrpEncoder;
+import io.intellij.netty.tcpfrp.protocol.channel.FrpChannel;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
+
+import static io.intellij.netty.tcpfrp.protocol.channel.FrpChannel.FRP_CHANNEL_KEY;
 
 /**
  * FrpClientInitializer
@@ -22,6 +25,9 @@ public class FrpClientInitializer extends ChannelInitializer<SocketChannel> {
 
     @Override
     protected void initChannel(@NotNull SocketChannel ch) throws Exception {
+        FrpChannel frpChannel = FrpChannel.build(ch);
+        ch.attr(FRP_CHANNEL_KEY).set(frpChannel);
+
         ChannelPipeline pipeline = ch.pipeline();
         if (clientConfig.isEnableSSL()) {
             pipeline.addLast(clientConfig.getSslContext().newHandler(ch.alloc()));

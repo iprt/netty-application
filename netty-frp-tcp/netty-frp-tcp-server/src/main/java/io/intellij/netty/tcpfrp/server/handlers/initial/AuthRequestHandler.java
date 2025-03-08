@@ -6,6 +6,7 @@ import io.intellij.netty.tcpfrp.protocol.server.AuthResponse;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.channel.ChannelPipeline;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
@@ -25,10 +26,7 @@ public class AuthRequestHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelActive(@NotNull ChannelHandlerContext ctx) throws Exception {
-        log.info("initialize frp channel");
-        FrpChannel frpChannel = FrpChannel.build(ctx.channel());
-        ctx.channel().attr(FRP_CHANNEL_KEY).set(frpChannel);
-        frpChannel.read();
+        FrpChannel.get(ctx.channel()).read();
     }
 
     @Override
@@ -39,9 +37,10 @@ public class AuthRequestHandler extends ChannelInboundHandlerAdapter {
                 frpChannel.writeAndFlush(AuthResponse.success(),
                         channelFuture -> {
                             if (channelFuture.isSuccess()) {
-                                ctx.pipeline().remove(AuthRequestHandler.class);
-                                ctx.pipeline().addLast(new ListeningRequestHandler());
-                                ctx.pipeline().fireChannelActive();
+                                ChannelPipeline p = ctx.pipeline();
+                                p.remove(this);
+                                p.addLast(new ListeningRequestHandler());
+                                p.fireChannelActive();
                             } else {
                                 frpChannel.close();
                             }

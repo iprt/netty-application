@@ -10,8 +10,8 @@ import io.intellij.netty.tcpfrp.server.listening.MultiPortNettyServer;
 import io.intellij.netty.tcpfrp.server.listening.MultiPortUtils;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelPipeline;
 import io.netty.channel.SimpleChannelInboundHandler;
-import io.netty.util.AttributeKey;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 
@@ -29,8 +29,6 @@ import static io.intellij.netty.tcpfrp.protocol.channel.FrpChannel.FRP_CHANNEL_K
  */
 @Slf4j
 public class ListeningRequestHandler extends SimpleChannelInboundHandler<ListeningRequest> {
-    public static final AttributeKey<MultiPortNettyServer> MULTI_PORT_NETTY_SERVER_KEY = AttributeKey.valueOf("multiPortNettyServer");
-
     @Override
     public void channelActive(@NotNull ChannelHandlerContext ctx) throws Exception {
         // Triggered from ServerAuthHandler
@@ -47,20 +45,21 @@ public class ListeningRequestHandler extends SimpleChannelInboundHandler<Listeni
         // 测试可以监听
         ListeningResponse test = MultiPortUtils.test(listeningPorts);
         if (test.isSuccess()) {
-            MultiPortNettyServer multiPortNettyServer = new MultiPortNettyServer(listeningPorts, ctx.channel());
-            if (multiPortNettyServer.start()) {
+            MultiPortNettyServer server = new MultiPortNettyServer(listeningPorts, ctx.channel());
+            if (server.start()) {
                 frpChannel.writeAndFlush(FrpBasicMsg.createListeningResponse(test)).addListener(
                         (ChannelFutureListener) f -> {
                             if (f.isSuccess()) {
                                 // remote this
-                                ctx.pipeline().remove(ListeningRequestHandler.class);
+                                ChannelPipeline p = ctx.pipeline();
+                                p.remove(this);
 
-                                ctx.channel().attr(MULTI_PORT_NETTY_SERVER_KEY).set(multiPortNettyServer);
-                                ctx.pipeline()
-                                        .addLast(new ReceiveServiceStateHandler())
+                                MultiPortNettyServer.set(ctx.channel(), server);
+
+                                p.addLast(new ReceiveServiceStateHandler())
                                         .addLast(new DispatchToUserHandler());
 
-                                ctx.pipeline().fireChannelActive();
+                                p.fireChannelActive();
                             } else {
                                 frpChannel.close();
                             }

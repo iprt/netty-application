@@ -7,6 +7,7 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.util.AttributeKey;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * FrpChannel
@@ -32,19 +33,19 @@ public class FrpChannel {
         return ch;
     }
 
-    public ChannelFuture writeAndFlush(ChannelFutureListener... listeners) {
-        return this.writeAndFlushDefault(Unpooled.EMPTY_BUFFER, listeners);
+    public ChannelFuture writeAndFlushEmpty(ChannelFutureListener... listeners) {
+        return this.writeAndFlushObj(Unpooled.EMPTY_BUFFER, listeners);
     }
 
     public ChannelFuture writeAndFlush(DispatchPacket dispatchPacket, ChannelFutureListener... listeners) {
-        return this.writeAndFlushDefault(dispatchPacket, listeners);
+        return this.writeAndFlushObj(dispatchPacket, listeners);
     }
 
     public ChannelFuture writeAndFlush(FrpBasicMsg basicMsg, ChannelFutureListener... listeners) {
-        return this.writeAndFlushDefault(basicMsg, listeners);
+        return this.writeAndFlushObj(basicMsg, listeners);
     }
 
-    private ChannelFuture writeAndFlushDefault(Object msg, ChannelFutureListener... listeners) {
+    private ChannelFuture writeAndFlushObj(Object msg, ChannelFutureListener... listeners) {
         if (ch.isActive()) {
             return ch.writeAndFlush(msg).addListeners(listeners);
         }
@@ -64,6 +65,10 @@ public class FrpChannel {
         if (ch.isActive()) {
             ch.close();
         }
+    }
+
+    public static FrpChannel get(@NotNull Channel ch) {
+        return ch.attr(FRP_CHANNEL_KEY).get();
     }
 
 }

@@ -4,6 +4,7 @@ import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONPath;
 import io.intellij.netty.tcpfrp.SysConfig;
 import io.intellij.netty.tcpfrp.protocol.SslContextUtils;
+import io.intellij.netty.tcpfrp.protocol.client.ListeningConfig;
 import io.netty.handler.ssl.SslContext;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -71,10 +72,7 @@ public class ClientConfig {
                         return INVALID_CONFIG;
                     }
 
-                    map.put(name, ListeningConfig.builder()
-                            .name(name).localIp(localIp).localPort(localPort)
-                            .remotePort(remotePort)
-                            .build());
+                    map.put(name, ListeningConfig.create(name, localIp, localPort, remotePort));
                 }
 
                 return ClientConfig.builder().valid(true)
@@ -101,7 +99,6 @@ public class ClientConfig {
         }
 
     }
-
 
     public static ClientConfig loadConfig(String path) {
         ClientConfig clientConfig = ClientConfig.init(ClientConfig.class.getClassLoader().getResourceAsStream(path));

@@ -1,7 +1,7 @@
 package io.intellij.netty.tcpfrp.server.listening;
 
-import io.intellij.netty.tcpfrp.protocol.channel.FrpChannel;
 import io.intellij.netty.tcpfrp.commons.EventLoopGroups;
+import io.intellij.netty.tcpfrp.protocol.channel.FrpChannel;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -11,6 +11,7 @@ import io.netty.channel.ChannelPipeline;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.util.AttributeKey;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 
@@ -25,6 +26,8 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Slf4j
 public class MultiPortNettyServer {
+    private static final AttributeKey<MultiPortNettyServer> MULTI_PORT_NETTY_SERVER_KEY = AttributeKey.valueOf("multiPortNettyServer");
+
     private final List<Integer> ports;
     private final FrpChannel frpChannel;
 
@@ -81,4 +84,15 @@ public class MultiPortNettyServer {
         log.warn("Multi Port Server Stop End   ...");
     }
 
+    public static void set(@NotNull Channel ch, @NotNull MultiPortNettyServer server) {
+        ch.attr(MULTI_PORT_NETTY_SERVER_KEY).set(server);
+    }
+
+    public static void stop(@NotNull Channel ch) {
+        MultiPortNettyServer server = ch.attr(MULTI_PORT_NETTY_SERVER_KEY).get();
+        if (server != null) {
+            server.stop();
+            ch.attr(MULTI_PORT_NETTY_SERVER_KEY).set(null);
+        }
+    }
 }

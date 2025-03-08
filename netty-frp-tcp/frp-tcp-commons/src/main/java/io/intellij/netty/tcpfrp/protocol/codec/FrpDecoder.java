@@ -1,7 +1,7 @@
-package io.intellij.netty.tcpfrp.protocol;
+package io.intellij.netty.tcpfrp.protocol.codec;
 
-import io.intellij.netty.tcpfrp.protocol.codec.FrpClientDecoder;
-import io.intellij.netty.tcpfrp.protocol.codec.FrpServerDecoder;
+import io.intellij.netty.tcpfrp.protocol.FrpBasicMsg;
+import io.netty.channel.ChannelInboundHandler;
 import io.netty.handler.codec.ReplayingDecoder;
 
 /**
@@ -15,11 +15,11 @@ public abstract class FrpDecoder extends ReplayingDecoder<FrpBasicMsg.State> {
         super(initialState);
     }
 
-    public static FrpClientDecoder clientDecoder() {
+    public static ChannelInboundHandler clientDecoder() {
         return new FrpClientDecoder();
     }
 
-    public static FrpServerDecoder serverDecoder() {
+    public static ChannelInboundHandler serverDecoder() {
         return new FrpServerDecoder();
     }
 

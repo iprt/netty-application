@@ -1,8 +1,8 @@
 package io.intellij.netty.tcpfrp.protocol.codec;
 
 import io.intellij.netty.tcpfrp.protocol.FrpMsgType;
-import io.intellij.netty.tcpfrp.protocol.channel.DispatchPacket;
 import io.intellij.netty.tcpfrp.protocol.channel.DispatchIdUtils;
+import io.intellij.netty.tcpfrp.protocol.channel.DispatchPacket;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToByteEncoder;
@@ -21,7 +21,7 @@ import java.nio.charset.StandardCharsets;
  * @author tech@intellij.io
  * @since 2025-03-05
  */
-public class DispatchEncoder extends MessageToByteEncoder<DispatchPacket> {
+final class DispatchEncoder extends MessageToByteEncoder<DispatchPacket> {
 
     @Override
     protected void encode(ChannelHandlerContext ctx, DispatchPacket msg, ByteBuf out) throws Exception {

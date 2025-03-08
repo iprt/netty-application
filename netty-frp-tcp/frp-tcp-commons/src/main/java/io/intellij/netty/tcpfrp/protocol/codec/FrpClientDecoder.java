@@ -1,10 +1,9 @@
 package io.intellij.netty.tcpfrp.protocol.codec;
 
 import com.alibaba.fastjson2.JSONObject;
-import io.intellij.netty.tcpfrp.protocol.FrpDecoder;
 import io.intellij.netty.tcpfrp.protocol.FrpMsgType;
-import io.intellij.netty.tcpfrp.protocol.channel.DispatchPacket;
 import io.intellij.netty.tcpfrp.protocol.channel.DispatchIdUtils;
+import io.intellij.netty.tcpfrp.protocol.channel.DispatchPacket;
 import io.intellij.netty.tcpfrp.protocol.server.AuthResponse;
 import io.intellij.netty.tcpfrp.protocol.server.ListeningResponse;
 import io.intellij.netty.tcpfrp.protocol.server.UserState;
@@ -29,7 +28,7 @@ import static io.intellij.netty.tcpfrp.protocol.FrpMsgType.DATA_PACKET;
  * @since 2025-03-05
  */
 @Slf4j
-public class FrpClientDecoder extends FrpDecoder {
+final class FrpClientDecoder extends FrpDecoder {
     public FrpClientDecoder() {
         super(READ_TYPE);
     }

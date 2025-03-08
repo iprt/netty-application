@@ -19,7 +19,7 @@ import io.netty.handler.codec.MessageToByteEncoder;
  * @author tech@intellij.io
  * @since 2025-03-05
  */
-public class FrpBasicMsgEncoder extends MessageToByteEncoder<FrpBasicMsg> {
+final class FrpBasicMsgEncoder extends MessageToByteEncoder<FrpBasicMsg> {
 
     @Override
     protected void encode(ChannelHandlerContext ctx, FrpBasicMsg basicMsg, ByteBuf out) throws Exception {

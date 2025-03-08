@@ -1,5 +1,6 @@
-package io.intellij.netty.tcpfrp.protocol.codec;
+package io.intellij.netty.tcpfrp.protocol.codec.decoder;
 
+import com.alibaba.fastjson2.JSONObject;
 import io.intellij.netty.tcpfrp.protocol.FrpBasicMsg;
 import io.netty.channel.ChannelInboundHandler;
 import io.netty.handler.codec.ReplayingDecoder;
@@ -21,6 +22,14 @@ public abstract class FrpDecoder extends ReplayingDecoder<FrpBasicMsg.State> {
 
     public static ChannelInboundHandler serverDecoder() {
         return new FrpServerDecoder();
+    }
+
+    protected <T> T jsonToObj(String json, Class<T> clazz, String errorMsg) {
+        T data = JSONObject.parseObject(json, clazz);
+        if (data == null) {
+            throw new RuntimeException(errorMsg);
+        }
+        return data;
     }
 
 }

@@ -25,7 +25,7 @@ public class FrpBasicMsg {
         READ_TYPE,
         READ_LENGTH,
         READ_BASIC_MSG,
-        READ_DATA_PACKET
+        READ_DISAPTCH_PACKET
     }
 
     private FrpMsgType msgType;

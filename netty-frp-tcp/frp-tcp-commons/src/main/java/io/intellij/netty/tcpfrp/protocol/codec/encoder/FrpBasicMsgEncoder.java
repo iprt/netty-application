@@ -1,4 +1,4 @@
-package io.intellij.netty.tcpfrp.protocol.codec;
+package io.intellij.netty.tcpfrp.protocol.codec.encoder;
 
 import com.alibaba.fastjson2.JSON;
 import io.intellij.netty.tcpfrp.protocol.FrpBasicMsg;

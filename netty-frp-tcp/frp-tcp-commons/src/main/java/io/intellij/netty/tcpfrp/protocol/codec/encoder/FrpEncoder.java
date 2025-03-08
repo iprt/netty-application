@@ -1,4 +1,4 @@
-package io.intellij.netty.tcpfrp.protocol.codec;
+package io.intellij.netty.tcpfrp.protocol.codec.encoder;
 
 import io.netty.channel.ChannelOutboundHandler;
 

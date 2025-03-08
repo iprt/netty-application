@@ -1,8 +1,8 @@
 package io.intellij.netty.tcpfrp.server.handlers;
 
 import io.intellij.netty.tcpfrp.config.ServerConfig;
-import io.intellij.netty.tcpfrp.protocol.codec.FrpDecoder;
-import io.intellij.netty.tcpfrp.protocol.codec.FrpEncoder;
+import io.intellij.netty.tcpfrp.protocol.codec.decoder.FrpDecoder;
+import io.intellij.netty.tcpfrp.protocol.codec.encoder.FrpEncoder;
 import io.intellij.netty.tcpfrp.protocol.channel.FrpChannel;
 import io.intellij.netty.tcpfrp.server.handlers.initial.AuthRequestHandler;
 import io.netty.channel.ChannelInitializer;

@@ -12,6 +12,10 @@ import lombok.extern.slf4j.Slf4j;
 @Data
 @Slf4j
 public class SysConfig {
+    public static final String CONFIG_PATH_PROPERTY = "configPath";
+    public static final String DEF_SERVER_CONFIG = "server-config.json";
+    public static final String DEF_CLIENT_CONFIG = "client-config.json";
+
     private static final SysConfig instance = new SysConfig();
     private boolean enableSsl;
 

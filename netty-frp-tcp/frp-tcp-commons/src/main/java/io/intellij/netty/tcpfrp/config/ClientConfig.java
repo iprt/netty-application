@@ -102,6 +102,16 @@ public class ClientConfig {
 
     }
 
+
+    public static ClientConfig loadConfig(String path) {
+        ClientConfig clientConfig = ClientConfig.init(ClientConfig.class.getClassLoader().getResourceAsStream(path));
+        if (clientConfig.isValid()) {
+            log.info("client config|{}", clientConfig);
+            SysConfig.get().logDetails();
+        }
+        return clientConfig;
+    }
+
     public void then(Consumer<ClientConfig> consumer) {
         if (this.valid) {
             consumer.accept(this);

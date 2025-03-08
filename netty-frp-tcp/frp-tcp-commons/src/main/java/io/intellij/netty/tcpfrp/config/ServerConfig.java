@@ -75,6 +75,16 @@ public class ServerConfig {
 
     }
 
+    public static ServerConfig loadConfig(String path) {
+        ServerConfig serverConfig = ServerConfig.init(ServerConfig.class.getClassLoader().getResourceAsStream(path));
+        if (serverConfig.isValid()) {
+            log.info("server config|{}", serverConfig);
+            SysConfig.get().logDetails();
+        }
+        return serverConfig;
+    }
+
+
     public void then(Consumer<ServerConfig> consumer) {
         if (this.valid) {
             consumer.accept(this);

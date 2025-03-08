@@ -16,20 +16,20 @@ public abstract class FrpDecoder extends ReplayingDecoder<FrpBasicMsg.State> {
         super(initialState);
     }
 
-    public static ChannelInboundHandler clientDecoder() {
-        return new FrpClientDecoder();
-    }
-
-    public static ChannelInboundHandler serverDecoder() {
-        return new FrpServerDecoder();
-    }
-
     protected <T> T jsonToObj(String json, Class<T> clazz, String errorMsg) {
         T data = JSONObject.parseObject(json, clazz);
         if (data == null) {
             throw new RuntimeException(errorMsg);
         }
         return data;
+    }
+
+    public static ChannelInboundHandler clientDecoder() {
+        return new FrpClientDecoder();
+    }
+
+    public static ChannelInboundHandler serverDecoder() {
+        return new FrpServerDecoder();
     }
 
 }

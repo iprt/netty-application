@@ -53,7 +53,11 @@ public enum FrpMsgType {
     /**
      * 客户端&服务端: 数据包，本质上结构一样 (type|dispatchId|data)
      */
-    DATA_PACKET(6, "data packet");
+    DATA_PACKET(6, "data packet"),
+
+    PING(7, "ping"),
+
+    PONG(8, "pong");
 
     private final int type;
     private final String desc;

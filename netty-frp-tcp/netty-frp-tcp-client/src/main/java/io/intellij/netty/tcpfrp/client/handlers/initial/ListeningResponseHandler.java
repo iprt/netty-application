@@ -40,7 +40,8 @@ public class ListeningResponseHandler extends SimpleChannelInboundHandler<Listen
                         if (channelFuture.isSuccess()) {
                             ChannelPipeline p = ctx.pipeline();
                             p.remove(this);
-                            p.addLast(new ReceiveUserStateHandler(configMap))
+                            p.addLast(new PongHandler())
+                                    .addLast(new ReceiveUserStateHandler(configMap))
                                     .addLast(new DispatchToServiceHandler());
                             p.fireChannelActive();
                         } else {

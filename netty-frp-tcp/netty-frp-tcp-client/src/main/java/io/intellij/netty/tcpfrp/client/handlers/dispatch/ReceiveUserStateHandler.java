@@ -1,13 +1,12 @@
 package io.intellij.netty.tcpfrp.client.handlers.dispatch;
 
-import io.intellij.netty.tcpfrp.client.handlers.initial.ListeningResponseHandler;
 import io.intellij.netty.tcpfrp.client.service.DirectServiceHandler;
 import io.intellij.netty.tcpfrp.client.service.ServiceChannelHandler;
 import io.intellij.netty.tcpfrp.commons.DispatchManager;
 import io.intellij.netty.tcpfrp.commons.Listeners;
-import io.intellij.netty.tcpfrp.protocol.client.ListeningConfig;
 import io.intellij.netty.tcpfrp.protocol.ConnState;
 import io.intellij.netty.tcpfrp.protocol.channel.FrpChannel;
+import io.intellij.netty.tcpfrp.protocol.client.ListeningConfig;
 import io.intellij.netty.tcpfrp.protocol.client.ServiceState;
 import io.intellij.netty.tcpfrp.protocol.server.UserState;
 import io.netty.bootstrap.Bootstrap;
@@ -47,15 +46,6 @@ public class ReceiveUserStateHandler extends SimpleChannelInboundHandler<UserSta
                 ));
     }
 
-    /**
-     * Triggered from {@link ListeningResponseHandler}
-     */
-    @Override
-    public void channelActive(@NotNull ChannelHandlerContext ctx) throws Exception {
-        log.info("[channelActive]: ReceiveUserStateHandler");
-        // must but just once
-        FrpChannel.get(ctx.channel()).read();
-    }
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, @NotNull UserState connState) throws Exception {

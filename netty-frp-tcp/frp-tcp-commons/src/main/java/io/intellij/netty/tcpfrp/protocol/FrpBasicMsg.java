@@ -2,9 +2,11 @@ package io.intellij.netty.tcpfrp.protocol;
 
 import io.intellij.netty.tcpfrp.protocol.client.AuthRequest;
 import io.intellij.netty.tcpfrp.protocol.client.ListeningRequest;
+import io.intellij.netty.tcpfrp.protocol.client.Ping;
 import io.intellij.netty.tcpfrp.protocol.client.ServiceState;
 import io.intellij.netty.tcpfrp.protocol.server.AuthResponse;
 import io.intellij.netty.tcpfrp.protocol.server.ListeningResponse;
+import io.intellij.netty.tcpfrp.protocol.server.Pong;
 import io.intellij.netty.tcpfrp.protocol.server.UserState;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -21,11 +23,12 @@ import lombok.NoArgsConstructor;
 @Data
 public class FrpBasicMsg {
 
+
     public enum State {
         READ_TYPE,
         READ_LENGTH,
         READ_BASIC_MSG,
-        READ_DISAPTCH_PACKET
+        READ_DISPATCH_PACKET
     }
 
     private FrpMsgType msgType;
@@ -95,6 +98,15 @@ public class FrpBasicMsg {
      */
     public static FrpBasicMsg createServiceState(ServiceState serviceState) {
         return create(FrpMsgType.SERVICE_CONN_STATE, serviceState);
+    }
+
+
+    public static FrpBasicMsg createPing(Ping ping) {
+        return create(FrpMsgType.PING, ping);
+    }
+
+    public static FrpBasicMsg createPong(Pong pong) {
+        return create(FrpMsgType.PONG, pong);
     }
 
 }

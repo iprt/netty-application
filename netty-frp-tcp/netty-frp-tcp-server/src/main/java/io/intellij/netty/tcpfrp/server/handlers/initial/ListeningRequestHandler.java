@@ -56,7 +56,8 @@ public class ListeningRequestHandler extends SimpleChannelInboundHandler<Listeni
 
                                 MultiPortNettyServer.set(ctx.channel(), server);
 
-                                p.addLast(new ReceiveServiceStateHandler())
+                                p.addLast(new PingHandler())
+                                        .addLast(new ReceiveServiceStateHandler())
                                         .addLast(new DispatchToUserHandler());
 
                                 p.fireChannelActive();

@@ -5,7 +5,7 @@ import io.intellij.netty.tcpfrp.protocol.channel.DispatchIdUtils;
 import io.intellij.netty.tcpfrp.protocol.channel.DispatchPacket;
 import io.intellij.netty.tcpfrp.protocol.server.AuthResponse;
 import io.intellij.netty.tcpfrp.protocol.server.ListeningResponse;
-import io.intellij.netty.tcpfrp.protocol.server.Pong;
+import io.intellij.netty.tcpfrp.protocol.heartbeat.Pong;
 import io.intellij.netty.tcpfrp.protocol.server.UserState;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;

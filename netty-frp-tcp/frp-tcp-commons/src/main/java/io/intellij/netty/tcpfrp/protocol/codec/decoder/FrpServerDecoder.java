@@ -4,7 +4,7 @@ import io.intellij.netty.tcpfrp.protocol.FrpBasicMsg;
 import io.intellij.netty.tcpfrp.protocol.FrpMsgType;
 import io.intellij.netty.tcpfrp.protocol.client.AuthRequest;
 import io.intellij.netty.tcpfrp.protocol.client.ListeningRequest;
-import io.intellij.netty.tcpfrp.protocol.client.Ping;
+import io.intellij.netty.tcpfrp.protocol.heartbeat.Ping;
 import io.intellij.netty.tcpfrp.protocol.client.ServiceState;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;

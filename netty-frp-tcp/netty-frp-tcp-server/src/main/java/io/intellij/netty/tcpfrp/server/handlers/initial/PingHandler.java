@@ -2,8 +2,8 @@ package io.intellij.netty.tcpfrp.server.handlers.initial;
 
 import io.intellij.netty.tcpfrp.commons.Listeners;
 import io.intellij.netty.tcpfrp.protocol.channel.FrpChannel;
-import io.intellij.netty.tcpfrp.protocol.client.Ping;
-import io.intellij.netty.tcpfrp.protocol.server.Pong;
+import io.intellij.netty.tcpfrp.protocol.heartbeat.Ping;
+import io.intellij.netty.tcpfrp.protocol.heartbeat.Pong;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import lombok.extern.slf4j.Slf4j;

@@ -66,7 +66,7 @@ final class FrpClientDecoder extends FrpDecoder {
                     case LISTENING_RESPONSE:
                         out.add(jsonToObj(json, ListeningResponse.class, "listening response parse error"));
                         break;
-                    case USER_CONN_STATE:
+                    case USER_STATE:
                         out.add(jsonToObj(json, UserState.class, "user state parse error"));
                         break;
                     case PONG:

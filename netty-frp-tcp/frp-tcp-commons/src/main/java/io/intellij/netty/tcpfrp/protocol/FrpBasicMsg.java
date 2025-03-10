@@ -23,7 +23,6 @@ import lombok.NoArgsConstructor;
 @Data
 public class FrpBasicMsg {
 
-
     public enum State {
         READ_TYPE,
         READ_LENGTH,
@@ -87,7 +86,7 @@ public class FrpBasicMsg {
      * @return an instance of {@code FrpBasicMsg} representing the user connection state message
      */
     public static FrpBasicMsg createUserState(UserState userState) {
-        return create(FrpMsgType.USER_CONN_STATE, userState);
+        return create(FrpMsgType.USER_STATE, userState);
     }
 
     /**
@@ -97,14 +96,26 @@ public class FrpBasicMsg {
      * @return an instance of {@code FrpBasicMsg} representing the service connection state message
      */
     public static FrpBasicMsg createServiceState(ServiceState serviceState) {
-        return create(FrpMsgType.SERVICE_CONN_STATE, serviceState);
+        return create(FrpMsgType.SERVICE_STATE, serviceState);
     }
 
 
+    /**
+     * Creates a ping message with the provided {@code Ping} data.
+     *
+     * @param ping the ping object containing the details of the ping message
+     * @return an instance of {@code FrpBasicMsg} representing the ping message
+     */
     public static FrpBasicMsg createPing(Ping ping) {
         return create(FrpMsgType.PING, ping);
     }
 
+    /**
+     * Creates a Pong message with the provided {@code Pong} data.
+     *
+     * @param pong the Pong object containing the details of the pong message
+     * @return an instance of {@code FrpBasicMsg} representing the pong message
+     */
     public static FrpBasicMsg createPong(Pong pong) {
         return create(FrpMsgType.PONG, pong);
     }

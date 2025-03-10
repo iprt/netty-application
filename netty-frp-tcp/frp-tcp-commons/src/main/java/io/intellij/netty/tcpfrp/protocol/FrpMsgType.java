@@ -40,7 +40,7 @@ public enum FrpMsgType {
      * <p>
      * 用户连接断开 (连接事件 用户建立连接 e.g. user -×-> frp-server:3306)
      */
-    USER_CONN_STATE(4, "user conn state"),
+    USER_STATE(4, "user conn state"),
 
     /**
      * 客户端 -> 服务端
@@ -48,7 +48,7 @@ public enum FrpMsgType {
      * frp-client连接到真实服务成功：（e.g. frp-client ---> mysql:3306）
      * frp-client连接到真实服务失败：（e.g. frp-client -x-> mysql:3306）
      */
-    SERVICE_CONN_STATE(5, "service conn state"),
+    SERVICE_STATE(5, "service conn state"),
 
     /**
      * 客户端&服务端: 数据包，本质上结构一样 (type|dispatchId|data)

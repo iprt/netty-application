@@ -35,6 +35,7 @@ public class ListeningResponseHandler extends SimpleChannelInboundHandler<Listen
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, @NotNull ListeningResponse listeningResponse) throws Exception {
         if (listeningResponse.isSuccess()) {
+            log.info("listening request success");
             ctx.channel().writeAndFlush(Unpooled.EMPTY_BUFFER)
                     .addListener((ChannelFutureListener) channelFuture -> {
                         if (channelFuture.isSuccess()) {
@@ -50,7 +51,7 @@ public class ListeningResponseHandler extends SimpleChannelInboundHandler<Listen
                     });
         } else {
             Map<Integer, Boolean> listeningStatus = listeningResponse.getListeningStatus();
-            log.error("请求frp-server监听失败, 监听状态: {}", listeningStatus);
+            log.warn("listening request failure|{}", listeningStatus);
             ctx.close();
         }
     }

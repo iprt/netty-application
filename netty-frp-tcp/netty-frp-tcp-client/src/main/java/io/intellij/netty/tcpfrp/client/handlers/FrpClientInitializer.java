@@ -3,8 +3,7 @@ package io.intellij.netty.tcpfrp.client.handlers;
 import io.intellij.netty.tcpfrp.client.handlers.initial.AuthResponseHandler;
 import io.intellij.netty.tcpfrp.config.ClientConfig;
 import io.intellij.netty.tcpfrp.protocol.channel.FrpChannelInitializer;
-import io.intellij.netty.tcpfrp.protocol.codec.decoder.FrpDecoder;
-import io.intellij.netty.tcpfrp.protocol.codec.encoder.FrpEncoder;
+import io.intellij.netty.tcpfrp.protocol.codec.FrpCodec;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
 import lombok.RequiredArgsConstructor;
@@ -27,9 +26,9 @@ public class FrpClientInitializer extends FrpChannelInitializer {
             p.addLast(clientConfig.getSslContext().newHandler(ch.alloc()));
         }
 
-        p.addLast(FrpDecoder.clientDecoder())
-                .addLast(FrpEncoder.basicMsgEncoder())
-                .addLast(FrpEncoder.dispatchEncoder());
+        p.addLast(FrpCodec.clientDecoder())
+                .addLast(FrpCodec.basicMsgEncoder())
+                .addLast(FrpCodec.dispatchEncoder());
 
         p.addLast(new AuthResponseHandler(clientConfig.getListeningConfigMap()));
 

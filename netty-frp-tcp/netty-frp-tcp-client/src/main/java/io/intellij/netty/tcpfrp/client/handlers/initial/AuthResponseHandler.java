@@ -26,12 +26,6 @@ public class AuthResponseHandler extends SimpleChannelInboundHandler<AuthRespons
     private final Map<String, ListeningConfig> configMap;
 
     @Override
-    public void channelActive(@NotNull ChannelHandlerContext ctx) throws Exception {
-        // must
-        FrpChannel.get(ctx.channel()).read();
-    }
-
-    @Override
     protected void channelRead0(@NotNull ChannelHandlerContext ctx, @NotNull AuthResponse authResponse) throws Exception {
         FrpChannel frpChannel = FrpChannel.get(ctx.channel());
         if (authResponse.isSuccess()) {

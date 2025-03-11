@@ -83,4 +83,10 @@ public class ListeningRequestHandler extends SimpleChannelInboundHandler<Listeni
     public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
         ctx.flush();
     }
+
+    @Override
+    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+        log.warn("stop multi port server");
+        MultiPortNettyServer.stop(ctx.channel());
+    }
 }

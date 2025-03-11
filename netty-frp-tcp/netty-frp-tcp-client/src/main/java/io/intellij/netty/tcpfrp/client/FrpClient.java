@@ -28,7 +28,6 @@ public class FrpClient {
             Bootstrap b = new Bootstrap();
             b.group(eventLoopGroup)
                     .channel(NioSocketChannel.class)
-                    .option(ChannelOption.AUTO_READ, false)
                     .option(ChannelOption.SO_KEEPALIVE, true);
 
             b.handler(new FrpClientInitializer(config));

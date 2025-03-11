@@ -23,11 +23,6 @@ public class AuthRequestHandler extends ChannelInboundHandlerAdapter {
     private final String configToken;
 
     @Override
-    public void channelActive(@NotNull ChannelHandlerContext ctx) throws Exception {
-        FrpChannel.get(ctx.channel()).read();
-    }
-
-    @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         FrpChannel frpChannel = FrpChannel.get(ctx.channel());
         if (msg instanceof AuthRequest authRequest) {

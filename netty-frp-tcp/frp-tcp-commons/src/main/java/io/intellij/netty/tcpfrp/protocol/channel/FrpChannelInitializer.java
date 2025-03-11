@@ -17,6 +17,8 @@ public abstract class FrpChannelInitializer extends ChannelInitializer<SocketCha
     @Override
     protected void initChannel(@NotNull SocketChannel ch) throws Exception {
         build(ch);
+        ch.config().setAutoRead(false);
+        ch.pipeline().addLast(new ByteCountingHandler());
         this.initChannel0(ch);
     }
 

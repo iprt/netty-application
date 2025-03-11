@@ -1,4 +1,4 @@
-package io.intellij.netty.tcpfrp.protocol.codec.encoder;
+package io.intellij.netty.tcpfrp.protocol.codec;
 
 import io.intellij.netty.tcpfrp.protocol.channel.DispatchPacket;
 import io.netty.buffer.ByteBuf;

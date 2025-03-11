@@ -4,7 +4,6 @@ import io.intellij.netty.tcpfrp.commons.DispatchManager;
 import io.intellij.netty.tcpfrp.protocol.channel.FrpChannel;
 import io.intellij.netty.tcpfrp.protocol.heartbeat.Ping;
 import io.intellij.netty.tcpfrp.protocol.heartbeat.Pong;
-import io.intellij.netty.tcpfrp.server.listening.MultiPortNettyServer;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import lombok.extern.slf4j.Slf4j;
@@ -44,9 +43,11 @@ public class PingHandler extends SimpleChannelInboundHandler<Ping> {
 
     @Override
     public void channelInactive(@NotNull ChannelHandlerContext ctx) throws Exception {
-        log.warn("与 frp-client 断开连接, 释放所有 userChannel, 关闭监听服务");
+        log.warn("release dispatch channel");
         DispatchManager.getInstance().releaseAll();
-        MultiPortNettyServer.stop(ctx.channel());
+        super.channelInactive(ctx);
+
+        log.warn("close frp channel");
         FrpChannel.get(ctx.channel()).close();
     }
 

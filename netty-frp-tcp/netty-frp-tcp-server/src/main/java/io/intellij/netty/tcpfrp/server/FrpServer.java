@@ -25,7 +25,6 @@ final class FrpServer {
             b.group(container.getBossGroup(), container.getWorkerGroup())
                     .channel(NioServerSocketChannel.class)
                     .childOption(ChannelOption.SO_KEEPALIVE, true)
-                    .childOption(ChannelOption.AUTO_READ, false)
                     .childHandler(new FrpServerInitializer(config));
 
             ChannelFuture f = b.bind(config.getPort()).sync();

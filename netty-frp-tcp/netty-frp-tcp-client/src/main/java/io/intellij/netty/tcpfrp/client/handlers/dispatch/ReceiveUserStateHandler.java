@@ -122,6 +122,10 @@ public class ReceiveUserStateHandler extends SimpleChannelInboundHandler<UserSta
 
     }
 
-
+    @Override
+    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+        log.warn("release all dispatch channel");
+        DispatchManager.getInstance().releaseAll();
+    }
 
 }

@@ -1,7 +1,5 @@
 package io.intellij.netty.tcpfrp.protocol.codec;
 
-import io.intellij.netty.tcpfrp.protocol.codec.decoder.FrpDecoder;
-import io.intellij.netty.tcpfrp.protocol.codec.encoder.FrpEncoder;
 import io.netty.channel.ChannelInboundHandler;
 import io.netty.channel.ChannelOutboundHandler;
 import org.jetbrains.annotations.NotNull;
@@ -15,19 +13,19 @@ import org.jetbrains.annotations.NotNull;
 public class FrpCodec {
 
     public static @NotNull ChannelInboundHandler clientDecoder() {
-        return FrpDecoder.clientDecoder();
+        return new FrpDecoder(FrpDecoder.MODE.CLIENT);
     }
 
     public static @NotNull ChannelInboundHandler serverDecoder() {
-        return FrpDecoder.serverDecoder();
+        return new FrpDecoder(FrpDecoder.MODE.SERVER);
     }
 
     public static @NotNull ChannelOutboundHandler basicMsgEncoder() {
-        return FrpEncoder.basicMsgEncoder();
+        return new FrpBasicMsgEncoder();
     }
 
     public static @NotNull ChannelOutboundHandler dispatchEncoder() {
-        return FrpEncoder.dispatchEncoder();
+        return new DispatchEncoder();
     }
 
 }

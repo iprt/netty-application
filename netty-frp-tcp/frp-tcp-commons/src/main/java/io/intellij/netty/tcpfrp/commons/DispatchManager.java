@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * DispatchManager
@@ -25,29 +26,45 @@ public class DispatchManager {
      */
     private final Map<String, Channel> idToChannelMap;
 
+    private final AtomicBoolean enableDispatch;
+
     private DispatchManager() {
         idToChannelMap = new ConcurrentHashMap<>();
+        enableDispatch = new AtomicBoolean(true);
     }
 
     public void addChannel(String dispatchId, Channel channel) {
+        if (!enableDispatch.get()) {
+            throw new RuntimeException("DispatchManager is disabled");
+        }
         idToChannelMap.put(dispatchId, channel);
     }
 
     public Channel getChannel(String dispatchId) {
+        if (!enableDispatch.get()) {
+            throw new RuntimeException("DispatchManager is disabled");
+        }
         return idToChannelMap.get(dispatchId);
     }
 
     public void release(String dispatchId) {
+        if (!enableDispatch.get()) {
+            throw new RuntimeException("DispatchManager is disabled");
+        }
         log.warn("release channel|dispatchId={}", dispatchId);
         ChannelUtils.close(idToChannelMap.remove(dispatchId));
     }
 
     public void release(String dispatchId, String reason) {
+        if (!enableDispatch.get()) {
+            throw new RuntimeException("DispatchManager is disabled");
+        }
         log.warn("release channel|dispatchId={}|reason={}", dispatchId, reason);
         ChannelUtils.close(idToChannelMap.remove(dispatchId));
     }
 
     public void releaseAll() {
+        enableDispatch.set(false);
         log.warn("release all channels");
         idToChannelMap.values().forEach(ChannelUtils::close);
         idToChannelMap.clear();

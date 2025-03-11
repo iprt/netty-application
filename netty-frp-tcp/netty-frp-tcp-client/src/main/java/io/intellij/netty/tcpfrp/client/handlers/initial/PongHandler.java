@@ -1,6 +1,5 @@
 package io.intellij.netty.tcpfrp.client.handlers.initial;
 
-import io.intellij.netty.tcpfrp.commons.DispatchManager;
 import io.intellij.netty.tcpfrp.protocol.channel.FrpChannel;
 import io.intellij.netty.tcpfrp.protocol.heartbeat.Ping;
 import io.intellij.netty.tcpfrp.protocol.heartbeat.Pong;
@@ -45,8 +44,9 @@ public class PongHandler extends SimpleChannelInboundHandler<Pong> {
 
     @Override
     public void channelInactive(@NotNull ChannelHandlerContext ctx) throws Exception {
-        log.warn("disconnected from frp-server,then release all channels and close ctx");
-        DispatchManager.getInstance().releaseAll();
+        log.warn("close frp channel");
         FrpChannel.get(ctx.channel()).close();
+
+        super.channelInactive(ctx);
     }
 }

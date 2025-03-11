@@ -1,7 +1,7 @@
 package io.intellij.netty.tcpfrp.client.handlers.initial;
 
-import io.intellij.netty.tcpfrp.protocol.client.ListeningConfig;
 import io.intellij.netty.tcpfrp.protocol.channel.FrpChannel;
+import io.intellij.netty.tcpfrp.protocol.client.ListeningConfig;
 import io.intellij.netty.tcpfrp.protocol.client.ListeningRequest;
 import io.intellij.netty.tcpfrp.protocol.server.AuthResponse;
 import io.netty.channel.ChannelHandlerContext;
@@ -38,7 +38,7 @@ public class AuthResponseHandler extends SimpleChannelInboundHandler<AuthRespons
             log.info("authenticate success");
             List<Integer> listeningPorts = configMap.values().stream().map(ListeningConfig::getRemotePort).toList();
             log.info("send listening request, ports: {}", listeningPorts);
-            frpChannel.writeAndFlush(ListeningRequest.create(listeningPorts), channelFuture -> {
+            frpChannel.write(ListeningRequest.create(listeningPorts), channelFuture -> {
                         if (channelFuture.isSuccess()) {
                             ChannelPipeline p = ctx.pipeline();
                             p.remove(this);
@@ -55,4 +55,8 @@ public class AuthResponseHandler extends SimpleChannelInboundHandler<AuthRespons
         }
     }
 
+    @Override
+    public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
+        FrpChannel.get(ctx.channel()).flush();
+    }
 }

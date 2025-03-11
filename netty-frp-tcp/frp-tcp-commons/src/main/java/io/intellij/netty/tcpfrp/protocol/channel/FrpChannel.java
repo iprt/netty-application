@@ -17,12 +17,13 @@ import org.jetbrains.annotations.NotNull;
  */
 @Slf4j
 public class FrpChannel {
-    public static final AttributeKey<FrpChannel> FRP_CHANNEL_KEY = AttributeKey.valueOf("frpChannel");
+    static final AttributeKey<FrpChannel> FRP_CHANNEL_KEY = AttributeKey.valueOf("frpChannel");
 
     private final Channel ch;
 
-    public static FrpChannel build(Channel ch) {
-        return new FrpChannel(ch);
+    static void build(Channel ch) {
+        FrpChannel frpChannel = new FrpChannel(ch);
+        ch.attr(FRP_CHANNEL_KEY).set(frpChannel);
     }
 
     private FrpChannel(Channel ch) {
@@ -31,6 +32,21 @@ public class FrpChannel {
 
     public Channel get() {
         return ch;
+    }
+
+    public ChannelFuture write(DispatchPacket dispatchPacket, ChannelFutureListener... listeners) {
+        return this.writeObj(dispatchPacket, listeners);
+    }
+
+    public ChannelFuture write(FrpBasicMsg dispatchPacket, ChannelFutureListener... listeners) {
+        return this.writeObj(dispatchPacket, listeners);
+    }
+
+    public FrpChannel flush() {
+        if (ch.isActive()) {
+            ch.flush();
+        }
+        return this;
     }
 
     public ChannelFuture writeAndFlushEmpty(ChannelFutureListener... listeners) {
@@ -43,6 +59,14 @@ public class FrpChannel {
 
     public ChannelFuture writeAndFlush(FrpBasicMsg basicMsg, ChannelFutureListener... listeners) {
         return this.writeAndFlushObj(basicMsg, listeners);
+    }
+
+    private ChannelFuture writeObj(Object msg, ChannelFutureListener... listeners) {
+        if (ch.isActive()) {
+            return ch.writeAndFlush(msg).addListeners(listeners);
+        }
+        log.error("Channel is not active(or is null), cannot write message");
+        return null;
     }
 
     private ChannelFuture writeAndFlushObj(Object msg, ChannelFutureListener... listeners) {

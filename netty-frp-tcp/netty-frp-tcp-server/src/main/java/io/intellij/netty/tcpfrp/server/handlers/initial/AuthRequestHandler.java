@@ -11,8 +11,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 
-import static io.intellij.netty.tcpfrp.protocol.channel.FrpChannel.FRP_CHANNEL_KEY;
-
 /**
  * AuthRequestHandler
  *
@@ -31,10 +29,10 @@ public class AuthRequestHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        FrpChannel frpChannel = ctx.channel().attr(FRP_CHANNEL_KEY).get();
+        FrpChannel frpChannel = FrpChannel.get(ctx.channel());
         if (msg instanceof AuthRequest authRequest) {
             if (authenticate(authRequest)) {
-                frpChannel.writeAndFlush(AuthResponse.success(),
+                frpChannel.write(AuthResponse.success(),
                         channelFuture -> {
                             if (channelFuture.isSuccess()) {
                                 ChannelPipeline p = ctx.pipeline();
@@ -46,12 +44,17 @@ public class AuthRequestHandler extends ChannelInboundHandlerAdapter {
                             }
                         });
             } else {
-                frpChannel.writeAndFlush(AuthResponse.failure(), ChannelFutureListener.CLOSE);
+                frpChannel.write(AuthResponse.failure(), ChannelFutureListener.CLOSE);
             }
         } else {
             // 第一个消息不是认证消息，关闭连接
-            ctx.close();
+            frpChannel.close();
         }
+    }
+
+    @Override
+    public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
+        FrpChannel.get(ctx.channel()).flush();
     }
 
     private boolean authenticate(@NotNull AuthRequest authRequest) {

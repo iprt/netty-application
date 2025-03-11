@@ -23,10 +23,12 @@ public class DispatchToServiceHandler extends SimpleChannelInboundHandler<Dispat
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, @NotNull DispatchPacket msg) throws Exception {
         // 获取到数据包，e.g. user --- frp-server:3306 的数据包
-        DispatchManager.getInstance().dispatch(msg,
-                Listeners.read(),
-                Listeners.read(FrpChannel.get(ctx.channel()))
-        );
+        DispatchManager.getInstance().dispatch(msg, Listeners.read());
+    }
+
+    @Override
+    public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
+        FrpChannel.get(ctx.channel()).read();
     }
 
     @Override

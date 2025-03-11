@@ -1,12 +1,14 @@
 package io.intellij.netty.tcpfrp.server.handlers.initial;
 
-import io.intellij.netty.tcpfrp.commons.Listeners;
+import io.intellij.netty.tcpfrp.commons.DispatchManager;
 import io.intellij.netty.tcpfrp.protocol.channel.FrpChannel;
 import io.intellij.netty.tcpfrp.protocol.heartbeat.Ping;
 import io.intellij.netty.tcpfrp.protocol.heartbeat.Pong;
+import io.intellij.netty.tcpfrp.server.listening.MultiPortNettyServer;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * PingHandler
@@ -32,7 +34,20 @@ public class PingHandler extends SimpleChannelInboundHandler<Ping> {
     protected void channelRead0(ChannelHandlerContext ctx, Ping ping) throws Exception {
         log.info("HeatBeat PING|{}", ping);
         FrpChannel frpChannel = FrpChannel.get(ctx.channel());
-        frpChannel.writeAndFlush(Pong.create(ping.getName()), Listeners.read(frpChannel));
+        frpChannel.write(Pong.create(ping.getName()));
+    }
+
+    @Override
+    public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
+        FrpChannel.get(ctx.channel()).flush().read();
+    }
+
+    @Override
+    public void channelInactive(@NotNull ChannelHandlerContext ctx) throws Exception {
+        log.warn("与 frp-client 断开连接, 释放所有 userChannel, 关闭监听服务");
+        DispatchManager.getInstance().releaseAll();
+        MultiPortNettyServer.stop(ctx.channel());
+        FrpChannel.get(ctx.channel()).close();
     }
 
 }

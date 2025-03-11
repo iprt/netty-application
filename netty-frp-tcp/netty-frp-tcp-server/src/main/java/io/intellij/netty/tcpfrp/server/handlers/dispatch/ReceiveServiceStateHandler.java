@@ -6,7 +6,6 @@ import io.intellij.netty.tcpfrp.protocol.ConnState;
 import io.intellij.netty.tcpfrp.protocol.channel.FrpChannel;
 import io.intellij.netty.tcpfrp.protocol.client.ServiceState;
 import io.intellij.netty.tcpfrp.protocol.server.UserState;
-import io.intellij.netty.tcpfrp.server.listening.MultiPortNettyServer;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import lombok.extern.slf4j.Slf4j;
@@ -36,7 +35,7 @@ public class ReceiveServiceStateHandler extends SimpleChannelInboundHandler<Serv
             case SUCCESS:
                 // frp-client ---> service 连接成功
                 // 可以获取到 dispatchId
-                frpChannel.writeAndFlush(UserState.ready(connState.getDispatchId()),
+                frpChannel.write(UserState.ready(connState.getDispatchId()),
                         Listeners.read(DispatchManager.getInstance().getChannel(connState.getDispatchId())),
                         Listeners.read(frpChannel)
                 );
@@ -62,11 +61,9 @@ public class ReceiveServiceStateHandler extends SimpleChannelInboundHandler<Serv
     }
 
     @Override
-    public void channelInactive(@NotNull ChannelHandlerContext ctx) throws Exception {
-        log.warn("与 frp-client 断开连接, 释放所有 userChannel, 关闭监听服务");
-        DispatchManager.getInstance().releaseAll();
-        MultiPortNettyServer.stop(ctx.channel());
-        FrpChannel.get(ctx.channel()).close();
+    public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
+        FrpChannel.get(ctx.channel()).flush();
     }
+
 
 }

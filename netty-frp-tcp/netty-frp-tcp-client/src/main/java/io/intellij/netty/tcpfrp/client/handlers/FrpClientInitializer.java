@@ -2,16 +2,13 @@ package io.intellij.netty.tcpfrp.client.handlers;
 
 import io.intellij.netty.tcpfrp.client.handlers.initial.AuthResponseHandler;
 import io.intellij.netty.tcpfrp.config.ClientConfig;
+import io.intellij.netty.tcpfrp.protocol.channel.FrpChannelInitializer;
 import io.intellij.netty.tcpfrp.protocol.codec.decoder.FrpDecoder;
 import io.intellij.netty.tcpfrp.protocol.codec.encoder.FrpEncoder;
-import io.intellij.netty.tcpfrp.protocol.channel.FrpChannel;
-import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
-
-import static io.intellij.netty.tcpfrp.protocol.channel.FrpChannel.FRP_CHANNEL_KEY;
 
 /**
  * FrpClientInitializer
@@ -20,24 +17,21 @@ import static io.intellij.netty.tcpfrp.protocol.channel.FrpChannel.FRP_CHANNEL_K
  * @since 2025-03-05
  */
 @RequiredArgsConstructor
-public class FrpClientInitializer extends ChannelInitializer<SocketChannel> {
+public class FrpClientInitializer extends FrpChannelInitializer {
     private final ClientConfig clientConfig;
 
     @Override
-    protected void initChannel(@NotNull SocketChannel ch) throws Exception {
-        FrpChannel frpChannel = FrpChannel.build(ch);
-        ch.attr(FRP_CHANNEL_KEY).set(frpChannel);
-
-        ChannelPipeline pipeline = ch.pipeline();
+    protected void initChannel0(@NotNull SocketChannel ch) throws Exception {
+        ChannelPipeline p = ch.pipeline();
         if (clientConfig.isEnableSSL()) {
-            pipeline.addLast(clientConfig.getSslContext().newHandler(ch.alloc()));
+            p.addLast(clientConfig.getSslContext().newHandler(ch.alloc()));
         }
 
-        pipeline.addLast(FrpDecoder.clientDecoder())
+        p.addLast(FrpDecoder.clientDecoder())
                 .addLast(FrpEncoder.basicMsgEncoder())
                 .addLast(FrpEncoder.dispatchEncoder());
 
-        pipeline.addLast(new AuthResponseHandler(clientConfig.getListeningConfigMap()));
+        p.addLast(new AuthResponseHandler(clientConfig.getListeningConfigMap()));
 
     }
 

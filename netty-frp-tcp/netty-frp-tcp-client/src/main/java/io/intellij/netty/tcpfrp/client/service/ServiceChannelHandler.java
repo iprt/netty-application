@@ -41,12 +41,18 @@ public class ServiceChannelHandler extends ChannelInboundHandlerAdapter {
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         if (msg instanceof ByteBuf byteBuf) {
             log.debug("接收到服务端的数据 |dispatchId={}|serviceName={}|len={}", dispatchId, serviceName, byteBuf.readableBytes());
-            frpChannel.writeAndFlush(DispatchPacket.create(dispatchId, byteBuf))
-                    .addListeners(Listeners.read(frpChannel), Listeners.read(ctx.channel()));
+            frpChannel.write(DispatchPacket.create(dispatchId, byteBuf))
+                    .addListeners(Listeners.read(frpChannel));
             return;
         }
         log.error("ServiceHandler channelRead error, msg: {}", msg);
         throw new IllegalArgumentException("msg is not ByteBuf");
+    }
+
+    @Override
+    public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
+        ctx.read();
+        frpChannel.flush();
     }
 
     /**

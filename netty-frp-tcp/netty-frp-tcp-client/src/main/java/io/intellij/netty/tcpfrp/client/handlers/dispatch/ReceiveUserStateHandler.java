@@ -24,8 +24,6 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static io.intellij.netty.tcpfrp.protocol.channel.FrpChannel.FRP_CHANNEL_KEY;
-
 /**
  * ReceiveUserStateHandler
  * <p>
@@ -49,7 +47,7 @@ public class ReceiveUserStateHandler extends SimpleChannelInboundHandler<UserSta
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, @NotNull UserState connState) throws Exception {
-        FrpChannel frpChannel = ctx.channel().attr(FRP_CHANNEL_KEY).get();
+        FrpChannel frpChannel = FrpChannel.get(ctx.channel());
 
         ConnState userState = ConnState.getByName(connState.getStateName());
         if (userState == null) {
@@ -124,11 +122,6 @@ public class ReceiveUserStateHandler extends SimpleChannelInboundHandler<UserSta
 
     }
 
-    @Override
-    public void channelInactive(@NotNull ChannelHandlerContext ctx) throws Exception {
-        log.warn("disconnected from frp-server,then release all channels and close ctx");
-        DispatchManager.getInstance().releaseAll();
-        FrpChannel.get(ctx.channel()).close();
-    }
+
 
 }

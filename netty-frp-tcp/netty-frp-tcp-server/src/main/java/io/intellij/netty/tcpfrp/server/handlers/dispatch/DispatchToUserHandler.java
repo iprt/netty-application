@@ -22,21 +22,11 @@ public class DispatchToUserHandler extends SimpleChannelInboundHandler<DispatchP
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, DispatchPacket msg) throws Exception {
         // after UserChannel read0
-        DispatchManager.getInstance().dispatch(msg,
-                Listeners.read(),
-                Listeners.read(FrpChannel.get(ctx.channel()))
-        );
+        DispatchManager.getInstance().dispatch(msg, Listeners.read());
     }
 
     @Override
-    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-        log.warn("channelInactive: dispatch to user handler");
+    public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
+        FrpChannel.get(ctx.channel()).read();
     }
-
-    @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        log.error("ServerDispatchHandler exceptionCaught", cause);
-        ctx.close();
-    }
-
 }

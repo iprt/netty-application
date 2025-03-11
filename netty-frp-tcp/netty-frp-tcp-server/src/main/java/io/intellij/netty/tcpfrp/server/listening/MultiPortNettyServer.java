@@ -12,6 +12,7 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.util.AttributeKey;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 
@@ -24,6 +25,7 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * @author tech@intellij.io
  */
+@RequiredArgsConstructor
 @Slf4j
 public class MultiPortNettyServer {
     private static final AttributeKey<MultiPortNettyServer> MULTI_PORT_NETTY_SERVER_KEY = AttributeKey.valueOf("multiPortNettyServer");
@@ -32,11 +34,6 @@ public class MultiPortNettyServer {
     private final FrpChannel frpChannel;
 
     private final Map<Integer, Channel> SERVER_CHANNEL = new ConcurrentHashMap<>();
-
-    public MultiPortNettyServer(@NotNull List<Integer> ports, Channel frpChannel) {
-        this.frpChannel = FrpChannel.build(frpChannel);
-        this.ports = ports;
-    }
 
     public boolean start() {
         EventLoopGroups container = EventLoopGroups.get();

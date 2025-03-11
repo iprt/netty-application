@@ -13,8 +13,6 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import lombok.extern.slf4j.Slf4j;
 
-import static io.intellij.netty.tcpfrp.protocol.channel.FrpChannel.FRP_CHANNEL_KEY;
-
 /**
  * io.intellij.netty.tcpfrp.client.FrpClient
  *
@@ -42,7 +40,7 @@ public class FrpClient {
             connect.addListener((ChannelFutureListener) channelFuture -> {
                 if (channelFuture.isSuccess()) {
                     log.info("connect to frp-server success|host={} |port={}", serverHost, serverPort);
-                    FrpChannel frpChannel =  channelFuture.channel().attr(FRP_CHANNEL_KEY).get();
+                    FrpChannel frpChannel = FrpChannel.get(channelFuture.channel());
 
                     log.info("send auth request");
                     frpChannel.writeAndFlush(AuthRequest.create(config.getAuthToken()), f -> {

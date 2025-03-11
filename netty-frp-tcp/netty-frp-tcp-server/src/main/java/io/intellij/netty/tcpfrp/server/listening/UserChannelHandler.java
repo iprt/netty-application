@@ -37,11 +37,11 @@ public class UserChannelHandler extends ChannelInboundHandlerAdapter {
 
         log.info("[USER] 用户建立了连接 |dispatchId={}|port={}", dispatchId, this.listeningPort);
 
-        // 通知 frp-client，用户连接成功 但是userChannel不read数据, 在 setAttrThenChannelRead 之后 read
-        frpChannel.writeAndFlush(UserState.accept(dispatchId, this.listeningPort))
-                .addListeners(Listeners.read(frpChannel));
         // 等待frp-client 发送 ServiceConnState(SUCCESS),然后READ
         // AUTO_READ = false
+        frpChannel.writeAndFlush(UserState.accept(dispatchId, this.listeningPort))
+                .addListeners(Listeners.read(frpChannel));
+
     }
 
     /**

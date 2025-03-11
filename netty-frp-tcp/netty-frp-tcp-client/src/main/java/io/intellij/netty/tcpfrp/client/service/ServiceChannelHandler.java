@@ -28,7 +28,7 @@ public class ServiceChannelHandler extends ChannelInboundHandlerAdapter {
      */
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        log.info("建立服务端连接 |dispatchId={}|serviceName={}", dispatchId, serviceName);
+        log.info("[SERVICE] 建立服务端连接 |dispatchId={}|serviceName={}", dispatchId, serviceName);
         DispatchManager.getInstance().addChannel(dispatchId, ctx.channel());
         // BootStrap set AUTO_READ=false
         // 等待frp-server 发送 UserConnState(READY)
@@ -63,7 +63,7 @@ public class ServiceChannelHandler extends ChannelInboundHandlerAdapter {
      */
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-        log.warn("丢失服务端连接 |dispatchId={}|serviceName{}", dispatchId, serviceName);
+        log.warn("[SERVICE] 丢失服务端连接 |dispatchId={}|serviceName{}", dispatchId, serviceName);
         // frp-client -x-> mysql:3306
         frpChannel.writeAndFlush(ServiceState.broken(dispatchId),
                 f -> {

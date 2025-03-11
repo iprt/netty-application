@@ -15,7 +15,6 @@ import io.intellij.netty.tcpfrp.protocol.server.ListeningResponse;
 import io.intellij.netty.tcpfrp.protocol.server.UserState;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandler;
 import io.netty.handler.codec.ReplayingDecoder;
 import lombok.extern.slf4j.Slf4j;
 
@@ -44,21 +43,12 @@ final class FrpDecoder extends ReplayingDecoder<FrpBasicMsg.State> {
     private FrpMsgType type;
     private int length;
 
-
     FrpDecoder(MODE mode) {
         super(READ_TYPE);
         if (mode == null) {
             throw new IllegalArgumentException("mode is null");
         }
         this.mode = mode;
-    }
-
-    private <T> T jsonToObj(String json, Class<T> clazz, String errorMsg) {
-        T data = JSONObject.parseObject(json, clazz);
-        if (data == null) {
-            throw new RuntimeException(errorMsg);
-        }
-        return data;
     }
 
     @Override
@@ -148,8 +138,12 @@ final class FrpDecoder extends ReplayingDecoder<FrpBasicMsg.State> {
         ctx.close();
     }
 
-    static ChannelInboundHandler serverDecoder() {
-        return new FrpDecoder(MODE.SERVER);
-    }
 
+    private <T> T jsonToObj(String json, Class<T> clazz, String errorMsg) {
+        T data = JSONObject.parseObject(json, clazz);
+        if (data == null) {
+            throw new RuntimeException(errorMsg);
+        }
+        return data;
+    }
 }

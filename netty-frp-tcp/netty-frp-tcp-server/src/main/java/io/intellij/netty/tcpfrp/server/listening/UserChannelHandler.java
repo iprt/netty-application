@@ -35,7 +35,7 @@ public class UserChannelHandler extends ChannelInboundHandlerAdapter {
 
         DispatchManager.getInstance().addChannel(dispatchId, ctx.channel());
 
-        log.info("用户建立了连接 |dispatchId={}|port={}", dispatchId, this.listeningPort);
+        log.info("[USER] 用户建立了连接 |dispatchId={}|port={}", dispatchId, this.listeningPort);
 
         // 通知 frp-client，用户连接成功 但是userChannel不read数据, 在 setAttrThenChannelRead 之后 read
         frpChannel.writeAndFlush(UserState.accept(dispatchId, this.listeningPort))
@@ -78,7 +78,7 @@ public class UserChannelHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         String dispatchId = DispatchIdUtils.getDispatchId(ctx.channel());
-        log.warn("用户断开了连接 |dispatchId={}", dispatchId);
+        log.warn("[USER] 用户断开了连接 |dispatchId={}", dispatchId);
         frpChannel.writeAndFlush(UserState.broken(dispatchId), Listeners.read(frpChannel));
     }
 

@@ -20,6 +20,7 @@ public class ByteCountingHandler extends ChannelInboundHandlerAdapter {
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         // must
         ctx.read();
+        super.channelActive(ctx);
     }
 
     @Override

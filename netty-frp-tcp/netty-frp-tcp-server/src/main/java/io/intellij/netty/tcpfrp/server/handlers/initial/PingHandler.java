@@ -1,6 +1,6 @@
 package io.intellij.netty.tcpfrp.server.handlers.initial;
 
-import io.intellij.netty.tcpfrp.commons.DispatchManager;
+import io.intellij.netty.tcpfrp.protocol.channel.DispatchManager;
 import io.intellij.netty.tcpfrp.protocol.channel.FrpChannel;
 import io.intellij.netty.tcpfrp.protocol.heartbeat.Ping;
 import io.intellij.netty.tcpfrp.protocol.heartbeat.Pong;
@@ -26,6 +26,7 @@ public class PingHandler extends SimpleChannelInboundHandler<Ping> {
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         log.info("[channelActive]: Ping Handler");
+        DispatchManager.build(ctx.channel());
         FrpChannel.get(ctx.channel()).read();
     }
 
@@ -44,11 +45,12 @@ public class PingHandler extends SimpleChannelInboundHandler<Ping> {
     @Override
     public void channelInactive(@NotNull ChannelHandlerContext ctx) throws Exception {
         log.warn("release dispatch channel");
-        DispatchManager.getInstance().releaseAll();
+        FrpChannel frpChannel = FrpChannel.get(ctx.channel());
+        DispatchManager.get(frpChannel.get()).releaseAll();
         super.channelInactive(ctx);
 
         log.warn("close frp channel");
-        FrpChannel.get(ctx.channel()).close();
+        frpChannel.close();
     }
 
 }

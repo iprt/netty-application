@@ -1,11 +1,12 @@
 package io.intellij.netty.tcpfrp.server.handlers.dispatch;
 
-import io.intellij.netty.tcpfrp.commons.DispatchManager;
 import io.intellij.netty.tcpfrp.commons.Listeners;
 import io.intellij.netty.tcpfrp.protocol.ConnState;
+import io.intellij.netty.tcpfrp.protocol.channel.DispatchManager;
 import io.intellij.netty.tcpfrp.protocol.channel.FrpChannel;
 import io.intellij.netty.tcpfrp.protocol.client.ServiceState;
 import io.intellij.netty.tcpfrp.protocol.server.UserState;
+import io.intellij.netty.tcpfrp.server.listening.MultiPortNettyServer;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import lombok.extern.slf4j.Slf4j;
@@ -36,7 +37,7 @@ public class ReceiveServiceStateHandler extends SimpleChannelInboundHandler<Serv
                 // frp-client ---> service 连接成功
                 // 可以获取到 dispatchId
                 frpChannel.write(UserState.ready(connState.getDispatchId()),
-                        Listeners.read(DispatchManager.getInstance().getChannel(connState.getDispatchId())),
+                        Listeners.read(DispatchManager.get(frpChannel.get()).getChannel(connState.getDispatchId())),
                         Listeners.read(frpChannel)
                 );
 
@@ -44,13 +45,13 @@ public class ReceiveServiceStateHandler extends SimpleChannelInboundHandler<Serv
             case FAILURE:
                 // frp-client ---> service 连接断开
                 frpChannel.writeAndFlushEmpty()
-                        .addListeners(Listeners.releaseDispatchChannel(connState.getDispatchId(), FAILURE.getDesc()),
+                        .addListeners(Listeners.releaseDispatchChannel(DispatchManager.get(frpChannel.get()), connState.getDispatchId(), FAILURE.getDesc()),
                                 Listeners.read(frpChannel));
                 break;
             case BROKEN:
                 // service ---> frp-client 连接断开
                 frpChannel.writeAndFlushEmpty()
-                        .addListeners(Listeners.releaseDispatchChannel(connState.getDispatchId(), BROKEN.getDesc()),
+                        .addListeners(Listeners.releaseDispatchChannel(DispatchManager.get(frpChannel.get()), connState.getDispatchId(), BROKEN.getDesc()),
                                 Listeners.read(frpChannel));
                 break;
             default:
@@ -65,5 +66,9 @@ public class ReceiveServiceStateHandler extends SimpleChannelInboundHandler<Serv
         FrpChannel.get(ctx.channel()).flush();
     }
 
-
+    @Override
+    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+        log.warn("stop multi port server");
+        MultiPortNettyServer.stopIn(ctx.channel());
+    }
 }

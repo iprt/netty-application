@@ -1,7 +1,7 @@
 package io.intellij.netty.tcpfrp.server.handlers.dispatch;
 
-import io.intellij.netty.tcpfrp.commons.DispatchManager;
 import io.intellij.netty.tcpfrp.commons.Listeners;
+import io.intellij.netty.tcpfrp.protocol.channel.DispatchManager;
 import io.intellij.netty.tcpfrp.protocol.channel.DispatchPacket;
 import io.intellij.netty.tcpfrp.protocol.channel.FrpChannel;
 import io.netty.channel.ChannelHandlerContext;
@@ -22,7 +22,7 @@ public class DispatchToUserHandler extends SimpleChannelInboundHandler<DispatchP
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, DispatchPacket msg) throws Exception {
         // after UserChannel read0
-        DispatchManager.getInstance().dispatch(msg, Listeners.read());
+        DispatchManager.get(ctx.channel()).dispatch(msg, Listeners.read());
     }
 
     @Override

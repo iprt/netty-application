@@ -1,7 +1,7 @@
 package io.intellij.netty.tcpfrp.client.service;
 
-import io.intellij.netty.tcpfrp.commons.DispatchManager;
 import io.intellij.netty.tcpfrp.commons.Listeners;
+import io.intellij.netty.tcpfrp.protocol.channel.DispatchManager;
 import io.intellij.netty.tcpfrp.protocol.channel.DispatchPacket;
 import io.intellij.netty.tcpfrp.protocol.channel.FrpChannel;
 import io.intellij.netty.tcpfrp.protocol.client.ServiceState;
@@ -22,6 +22,7 @@ public class ServiceChannelHandler extends ChannelInboundHandlerAdapter {
     private final String serviceName;
     private final String dispatchId;
     private final FrpChannel frpChannel;
+    private final DispatchManager dispatchManager;
 
     /**
      * 服务连接成功
@@ -29,7 +30,7 @@ public class ServiceChannelHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         log.info("[SERVICE] 建立服务端连接 |dispatchId={}|serviceName={}", dispatchId, serviceName);
-        DispatchManager.getInstance().addChannel(dispatchId, ctx.channel());
+        dispatchManager.addChannel(dispatchId, ctx.channel());
         // BootStrap set AUTO_READ=false
         // 等待frp-server 发送 UserConnState(READY)
     }
@@ -65,13 +66,7 @@ public class ServiceChannelHandler extends ChannelInboundHandlerAdapter {
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         log.warn("[SERVICE] 丢失服务端连接 |dispatchId={}|serviceName{}", dispatchId, serviceName);
         // frp-client -x-> mysql:3306
-        frpChannel.writeAndFlush(ServiceState.broken(dispatchId),
-                f -> {
-                    if (f.isSuccess()) {
-                        frpChannel.read();
-                    }
-                }
-        );
+        frpChannel.writeAndFlush(ServiceState.broken(dispatchId), Listeners.read(frpChannel));
         ctx.close();
     }
 

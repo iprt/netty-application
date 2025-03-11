@@ -1,10 +1,9 @@
-package io.intellij.netty.tcpfrp.commons;
+package io.intellij.netty.tcpfrp.protocol.channel;
 
-import io.intellij.netty.tcpfrp.protocol.channel.DispatchPacket;
 import io.intellij.netty.utils.ChannelUtils;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFutureListener;
-import lombok.Getter;
+import io.netty.util.AttributeKey;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Map;
@@ -19,8 +18,21 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 @Slf4j
 public class DispatchManager {
-    @Getter
-    private static final DispatchManager instance = new DispatchManager();
+
+    private static final AttributeKey<DispatchManager> DISPATCH_MANAGER_KEY = AttributeKey.valueOf("dispatch_manager");
+
+    public static void build(Channel channel) {
+        channel.attr(DISPATCH_MANAGER_KEY).set(new DispatchManager());
+    }
+
+    public static DispatchManager get(Channel channel) {
+        DispatchManager dispatchManager = channel.attr(DISPATCH_MANAGER_KEY).get();
+        if (dispatchManager == null) {
+            throw new RuntimeException("DispatchManager is not initialized");
+        }
+        return dispatchManager;
+    }
+
     /**
      * dispatch id -> channel
      */
@@ -51,7 +63,7 @@ public class DispatchManager {
         if (!enableDispatch.get()) {
             throw new RuntimeException("DispatchManager is disabled");
         }
-        log.warn("release channel|dispatchId={}", dispatchId);
+        log.warn("[Release] release channel|dispatchId={}", dispatchId);
         ChannelUtils.close(idToChannelMap.remove(dispatchId));
     }
 
@@ -59,13 +71,13 @@ public class DispatchManager {
         if (!enableDispatch.get()) {
             throw new RuntimeException("DispatchManager is disabled");
         }
-        log.warn("release channel|dispatchId={}|reason={}", dispatchId, reason);
+        log.warn("[Release] release channel|dispatchId={}|reason={}", dispatchId, reason);
         ChannelUtils.close(idToChannelMap.remove(dispatchId));
     }
 
     public void releaseAll() {
         enableDispatch.set(false);
-        log.warn("release all channels");
+        log.warn("[Release] release all dispatch channels");
         idToChannelMap.values().forEach(ChannelUtils::close);
         idToChannelMap.clear();
     }

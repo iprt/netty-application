@@ -1,8 +1,8 @@
 package io.intellij.netty.tcpfrp.server.listening;
 
-import io.intellij.netty.tcpfrp.commons.DispatchManager;
 import io.intellij.netty.tcpfrp.commons.Listeners;
 import io.intellij.netty.tcpfrp.protocol.channel.DispatchIdUtils;
+import io.intellij.netty.tcpfrp.protocol.channel.DispatchManager;
 import io.intellij.netty.tcpfrp.protocol.channel.DispatchPacket;
 import io.intellij.netty.tcpfrp.protocol.channel.FrpChannel;
 import io.intellij.netty.tcpfrp.protocol.server.UserState;
@@ -33,7 +33,7 @@ public class UserChannelHandler extends ChannelInboundHandlerAdapter {
         // e.g. user ---> frp-server:3306
         final String dispatchId = DispatchIdUtils.getDispatchId(ctx.channel());
 
-        DispatchManager.getInstance().addChannel(dispatchId, ctx.channel());
+        DispatchManager.get(frpChannel.get()).addChannel(dispatchId, ctx.channel());
 
         log.info("[USER] 用户建立了连接 |dispatchId={}|port={}", dispatchId, this.listeningPort);
 

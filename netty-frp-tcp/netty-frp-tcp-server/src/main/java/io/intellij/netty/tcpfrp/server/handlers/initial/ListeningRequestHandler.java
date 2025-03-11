@@ -1,6 +1,7 @@
 package io.intellij.netty.tcpfrp.server.handlers.initial;
 
 import io.intellij.netty.tcpfrp.protocol.FrpBasicMsg;
+import io.intellij.netty.tcpfrp.protocol.channel.DispatchManager;
 import io.intellij.netty.tcpfrp.protocol.channel.FrpChannel;
 import io.intellij.netty.tcpfrp.protocol.client.ListeningRequest;
 import io.intellij.netty.tcpfrp.protocol.server.ListeningResponse;
@@ -53,13 +54,17 @@ public class ListeningRequestHandler extends SimpleChannelInboundHandler<Listeni
                                 // remote this
                                 ChannelPipeline p = ctx.pipeline();
                                 p.remove(this);
+                                log.info("init MultiPortNettyServer");
+                                MultiPortNettyServer.buildIn(frpChannel.get(), server);
 
-                                MultiPortNettyServer.set(ctx.channel(), server);
+                                log.info("init DispatchManager");
+                                DispatchManager.build(frpChannel.get());
 
                                 p.addLast(new PingHandler())
                                         .addLast(new ReceiveServiceStateHandler())
                                         .addLast(new DispatchToUserHandler());
 
+                                log.info("ListeningRequestHandler channelRead0|fireChannelActive");
                                 p.fireChannelActive();
                             } else {
                                 frpChannel.close();
@@ -84,9 +89,4 @@ public class ListeningRequestHandler extends SimpleChannelInboundHandler<Listeni
         ctx.flush();
     }
 
-    @Override
-    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-        log.warn("stop multi port server");
-        MultiPortNettyServer.stop(ctx.channel());
-    }
 }

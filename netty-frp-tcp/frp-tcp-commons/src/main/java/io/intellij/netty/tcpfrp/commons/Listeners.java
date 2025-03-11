@@ -1,5 +1,6 @@
 package io.intellij.netty.tcpfrp.commons;
 
+import io.intellij.netty.tcpfrp.protocol.channel.DispatchManager;
 import io.intellij.netty.tcpfrp.protocol.channel.FrpChannel;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFutureListener;
@@ -59,14 +60,14 @@ public class Listeners {
         };
     }
 
-    public static @NotNull ChannelFutureListener releaseDispatchChannel(String dispatchId) {
-        return releaseDispatchChannel(dispatchId, "");
+    public static @NotNull ChannelFutureListener releaseDispatchChannel(DispatchManager dispatchManager, String dispatchId) {
+        return releaseDispatchChannel(dispatchManager, dispatchId, "");
     }
 
-    public static @NotNull ChannelFutureListener releaseDispatchChannel(String dispatchId, String failureMessage) {
+    public static @NotNull ChannelFutureListener releaseDispatchChannel(DispatchManager dispatchManager, String dispatchId, String failureMessage) {
         return f -> {
             if (f.isSuccess()) {
-                DispatchManager.getInstance().release(dispatchId, failureMessage);
+                dispatchManager.release(dispatchId, failureMessage);
             } else {
                 log.error("release failure: {}", failureMessage, f.cause());
             }

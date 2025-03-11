@@ -1,10 +1,14 @@
 package io.intellij.netty.tcpfrp.client.handlers.initial;
 
+import io.intellij.netty.tcpfrp.client.FrpClient;
+import io.intellij.netty.tcpfrp.protocol.channel.DispatchManager;
 import io.intellij.netty.tcpfrp.protocol.channel.FrpChannel;
 import io.intellij.netty.tcpfrp.protocol.heartbeat.Ping;
 import io.intellij.netty.tcpfrp.protocol.heartbeat.Pong;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.util.AttributeKey;
+import io.netty.util.concurrent.ScheduledFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 
@@ -18,6 +22,7 @@ import java.util.concurrent.TimeUnit;
  */
 @Slf4j
 public class PongHandler extends SimpleChannelInboundHandler<Pong> {
+    private static final AttributeKey<ScheduledFuture<?>> PING_KEY = AttributeKey.valueOf("ping");
 
     /**
      * Triggered from {@link ListeningResponseHandler}
@@ -25,12 +30,15 @@ public class PongHandler extends SimpleChannelInboundHandler<Pong> {
     @Override
     public void channelActive(@NotNull ChannelHandlerContext ctx) throws Exception {
         FrpChannel frpChannel = FrpChannel.get(ctx.channel());
+        DispatchManager.build(ctx.channel());
 
-        ctx.executor().scheduleAtFixedRate(() -> frpChannel.writeAndFlush(Ping.create("frp-client")),
-                1, 5, TimeUnit.SECONDS);
+        // 5s ping
+        ctx.channel().attr(PING_KEY).set(
+                ctx.executor().scheduleAtFixedRate(() -> frpChannel.writeAndFlush(Ping.create("frp-client")),
+                        1, 5, TimeUnit.SECONDS)
+        );
 
         log.info("[channelActive]: Pong Handler");
-
         // must but just once
         frpChannel.read();
     }
@@ -44,9 +52,21 @@ public class PongHandler extends SimpleChannelInboundHandler<Pong> {
 
     @Override
     public void channelInactive(@NotNull ChannelHandlerContext ctx) throws Exception {
-        log.warn("close frp channel");
-        FrpChannel.get(ctx.channel()).close();
+        FrpClient frpClient = FrpClient.get(ctx.channel());
+
+        log.warn("stop scheduled ping ...");
+        ScheduledFuture<?> scheduledFuture = ctx.channel().attr(PING_KEY).get();
+        scheduledFuture.cancel(true);
+
+        if (frpClient.isReconnect()) {
+            log.warn("frp client is reconnect");
+            ctx.executor().execute(frpClient::start);
+        } else {
+            log.warn("frp client is not reconnect,stop frp client");
+            frpClient.stop();
+        }
 
         super.channelInactive(ctx);
     }
+
 }

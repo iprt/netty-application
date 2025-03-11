@@ -81,11 +81,11 @@ public class MultiPortNettyServer {
         log.warn("Multi Port Server Stop End   ...");
     }
 
-    public static void set(@NotNull Channel ch, @NotNull MultiPortNettyServer server) {
+    public static void buildIn(@NotNull Channel ch, @NotNull MultiPortNettyServer server) {
         ch.attr(MULTI_PORT_NETTY_SERVER_KEY).set(server);
     }
 
-    public static void stop(@NotNull Channel ch) {
+    public static void stopIn(@NotNull Channel ch) {
         MultiPortNettyServer server = ch.attr(MULTI_PORT_NETTY_SERVER_KEY).get();
         if (server != null) {
             server.stop();

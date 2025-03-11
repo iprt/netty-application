@@ -7,6 +7,7 @@ import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelOption;
+import io.netty.channel.EventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import lombok.extern.slf4j.Slf4j;
 
@@ -18,15 +19,21 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 final class FrpServer {
-    static void startServer(ServerConfig config) {
-        EventLoopGroups container = EventLoopGroups.get();
-        try {
-            ServerBootstrap b = new ServerBootstrap();
-            b.group(container.getBossGroup(), container.getWorkerGroup())
-                    .channel(NioServerSocketChannel.class)
-                    .childOption(ChannelOption.SO_KEEPALIVE, true)
-                    .childHandler(new FrpServerInitializer(config));
+    private final ServerBootstrap b = new ServerBootstrap();
+    private final EventLoopGroup boss = EventLoopGroups.get().getBossGroup();
+    private final EventLoopGroup worker = EventLoopGroups.get().getWorkerGroup();
+    private final ServerConfig config;
 
+    FrpServer(ServerConfig config) {
+        this.config = config;
+        b.group(boss, worker)
+                .channel(NioServerSocketChannel.class)
+                .childOption(ChannelOption.SO_KEEPALIVE, true)
+                .childHandler(new FrpServerInitializer(config));
+    }
+
+    void start() {
+        try {
             ChannelFuture f = b.bind(config.getPort()).sync();
             f.addListener((ChannelFutureListener) cf -> {
                 if (cf.isSuccess()) {
@@ -39,8 +46,13 @@ final class FrpServer {
         } catch (InterruptedException e) {
             log.error("frp server start failed", e);
         } finally {
-            container.getBossGroup().shutdownGracefully();
-            container.getWorkerGroup().shutdownGracefully();
+            boss.shutdownGracefully();
+            worker.shutdownGracefully();
         }
     }
+
+    static void start(ServerConfig config) {
+        new FrpServer(config).start();
+    }
+
 }

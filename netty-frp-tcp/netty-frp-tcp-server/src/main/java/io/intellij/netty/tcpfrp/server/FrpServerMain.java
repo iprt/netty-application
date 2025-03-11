@@ -13,7 +13,7 @@ public class FrpServerMain {
 
     public static void main(String[] args) {
         loadConfig(System.getProperty(CONFIG_PATH_PROPERTY, DEF_SERVER_CONFIG))
-                .then(FrpServer::startServer);
+                .then(FrpServer::start);
     }
 
 }

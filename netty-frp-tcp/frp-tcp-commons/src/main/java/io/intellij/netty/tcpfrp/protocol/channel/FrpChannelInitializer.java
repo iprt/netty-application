@@ -4,8 +4,6 @@ import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.SocketChannel;
 import org.jetbrains.annotations.NotNull;
 
-import static io.intellij.netty.tcpfrp.protocol.channel.FrpChannel.build;
-
 /**
  * FrpChannelInitializer
  *
@@ -16,7 +14,7 @@ public abstract class FrpChannelInitializer extends ChannelInitializer<SocketCha
 
     @Override
     protected void initChannel(@NotNull SocketChannel ch) throws Exception {
-        build(ch);
+        FrpChannel.build(ch);
         ch.config().setAutoRead(false);
         ch.pipeline().addLast(new ByteCountingHandler());
         this.initChannel0(ch);

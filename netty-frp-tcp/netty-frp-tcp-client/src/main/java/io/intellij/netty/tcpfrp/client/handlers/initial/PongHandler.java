@@ -1,6 +1,5 @@
 package io.intellij.netty.tcpfrp.client.handlers.initial;
 
-import io.intellij.netty.tcpfrp.client.FrpClient;
 import io.intellij.netty.tcpfrp.protocol.channel.DispatchManager;
 import io.intellij.netty.tcpfrp.protocol.channel.FrpChannel;
 import io.intellij.netty.tcpfrp.protocol.heartbeat.Ping;
@@ -52,19 +51,11 @@ public class PongHandler extends SimpleChannelInboundHandler<Pong> {
 
     @Override
     public void channelInactive(@NotNull ChannelHandlerContext ctx) throws Exception {
-        FrpClient frpClient = FrpClient.get(ctx.channel());
-
         log.warn("stop scheduled ping ...");
         ScheduledFuture<?> scheduledFuture = ctx.channel().attr(PING_KEY).get();
         scheduledFuture.cancel(true);
 
-        if (frpClient.isReconnect()) {
-            log.warn("frp client is reconnect");
-            ctx.executor().execute(frpClient::start);
-        } else {
-            log.warn("frp client is not reconnect,stop frp client");
-            frpClient.stop();
-        }
+        FrpChannel.get(ctx.channel()).close();
 
         super.channelInactive(ctx);
     }

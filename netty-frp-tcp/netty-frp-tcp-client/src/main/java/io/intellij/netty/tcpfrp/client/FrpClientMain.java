@@ -13,7 +13,7 @@ public class FrpClientMain {
 
     public static void main(String[] args) {
         loadConfig(System.getProperty(CONFIG_PATH_PROPERTY, DEF_CLIENT_CONFIG))
-                .then(FrpClient::start);
+                .then(FrpClient::startReconnect);
     }
 
 }

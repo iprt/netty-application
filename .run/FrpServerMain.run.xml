@@ -1,0 +1,15 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="FrpServerMain" type="Application" factoryName="Application" nameIsGenerated="true">
+    <option name="MAIN_CLASS_NAME" value="io.intellij.netty.tcpfrp.server.FrpServerMain" />
+    <module name="netty-application.netty-frp-tcp.netty-frp-tcp-server.main" />
+    <extension name="coverage">
+      <pattern>
+        <option name="PATTERN" value="io.intellij.netty.tcpfrp.server.*" />
+        <option name="ENABLED" value="true" />
+      </pattern>
+    </extension>
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

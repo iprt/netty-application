@@ -51,9 +51,6 @@ public class FrpClient {
                 log.info("[CONNECT] connect to frp-server success|host={} |port={}", serverHost, serverPort);
                 Channel ch = future.channel();
                 FrpChannel frpChannel = FrpChannel.get(ch);
-
-                log.info("init frp client in channel");
-
                 log.info("Send Auth Request");
                 frpChannel.writeAndFlush(AuthRequest.create(config.getAuthToken()), f -> {
                     if (f.isSuccess()) {

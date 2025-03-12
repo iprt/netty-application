@@ -21,11 +21,11 @@ public class DispatchManager {
 
     private static final AttributeKey<DispatchManager> DISPATCH_MANAGER_KEY = AttributeKey.valueOf("dispatch_manager");
 
-    public static void build(Channel channel) {
+    public static void buildIn(Channel channel) {
         channel.attr(DISPATCH_MANAGER_KEY).set(new DispatchManager());
     }
 
-    public static DispatchManager get(Channel channel) {
+    public static DispatchManager getBy(Channel channel) {
         DispatchManager dispatchManager = channel.attr(DISPATCH_MANAGER_KEY).get();
         if (dispatchManager == null) {
             throw new RuntimeException("DispatchManager is not initialized");

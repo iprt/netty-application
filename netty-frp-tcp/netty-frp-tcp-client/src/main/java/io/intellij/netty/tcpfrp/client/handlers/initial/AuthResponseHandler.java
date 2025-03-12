@@ -27,7 +27,7 @@ public class AuthResponseHandler extends SimpleChannelInboundHandler<AuthRespons
 
     @Override
     protected void channelRead0(@NotNull ChannelHandlerContext ctx, @NotNull AuthResponse authResponse) throws Exception {
-        FrpChannel frpChannel = FrpChannel.get(ctx.channel());
+        FrpChannel frpChannel = FrpChannel.getBy(ctx.channel());
         if (authResponse.isSuccess()) {
             log.info("authenticate success");
             List<Integer> listeningPorts = configMap.values().stream().map(ListeningConfig::getRemotePort).toList();
@@ -51,6 +51,6 @@ public class AuthResponseHandler extends SimpleChannelInboundHandler<AuthRespons
 
     @Override
     public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
-        FrpChannel.get(ctx.channel()).flush();
+        FrpChannel.getBy(ctx.channel()).flush();
     }
 }

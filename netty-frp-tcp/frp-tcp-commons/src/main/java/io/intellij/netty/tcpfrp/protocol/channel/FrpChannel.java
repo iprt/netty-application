@@ -21,7 +21,7 @@ public class FrpChannel {
 
     private final Channel ch;
 
-    static void build(Channel ch) {
+    static void buildIn(Channel ch) {
         FrpChannel frpChannel = new FrpChannel(ch);
         ch.attr(FRP_CHANNEL_KEY).set(frpChannel);
     }
@@ -30,7 +30,7 @@ public class FrpChannel {
         this.ch = ch;
     }
 
-    public Channel get() {
+    public Channel getBy() {
         return ch;
     }
 
@@ -91,7 +91,7 @@ public class FrpChannel {
         }
     }
 
-    public static FrpChannel get(@NotNull Channel ch) {
+    public static FrpChannel getBy(@NotNull Channel ch) {
         return ch.attr(FRP_CHANNEL_KEY).get();
     }
 

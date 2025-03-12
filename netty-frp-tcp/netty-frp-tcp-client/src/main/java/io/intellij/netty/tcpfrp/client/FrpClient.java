@@ -26,9 +26,8 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class FrpClient {
     private final Bootstrap b = new Bootstrap();
-    private final EventLoopGroup eventLoopGroup = EventLoopGroups.get().getWorkerGroup();
+    private final EventLoopGroup eventLoopGroup = EventLoopGroups.get().getWorkerGroup(2);
     private final ClientConfig config;
-
     @Getter
     private final boolean reconnect;
 
@@ -41,7 +40,11 @@ public class FrpClient {
                 .handler(new FrpClientInitializer(config));
     }
 
-    void start(int count) {
+    void start() {
+        doStart(0);
+    }
+
+    private void doStart(int count) {
         String serverHost = config.getServerHost();
         int serverPort = config.getServerPort();
         ChannelFuture connectFuture = b.connect(serverHost, serverPort);
@@ -50,7 +53,7 @@ public class FrpClient {
             if (future.isSuccess()) {
                 log.info("[CONNECT] connect to frp-server success|host={} |port={}", serverHost, serverPort);
                 Channel ch = future.channel();
-                FrpChannel frpChannel = FrpChannel.get(ch);
+                FrpChannel frpChannel = FrpChannel.getBy(ch);
                 log.info("Send Auth Request");
                 frpChannel.writeAndFlush(AuthRequest.create(config.getAuthToken()), f -> {
                     if (f.isSuccess()) {
@@ -63,13 +66,13 @@ public class FrpClient {
                 if (reconnect) {
                     // detect channel close then restart
                     closeFuture.addListener((ChannelFutureListener) detectFuture -> {
-                        eventLoopGroup.execute(() -> this.start(0));
+                        eventLoopGroup.execute(() -> this.doStart(0));
                     });
                 }
             } else if (reconnect) {
                 eventLoopGroup.schedule(() -> {
                     log.warn("[RECONNECT] reconnect to frp-server <{}:{}> | count={}", serverHost, serverPort, count);
-                    this.start(count + 1);
+                    this.doStart(count + 1);
                 }, 3, TimeUnit.SECONDS);
             } else {
                 log.error("Connect to frp-server <{}:{}> failed.", serverHost, serverPort);
@@ -81,7 +84,7 @@ public class FrpClient {
         ChannelFuture closeFuture = connectFuture.channel().closeFuture();
         try {
             closeFuture.sync();
-            log.warn("[RECONNECT] lost connection to frp-server | count={}", count);
+            log.error("[RECONNECT] lost connection to frp-server | count={}", count);
         } catch (InterruptedException e) {
             log.error("closeFuture.sync()|errorMsg={}", e.getMessage());
         } finally {
@@ -91,16 +94,12 @@ public class FrpClient {
         }
     }
 
-    void start() {
-        start(0);
-    }
-
     void stop() {
         log.warn("eventLoopGroup.shutdownGracefully()...");
         eventLoopGroup.shutdownGracefully();
     }
 
-    static void start(ClientConfig config) {
+    static void doStart(ClientConfig config) {
         new FrpClient(config, false).start();
     }
 

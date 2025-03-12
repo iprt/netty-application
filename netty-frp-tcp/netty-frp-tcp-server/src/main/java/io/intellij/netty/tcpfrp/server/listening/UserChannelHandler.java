@@ -33,7 +33,7 @@ public class UserChannelHandler extends ChannelInboundHandlerAdapter {
         // e.g. user ---> frp-server:3306
         final String dispatchId = DispatchIdUtils.getDispatchId(ctx.channel());
 
-        DispatchManager.get(frpChannel.get()).addChannel(dispatchId, ctx.channel());
+        DispatchManager.getBy(frpChannel.getBy()).addChannel(dispatchId, ctx.channel());
 
         log.info("[USER] 用户建立了连接 |dispatchId={}|port={}", dispatchId, this.listeningPort);
 

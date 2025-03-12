@@ -26,27 +26,27 @@ public class PingHandler extends SimpleChannelInboundHandler<Ping> {
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         log.info("[channelActive]: Ping Handler");
-        DispatchManager.build(ctx.channel());
-        FrpChannel.get(ctx.channel()).read();
+        DispatchManager.buildIn(ctx.channel());
+        FrpChannel.getBy(ctx.channel()).read();
     }
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, Ping ping) throws Exception {
         log.info("HeatBeat PING|{}", ping);
-        FrpChannel frpChannel = FrpChannel.get(ctx.channel());
+        FrpChannel frpChannel = FrpChannel.getBy(ctx.channel());
         frpChannel.write(Pong.create(ping.getName()));
     }
 
     @Override
     public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
-        FrpChannel.get(ctx.channel()).flush().read();
+        FrpChannel.getBy(ctx.channel()).flush().read();
     }
 
     @Override
     public void channelInactive(@NotNull ChannelHandlerContext ctx) throws Exception {
         log.warn("release dispatch channel");
-        FrpChannel frpChannel = FrpChannel.get(ctx.channel());
-        DispatchManager.get(frpChannel.get()).releaseAll();
+        FrpChannel frpChannel = FrpChannel.getBy(ctx.channel());
+        DispatchManager.getBy(frpChannel.getBy()).releaseAll();
         super.channelInactive(ctx);
 
         log.warn("close frp channel");

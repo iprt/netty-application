@@ -28,8 +28,8 @@ public class PongHandler extends SimpleChannelInboundHandler<Pong> {
      */
     @Override
     public void channelActive(@NotNull ChannelHandlerContext ctx) throws Exception {
-        FrpChannel frpChannel = FrpChannel.get(ctx.channel());
-        DispatchManager.build(ctx.channel());
+        FrpChannel frpChannel = FrpChannel.getBy(ctx.channel());
+        DispatchManager.buildIn(ctx.channel());
 
         // 5s ping
         ctx.channel().attr(PING_KEY).set(
@@ -45,7 +45,7 @@ public class PongHandler extends SimpleChannelInboundHandler<Pong> {
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, Pong msg) throws Exception {
         log.info("HeatBeat PONG|{}", msg);
-        FrpChannel.get(ctx.channel()).read();
+        FrpChannel.getBy(ctx.channel()).read();
     }
 
 
@@ -55,7 +55,7 @@ public class PongHandler extends SimpleChannelInboundHandler<Pong> {
         ScheduledFuture<?> scheduledFuture = ctx.channel().attr(PING_KEY).get();
         scheduledFuture.cancel(true);
 
-        FrpChannel.get(ctx.channel()).close();
+        FrpChannel.getBy(ctx.channel()).close();
 
         super.channelInactive(ctx);
     }

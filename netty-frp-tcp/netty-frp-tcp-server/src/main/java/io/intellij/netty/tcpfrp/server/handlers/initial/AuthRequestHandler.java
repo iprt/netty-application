@@ -24,7 +24,7 @@ public class AuthRequestHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        FrpChannel frpChannel = FrpChannel.get(ctx.channel());
+        FrpChannel frpChannel = FrpChannel.getBy(ctx.channel());
         if (msg instanceof AuthRequest authRequest) {
             if (authenticate(authRequest)) {
                 frpChannel.write(AuthResponse.success(),
@@ -49,7 +49,7 @@ public class AuthRequestHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
-        FrpChannel.get(ctx.channel()).flush();
+        FrpChannel.getBy(ctx.channel()).flush();
     }
 
     private boolean authenticate(@NotNull AuthRequest authRequest) {

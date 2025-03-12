@@ -26,7 +26,7 @@ public class ReceiveServiceStateHandler extends SimpleChannelInboundHandler<Serv
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, @NotNull ServiceState connState) throws Exception {
-        FrpChannel frpChannel = FrpChannel.get(ctx.channel());
+        FrpChannel frpChannel = FrpChannel.getBy(ctx.channel());
 
         ConnState serviceState = ConnState.getByName(connState.getStateName());
         if (serviceState == null) {
@@ -37,7 +37,7 @@ public class ReceiveServiceStateHandler extends SimpleChannelInboundHandler<Serv
                 // frp-client ---> service 连接成功
                 // 可以获取到 dispatchId
                 frpChannel.write(UserState.ready(connState.getDispatchId()),
-                        Listeners.read(DispatchManager.get(frpChannel.get()).getChannel(connState.getDispatchId())),
+                        Listeners.read(DispatchManager.getBy(frpChannel.getBy()).getChannel(connState.getDispatchId())),
                         Listeners.read(frpChannel)
                 );
 
@@ -45,13 +45,13 @@ public class ReceiveServiceStateHandler extends SimpleChannelInboundHandler<Serv
             case FAILURE:
                 // frp-client ---> service 连接断开
                 frpChannel.writeAndFlushEmpty()
-                        .addListeners(Listeners.releaseDispatchChannel(DispatchManager.get(frpChannel.get()), connState.getDispatchId(), FAILURE.getDesc()),
+                        .addListeners(Listeners.releaseDispatchChannel(DispatchManager.getBy(frpChannel.getBy()), connState.getDispatchId(), FAILURE.getDesc()),
                                 Listeners.read(frpChannel));
                 break;
             case BROKEN:
                 // service ---> frp-client 连接断开
                 frpChannel.writeAndFlushEmpty()
-                        .addListeners(Listeners.releaseDispatchChannel(DispatchManager.get(frpChannel.get()), connState.getDispatchId(), BROKEN.getDesc()),
+                        .addListeners(Listeners.releaseDispatchChannel(DispatchManager.getBy(frpChannel.getBy()), connState.getDispatchId(), BROKEN.getDesc()),
                                 Listeners.read(frpChannel));
                 break;
             default:
@@ -63,7 +63,7 @@ public class ReceiveServiceStateHandler extends SimpleChannelInboundHandler<Serv
 
     @Override
     public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
-        FrpChannel.get(ctx.channel()).flush();
+        FrpChannel.getBy(ctx.channel()).flush();
     }
 
     @Override

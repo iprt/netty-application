@@ -39,7 +39,7 @@ public class ListeningRequestHandler extends SimpleChannelInboundHandler<Listeni
 
     @Override
     protected void channelRead0(@NotNull ChannelHandlerContext ctx, ListeningRequest listeningRequest) throws Exception {
-        FrpChannel frpChannel = FrpChannel.get(ctx.channel());
+        FrpChannel frpChannel = FrpChannel.getBy(ctx.channel());
 
         log.info("get listening request: {}", listeningRequest);
         List<Integer> listeningPorts = listeningRequest.getListeningPorts();
@@ -55,10 +55,10 @@ public class ListeningRequestHandler extends SimpleChannelInboundHandler<Listeni
                                 ChannelPipeline p = ctx.pipeline();
                                 p.remove(this);
                                 log.info("init MultiPortNettyServer");
-                                MultiPortNettyServer.buildIn(frpChannel.get(), server);
+                                MultiPortNettyServer.buildIn(frpChannel.getBy(), server);
 
                                 log.info("init DispatchManager");
-                                DispatchManager.build(frpChannel.get());
+                                DispatchManager.buildIn(frpChannel.getBy());
 
                                 p.addLast(new PingHandler())
                                         .addLast(new ReceiveServiceStateHandler())

@@ -47,7 +47,7 @@ public class ReceiveUserStateHandler extends SimpleChannelInboundHandler<UserSta
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, @NotNull UserState connState) throws Exception {
-        FrpChannel frpChannel = FrpChannel.get(ctx.channel());
+        FrpChannel frpChannel = FrpChannel.getBy(ctx.channel());
 
         ConnState userState = ConnState.getByName(connState.getStateName());
         if (userState == null) {
@@ -71,7 +71,7 @@ public class ReceiveUserStateHandler extends SimpleChannelInboundHandler<UserSta
                         log.info("[ACCEPT] 接收到用户连接后，服务连接创建成功|dispatchId={}|name={}", dispatchId, config.getName());
                         ChannelPipeline servicePipeline = serviceChannel.pipeline();
                         servicePipeline.addLast(
-                                new ServiceChannelHandler(config.getName(), dispatchId, frpChannel, DispatchManager.get(frpChannel.get()))
+                                new ServiceChannelHandler(config.getName(), dispatchId, frpChannel, DispatchManager.getBy(frpChannel.getBy()))
                         );
                         // channelActive and Read
                         servicePipeline.fireChannelActive();
@@ -84,8 +84,8 @@ public class ReceiveUserStateHandler extends SimpleChannelInboundHandler<UserSta
                 });
 
                 Bootstrap b = new Bootstrap();
-                b.group(frpChannel.get().eventLoop())
-                        .channel(frpChannel.get().getClass())
+                b.group(frpChannel.getBy().eventLoop())
+                        .channel(frpChannel.getBy().getClass())
                         .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 1000)
                         .option(ChannelOption.AUTO_READ, false)
                         .handler(new DirectServiceHandler(serviceChannelPromise));
@@ -106,7 +106,7 @@ public class ReceiveUserStateHandler extends SimpleChannelInboundHandler<UserSta
                 log.info("[READY] 接收到用户连接就绪状态，可以读取数据了|dispatchId={}", connState.getDispatchId());
                 frpChannel.writeAndFlushEmpty()
                         .addListeners(
-                                Listeners.read(DispatchManager.get(frpChannel.get()).getChannel(connState.getDispatchId()))
+                                Listeners.read(DispatchManager.getBy(frpChannel.getBy()).getChannel(connState.getDispatchId()))
                         );
                 break;
             // broken connection：user -x-> frp-server:3306
@@ -114,7 +114,7 @@ public class ReceiveUserStateHandler extends SimpleChannelInboundHandler<UserSta
                 log.warn("[BROKEN] 接收到用户断开连接|dispatchId={}", connState.getDispatchId());
                 frpChannel.writeAndFlushEmpty(
                         Listeners.read(frpChannel),
-                        Listeners.releaseDispatchChannel(DispatchManager.get(frpChannel.get()), connState.getDispatchId())
+                        Listeners.releaseDispatchChannel(DispatchManager.getBy(frpChannel.getBy()), connState.getDispatchId())
                 );
                 break;
             default:

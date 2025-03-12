@@ -66,18 +66,15 @@ public class FrpClient {
                         eventLoopGroup.execute(() -> this.start(0));
                     });
                 }
+            } else if (reconnect) {
+                eventLoopGroup.schedule(() -> {
+                    log.warn("[RECONNECT] reconnect to frp-server <{}:{}> | count={}", serverHost, serverPort, count);
+                    this.start(count + 1);
+                }, 3, TimeUnit.SECONDS);
             } else {
-                if (reconnect) {
-                    eventLoopGroup.schedule(() -> {
-                        log.warn("[RECONNECT] reconnect to frp-server <{}:{}> | count={}", serverHost, serverPort, count);
-                        this.start(count + 1);
-                    }, 3, TimeUnit.SECONDS);
-
-                } else {
-                    log.error("Connect to frp-server <{}:{}> failed.", serverHost, serverPort);
-                    log.error("Exit...");
-                    this.stop();
-                }
+                log.error("Connect to frp-server <{}:{}> failed.", serverHost, serverPort);
+                log.error("Exit...");
+                this.stop();
             }
         });
 

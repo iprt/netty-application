@@ -32,8 +32,6 @@ public class FrpClient {
     @Getter
     private final boolean reconnect;
 
-    private volatile FrpChannel frpChannel = null;
-
     private FrpClient(ClientConfig config, boolean reconnect) {
         this.config = config;
         this.reconnect = reconnect;
@@ -41,7 +39,6 @@ public class FrpClient {
                 .channel(NioSocketChannel.class)
                 .option(ChannelOption.SO_KEEPALIVE, true)
                 .handler(new FrpClientInitializer(config));
-
     }
 
     public void start() {
@@ -56,7 +53,6 @@ public class FrpClient {
                 log.info("init frp client in channel");
                 ch.attr(FRP_CLIENT_KEY).set(this);
 
-                this.frpChannel = frpChannel;
                 log.info("Send Auth Request");
                 frpChannel.writeAndFlush(AuthRequest.create(config.getAuthToken()), f -> {
                     if (f.isSuccess()) {

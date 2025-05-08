@@ -45,7 +45,7 @@ public class BackendOutboundHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelInactive(@NotNull ChannelHandlerContext ctx) throws Exception {
-        // server close the connection
+        // server closes the connection
         chooser.inactive(target);
         ChannelUtils.closeOnFlush(inboundChannel);
     }

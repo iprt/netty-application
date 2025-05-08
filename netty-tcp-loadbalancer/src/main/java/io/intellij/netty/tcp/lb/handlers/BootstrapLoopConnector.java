@@ -34,7 +34,7 @@ public class BootstrapLoopConnector {
                 .handler(new ChannelInitializer<SocketChannel>() {
                     @Override
                     protected void initChannel(SocketChannel ch) throws Exception {
-                        // do nothing, just for pipeline
+                        // do nothing, just for a pipeline
                         // 避免 BackendOutboundHandler 需要 @Sharable
                     }
                 })

@@ -59,7 +59,7 @@ public class FrontendInboundHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-        // client close the connection
+        // client closes the connection
         Channel outboundChannel = ctx.channel().attr(OUTBOUND_CHANNEL_KEY).get();
         ChannelUtils.closeOnFlush(outboundChannel);
     }

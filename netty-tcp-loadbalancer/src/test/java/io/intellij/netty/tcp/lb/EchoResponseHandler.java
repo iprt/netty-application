@@ -49,5 +49,4 @@ public class EchoResponseHandler extends ChannelInboundHandlerAdapter {
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         System.out.println("Channel inactive: " + ctx.channel().remoteAddress());
     }
-
 }

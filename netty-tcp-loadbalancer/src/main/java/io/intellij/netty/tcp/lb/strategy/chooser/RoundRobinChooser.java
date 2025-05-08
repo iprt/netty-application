@@ -46,7 +46,7 @@ public class RoundRobinChooser extends AbstractBackendChooser {
         }
         int i = ROUND_ROBIN_INDEX.get();
         int size = availableList.size();
-        if ((i < 0 && size > 0) || size == 1) {
+        if (i < 0 || size == 1) {
             return indexBackend.get(0);
         }
 

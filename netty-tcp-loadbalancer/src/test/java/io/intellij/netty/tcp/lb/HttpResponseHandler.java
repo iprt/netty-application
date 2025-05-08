@@ -72,4 +72,3 @@ public class HttpResponseHandler extends SimpleChannelInboundHandler<HttpObject>
     }
 
 }
-

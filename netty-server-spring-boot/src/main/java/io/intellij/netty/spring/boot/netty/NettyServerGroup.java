@@ -33,4 +33,9 @@ public interface NettyServerGroup {
      */
     void stop(int port);
 
+    /**
+     * Stops all running Netty servers.
+     */
+    void stopAll();
+
 }

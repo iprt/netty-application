@@ -8,6 +8,7 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -77,7 +78,6 @@ public class NettyTcpServerGroup implements NettyServerGroup {
             });
             ChannelFuture channelFuture = bind.sync();
             RUNNING_CHANNEL_FUTURE.put(port, channelFuture);
-            log.info("NettyTcpServer(key={}) started on port: {}", key, port);
             return NettySeverRunRes.builder()
                     .status(true)
                     .msg("NettyTcpServer(key={" + key + "}) started on port: " + port)
@@ -110,6 +110,25 @@ public class NettyTcpServerGroup implements NettyServerGroup {
         } finally {
             RUNNING_CHANNEL_FUTURE.remove(port);
         }
+    }
+
+    @PreDestroy
+    @Override
+    public void stopAll() {
+        for (Map.Entry<Integer, ChannelFuture> entry : RUNNING_CHANNEL_FUTURE.entrySet()) {
+            int port = entry.getKey();
+            ChannelFuture future = entry.getValue();
+            try {
+                log.info("NettyTcpServer(port={}) stopping...", port);
+                future.channel().close().sync();
+            } catch (InterruptedException e) {
+                log.error("NettyTcpServer stop failed", e);
+            } finally {
+                RUNNING_CHANNEL_FUTURE.remove(port);
+            }
+        }
+        bossGroup.shutdownGracefully();
+        workerGroup.shutdownGracefully();
     }
 
 }

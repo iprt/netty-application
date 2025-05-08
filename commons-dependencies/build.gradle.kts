@@ -36,7 +36,6 @@ dependencies {
 
 }
 
-
 tasks.jar {
     archiveFileName = "netty-application-commons.jar"
 }

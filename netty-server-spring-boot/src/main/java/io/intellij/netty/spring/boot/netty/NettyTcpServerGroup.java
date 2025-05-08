@@ -26,10 +26,11 @@ import java.util.concurrent.ConcurrentHashMap;
 @Component
 @Slf4j
 public class NettyTcpServerGroup implements NettyServerGroup {
-    private static final Map<Integer, ChannelFuture> RUNNING_CHANNEL_FUTURE = new ConcurrentHashMap<>();
     private final EventLoopGroup bossGroup;
     private final EventLoopGroup workerGroup;
     private final Map<String, ChannelHandler> channelHandlerMap;
+
+    private final Map<Integer, ChannelFuture> RUNNING_CHANNEL_FUTURE = new ConcurrentHashMap<>();
 
     @Override
     public synchronized NettySeverRunRes start(NettyServerConf conf) {

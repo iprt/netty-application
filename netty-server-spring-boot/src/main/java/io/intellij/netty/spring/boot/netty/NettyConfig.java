@@ -16,7 +16,7 @@ import org.springframework.context.annotation.Configuration;
  * @author tech@intellij.io
  */
 @Configuration
-public class NettyInitialConfig {
+public class NettyConfig {
 
     @Bean
     public EventLoopGroup bossGroup() {
@@ -26,26 +26,6 @@ public class NettyInitialConfig {
     @Bean
     public EventLoopGroup workerGroup() {
         return new NioEventLoopGroup();
-    }
-
-    @Bean(name = "log")
-    public ChannelHandler logChannelHandler() {
-        return new ChannelInitializer<SocketChannel>() {
-            @Override
-            protected void initChannel(SocketChannel ch) throws Exception {
-                ch.pipeline().addLast(new LogHandler());
-            }
-        };
-    }
-
-    @Bean(name = "echo")
-    public ChannelHandler echoChannelHandler() {
-        return new ChannelInitializer<SocketChannel>() {
-            @Override
-            protected void initChannel(SocketChannel ch) throws Exception {
-                ch.pipeline().addLast(new EchoHandler());
-            }
-        };
     }
 
 }

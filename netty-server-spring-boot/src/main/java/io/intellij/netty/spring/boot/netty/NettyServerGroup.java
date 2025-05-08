@@ -4,11 +4,11 @@ import io.intellij.netty.spring.boot.entities.NettyServerConf;
 import io.intellij.netty.spring.boot.entities.NettySeverRunRes;
 
 /**
- * NettyServer
+ * NettyServerGroup
  *
  * @author tech@intellij.io
  */
-public interface NettyServer {
+public interface NettyServerGroup {
 
     /**
      * Starts a Netty server with the specified configuration.

@@ -18,15 +18,15 @@ import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * NettyTcpServer
+ * NettyTcpServerGroup
  *
  * @author tech@intellij.io
  */
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 @Component
 @Slf4j
-public class NettyTcpServer implements NettyServer {
-    private static final Map<Integer, ChannelFuture> PORTS = new ConcurrentHashMap<>();
+public class NettyTcpServerGroup implements NettyServerGroup {
+    private static final Map<Integer, ChannelFuture> RUNNING_CHANNEL_FUTURE = new ConcurrentHashMap<>();
     private final EventLoopGroup bossGroup;
     private final EventLoopGroup workerGroup;
     private final Map<String, ChannelHandler> channelHandlerMap;
@@ -34,7 +34,7 @@ public class NettyTcpServer implements NettyServer {
     @Override
     public synchronized NettySeverRunRes start(NettyServerConf conf) {
         int port = conf.getPort();
-        if (PORTS.containsKey(port)) {
+        if (RUNNING_CHANNEL_FUTURE.containsKey(port)) {
             log.warn("NettyTcpServer already running on port: {}", port);
             return NettySeverRunRes.builder()
                     .status(false)
@@ -75,7 +75,7 @@ public class NettyTcpServer implements NettyServer {
                 }
             });
             ChannelFuture channelFuture = bind.sync();
-            PORTS.put(port, channelFuture);
+            RUNNING_CHANNEL_FUTURE.put(port, channelFuture);
             log.info("NettyTcpServer(key={}) started on port: {}", key, port);
             return NettySeverRunRes.builder()
                     .status(true)
@@ -92,12 +92,12 @@ public class NettyTcpServer implements NettyServer {
 
     @Override
     public synchronized boolean isRunning(int port) {
-        return PORTS.containsKey(port);
+        return RUNNING_CHANNEL_FUTURE.containsKey(port);
     }
 
     @Override
     public synchronized void stop(int port) {
-        ChannelFuture future = PORTS.get(port);
+        ChannelFuture future = RUNNING_CHANNEL_FUTURE.get(port);
         if (Objects.isNull(future)) {
             log.warn("NettyTcpServer not running on port: {}", port);
             return;
@@ -107,7 +107,7 @@ public class NettyTcpServer implements NettyServer {
         } catch (InterruptedException e) {
             log.error("NettyTcpServer stop failed", e);
         } finally {
-            PORTS.remove(port);
+            RUNNING_CHANNEL_FUTURE.remove(port);
         }
     }
 

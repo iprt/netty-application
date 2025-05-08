@@ -11,12 +11,12 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * NettyConfig
+ * NettyInitialConfig
  *
  * @author tech@intellij.io
  */
 @Configuration
-public class NettyConfig {
+public class NettyInitialConfig {
 
     @Bean
     public EventLoopGroup bossGroup() {

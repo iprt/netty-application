@@ -10,15 +10,15 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import java.util.Map;
 
 /**
- * NettySpringBootApplication
+ * NettyBootApplication
  *
  * @author tech@intellij.io
  */
 @SpringBootApplication
-public class NettySpringBootApplication {
+public class NettyBootApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(NettySpringBootApplication.class, args);
+        SpringApplication.run(NettyBootApplication.class, args);
     }
 
     @ControllerAdvice

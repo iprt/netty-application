@@ -2,7 +2,7 @@ package io.intellij.netty.spring.boot.controller;
 
 import io.intellij.netty.spring.boot.entities.NettyServerConf;
 import io.intellij.netty.spring.boot.entities.NettySeverRunRes;
-import io.intellij.netty.spring.boot.netty.NettyServer;
+import io.intellij.netty.spring.boot.netty.NettyServerGroup;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,18 +24,18 @@ import java.util.Map;
 @RestController
 @Slf4j
 public class NettyServerController {
-    private final NettyServer nettyServer;
+    private final NettyServerGroup nettyServerGroup;
 
     @PostMapping("/server/start")
     public NettySeverRunRes startServer(@RequestBody @Validated NettyServerConf conf) {
         log.info("Starting Netty Server");
-        return nettyServer.start(conf);
+        return nettyServerGroup.start(conf);
     }
 
     @PostMapping("/server/status")
     public Map<String, Object> isServerRunning(@RequestBody @Validated NettyServerConf conf) {
         log.info("Checking if Netty Server is running");
-        if (nettyServer.isRunning(conf.getPort())) {
+        if (nettyServerGroup.isRunning(conf.getPort())) {
             log.info("Netty Server is running");
             return Map.of(
                     "code", 200,
@@ -53,7 +53,7 @@ public class NettyServerController {
     @PostMapping("/server/stop")
     public void stopServer(@RequestBody @Validated NettyServerConf conf) {
         log.warn("Stopping Netty Server");
-        nettyServer.stop(conf.getPort());
+        nettyServerGroup.stop(conf.getPort());
     }
 
 }

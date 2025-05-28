@@ -37,14 +37,14 @@ public class AuthResponseHandler extends SimpleChannelInboundHandler<AuthRespons
                             ChannelPipeline p = ctx.pipeline();
                             p.remove(this);
                             p.addLast(new ListeningResponseHandler(configMap));
-                            // for ReceiveUserStateHandler
+                            // ReceiveUserStateHandler
                             p.fireChannelActive();
                         }
                     }
             );
         } else {
             // 认证失败，服务端会主动关闭连接
-            log.info("authenticate failed");
+            log.warn("authenticate failed");
             frpChannel.close();
         }
     }

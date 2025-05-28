@@ -48,7 +48,6 @@ public class PongHandler extends SimpleChannelInboundHandler<Pong> {
         FrpChannel.getBy(ctx.channel()).read();
     }
 
-
     @Override
     public void channelInactive(@NotNull ChannelHandlerContext ctx) throws Exception {
         log.warn("stop scheduled ping ...");

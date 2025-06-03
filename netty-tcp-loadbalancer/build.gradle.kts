@@ -1,6 +1,6 @@
 plugins {
     id("java")
-    id("io.freefair.lombok") version "8.6"
+    alias(libs.plugins.freefair.lombok)
 }
 
 group = "io.intellij.netty.server"
@@ -62,7 +62,7 @@ tasks.build {
 
 
 tasks.test {
-    useJUnitPlatform(){
+    useJUnitPlatform() {
         includeEngines("junit-jupiter")
     }
 }

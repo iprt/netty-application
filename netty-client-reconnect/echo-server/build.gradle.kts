@@ -1,6 +1,6 @@
 plugins {
     id("java-library")
-    id("io.freefair.lombok") version "8.6"
+    alias(libs.plugins.freefair.lombok)
 }
 
 group = "io.intellij.netty.frp"

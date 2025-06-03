@@ -1,14 +1,16 @@
 plugins {
     id("java-library")
-    id("io.freefair.lombok") version "8.10"
+    alias(libs.plugins.freefair.lombok)
 }
 
 group = "io.intellij.netty.commons"
 version = "1.0"
 
+val javaVersion = libs.versions.java.get().toInt()
+
 java {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(17))
+        languageVersion.set(JavaLanguageVersion.of(javaVersion))
     }
 }
 
@@ -21,19 +23,17 @@ repositories {
 }
 
 dependencies {
-    api("org.apache.commons:commons-lang3:3.14.0")
-    api("commons-io:commons-io:2.16.1")
 
-    api("io.netty:netty-all:4.1.118.Final")
+    api(libs.commons.lang3)
+    api(libs.commons.io)
 
-    api("org.slf4j:slf4j-api:2.0.12")
-    api("ch.qos.logback:logback-classic:1.5.18")
-    api("ch.qos.logback:logback-core:1.5.18")
+    api(libs.netty.all)
 
-    api("com.alibaba.fastjson2:fastjson2:2.0.53")
-
-    api("org.jetbrains:annotations:24.0.1")
-
+    api(libs.slf4j.api)
+    api(libs.logback.classic)
+    api(libs.logback.core)
+    api(libs.fastjson2)
+    api(libs.jetbrains.annotations)
 }
 
 tasks.jar {

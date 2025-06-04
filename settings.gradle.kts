@@ -16,8 +16,10 @@ rootProject.name = "netty-application"
 
 include("commons-dependencies")
 
-include("example-github")
-include("example")
+include(
+    "examples:example",
+    "examples:example-github"
+)
 
 include(
     "netty-client-reconnect:echo-server",

@@ -18,7 +18,7 @@ include("commons-dependencies")
 
 include(
     "examples:example",
-    "examples:example-github"
+    "examples:github"
 )
 
 include(

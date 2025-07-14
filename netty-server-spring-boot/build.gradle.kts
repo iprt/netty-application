@@ -14,6 +14,13 @@ configurations {
     compileOnly.configure {
         extendsFrom(configurations.annotationProcessor.get())
     }
+    all {
+        resolutionStrategy.eachDependency {
+            if (requested.group == "io.netty") {
+                useVersion("4.1.115.Final")
+            }
+        }
+    }
 }
 
 dependencies {

@@ -8,7 +8,7 @@ java = "17"
 [libraries]
 commons-lang3 = { module = "org.apache.commons:commons-lang3", version = "3.14.0" }
 commons-io = { module = "commons-io:commons-io", version = "2.16.1" }
-netty-all = { module = "io.netty:netty-all", version = "4.1.118.Final" }
+netty-all = { module = "io.netty:netty-all", version = "4.1.115.Final" }
 slf4j-api = { module = "org.slf4j:slf4j-api", version = "2.0.12" }
 logback-classic = { module = "ch.qos.logback:logback-classic", version = "1.5.18" }
 logback-core = { module = "ch.qos.logback:logback-core", version = "1.5.18" }

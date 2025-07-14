@@ -27,12 +27,12 @@ public class DispatchToServiceHandler extends SimpleChannelInboundHandler<Dispat
     }
 
     @Override
-    public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
+    public void channelReadComplete(@NotNull ChannelHandlerContext ctx) throws Exception {
         FrpChannel.getBy(ctx.channel()).read();
     }
 
     @Override
-    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+    public void channelInactive(@NotNull ChannelHandlerContext ctx) throws Exception {
         DispatchManager.getBy(ctx.channel()).releaseAll();
     }
 

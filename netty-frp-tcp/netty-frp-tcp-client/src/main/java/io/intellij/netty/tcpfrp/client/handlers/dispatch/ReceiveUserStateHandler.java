@@ -36,7 +36,7 @@ import java.util.stream.Collectors;
 public class ReceiveUserStateHandler extends SimpleChannelInboundHandler<UserState> {
     private final Map<Integer, ListeningConfig> portToConfig;
 
-    public ReceiveUserStateHandler(Map<String, ListeningConfig> configMap) {
+    public ReceiveUserStateHandler(@NotNull Map<String, ListeningConfig> configMap) {
         this.portToConfig = configMap.entrySet().stream()
                 .collect(Collectors.toMap(
                         entry -> entry.getValue().getRemotePort(),
@@ -44,9 +44,8 @@ public class ReceiveUserStateHandler extends SimpleChannelInboundHandler<UserSta
                 ));
     }
 
-
     @Override
-    protected void channelRead0(ChannelHandlerContext ctx, @NotNull UserState connState) throws Exception {
+    protected void channelRead0(@NotNull ChannelHandlerContext ctx, @NotNull UserState connState) throws Exception {
         FrpChannel frpChannel = FrpChannel.getBy(ctx.channel());
 
         ConnState userState = ConnState.getByName(connState.getStateName());

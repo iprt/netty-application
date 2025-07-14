@@ -4,6 +4,8 @@ import io.intellij.netty.tcpfrp.protocol.FrpBasicMsg;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * AuthResponse
@@ -17,11 +19,13 @@ import lombok.NoArgsConstructor;
 public class AuthResponse {
     private boolean success;
 
-    public static FrpBasicMsg success() {
+    @Contract(" -> new")
+    public static @NotNull FrpBasicMsg success() {
         return FrpBasicMsg.createAuthResponse(new AuthResponse(true));
     }
 
-    public static FrpBasicMsg failure() {
+    @Contract(" -> new")
+    public static @NotNull FrpBasicMsg failure() {
         return FrpBasicMsg.createAuthResponse(new AuthResponse(false));
     }
 

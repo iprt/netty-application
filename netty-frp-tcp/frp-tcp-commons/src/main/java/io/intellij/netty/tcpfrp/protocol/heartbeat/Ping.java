@@ -4,6 +4,8 @@ import io.intellij.netty.tcpfrp.protocol.FrpBasicMsg;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Date;
 
@@ -20,7 +22,8 @@ public class Ping {
     private Date time;
     private String name;
 
-    public static FrpBasicMsg create(String name) {
+    @Contract("_ -> new")
+    public static @NotNull FrpBasicMsg create(String name) {
         return FrpBasicMsg.createPing(new Ping(new Date(), name));
     }
 

@@ -6,6 +6,7 @@ import io.intellij.netty.tcpfrp.protocol.FrpMsgType;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToByteEncoder;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * FrpBasicMsgEncoder
@@ -22,7 +23,7 @@ import io.netty.handler.codec.MessageToByteEncoder;
 final class FrpBasicMsgEncoder extends MessageToByteEncoder<FrpBasicMsg> {
 
     @Override
-    protected void encode(ChannelHandlerContext ctx, FrpBasicMsg basicMsg, ByteBuf out) throws Exception {
+    protected void encode(ChannelHandlerContext ctx, @NotNull FrpBasicMsg basicMsg, @NotNull ByteBuf out) throws Exception {
         FrpMsgType msgType = basicMsg.getMsgType();
         out.writeByte(msgType.getType());
 

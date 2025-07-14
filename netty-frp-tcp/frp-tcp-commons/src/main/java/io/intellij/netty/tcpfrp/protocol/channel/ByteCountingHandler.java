@@ -17,7 +17,7 @@ public class ByteCountingHandler extends ChannelInboundHandlerAdapter {
     private long totalBytesReceived = 0;
 
     @Override
-    public void channelActive(ChannelHandlerContext ctx) throws Exception {
+    public void channelActive(@NotNull ChannelHandlerContext ctx) throws Exception {
         // must
         ctx.read();
         super.channelActive(ctx);

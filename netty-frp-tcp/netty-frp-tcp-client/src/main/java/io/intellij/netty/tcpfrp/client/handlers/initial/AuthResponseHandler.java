@@ -50,7 +50,7 @@ public class AuthResponseHandler extends SimpleChannelInboundHandler<AuthRespons
     }
 
     @Override
-    public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
+    public void channelReadComplete(@NotNull ChannelHandlerContext ctx) throws Exception {
         FrpChannel.getBy(ctx.channel()).flush();
     }
 }

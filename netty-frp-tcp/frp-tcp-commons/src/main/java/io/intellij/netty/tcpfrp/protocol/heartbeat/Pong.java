@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Date;
 
@@ -22,7 +24,8 @@ public class Pong {
     private Date time;
     private String name;
 
-    public static FrpBasicMsg create(String name) {
+    @Contract("_ -> new")
+    public static @NotNull FrpBasicMsg create(String name) {
         return FrpBasicMsg.createPong(new Pong(new Date(), name));
     }
 }

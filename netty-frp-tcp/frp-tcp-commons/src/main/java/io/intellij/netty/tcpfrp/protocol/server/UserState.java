@@ -5,6 +5,8 @@ import io.intellij.netty.tcpfrp.protocol.FrpBasicMsg;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 
 import static io.intellij.netty.tcpfrp.protocol.ConnState.ACCEPT;
 import static io.intellij.netty.tcpfrp.protocol.ConnState.BROKEN;
@@ -29,19 +31,22 @@ public class UserState {
     private String dispatchId;
     private Integer listeningPort;
 
-    public static FrpBasicMsg accept(String dispatchId, int listeningPort) {
+    @Contract("_, _ -> new")
+    public static @NotNull FrpBasicMsg accept(String dispatchId, int listeningPort) {
         return FrpBasicMsg.createUserState(
                 new UserState(ACCEPT.getName(), dispatchId, listeningPort)
         );
     }
 
-    public static FrpBasicMsg ready(String dispatchId) {
+    @Contract("_ -> new")
+    public static @NotNull FrpBasicMsg ready(String dispatchId) {
         return FrpBasicMsg.createUserState(
                 new UserState(READY.getName(), dispatchId, null)
         );
     }
 
-    public static FrpBasicMsg broken(String dispatchId) {
+    @Contract("_ -> new")
+    public static @NotNull FrpBasicMsg broken(String dispatchId) {
         return FrpBasicMsg.createUserState(
                 new UserState(BROKEN.getName(), dispatchId, null)
         );

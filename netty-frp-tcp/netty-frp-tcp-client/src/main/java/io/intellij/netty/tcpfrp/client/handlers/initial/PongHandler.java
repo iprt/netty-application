@@ -43,7 +43,7 @@ public class PongHandler extends SimpleChannelInboundHandler<Pong> {
     }
 
     @Override
-    protected void channelRead0(ChannelHandlerContext ctx, Pong msg) throws Exception {
+    protected void channelRead0(@NotNull ChannelHandlerContext ctx, Pong msg) throws Exception {
         log.info("HeatBeat PONG|{}", msg);
         FrpChannel.getBy(ctx.channel()).read();
     }

@@ -5,6 +5,7 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.util.AttributeKey;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -21,11 +22,11 @@ public class DispatchManager {
 
     private static final AttributeKey<DispatchManager> DISPATCH_MANAGER_KEY = AttributeKey.valueOf("dispatch_manager");
 
-    public static void buildIn(Channel channel) {
+    public static void buildIn(@NotNull Channel channel) {
         channel.attr(DISPATCH_MANAGER_KEY).set(new DispatchManager());
     }
 
-    public static DispatchManager getBy(Channel channel) {
+    public static @NotNull DispatchManager getBy(Channel channel) {
         DispatchManager dispatchManager = channel.attr(DISPATCH_MANAGER_KEY).get();
         if (dispatchManager == null) {
             throw new RuntimeException("DispatchManager is not initialized");

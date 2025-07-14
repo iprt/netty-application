@@ -33,7 +33,7 @@ public class ListeningResponseHandler extends SimpleChannelInboundHandler<Listen
     }
 
     @Override
-    protected void channelRead0(ChannelHandlerContext ctx, @NotNull ListeningResponse listeningResponse) throws Exception {
+    protected void channelRead0(@NotNull ChannelHandlerContext ctx, @NotNull ListeningResponse listeningResponse) throws Exception {
         if (listeningResponse.isSuccess()) {
             log.info("listening request success");
             ctx.channel().writeAndFlush(Unpooled.EMPTY_BUFFER)

@@ -17,6 +17,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ReplayingDecoder;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
@@ -138,8 +139,7 @@ final class FrpDecoder extends ReplayingDecoder<FrpBasicMsg.State> {
         ctx.close();
     }
 
-
-    private <T> T jsonToObj(String json, Class<T> clazz, String errorMsg) {
+    private <T> @NotNull T jsonToObj(String json, Class<T> clazz, String errorMsg) {
         T data = JSONObject.parseObject(json, clazz);
         if (data == null) {
             throw new RuntimeException(errorMsg);

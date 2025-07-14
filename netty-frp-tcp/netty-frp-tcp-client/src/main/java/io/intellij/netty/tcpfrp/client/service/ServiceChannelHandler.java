@@ -10,6 +10,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * ServiceChannelHandler
@@ -28,7 +29,7 @@ public class ServiceChannelHandler extends ChannelInboundHandlerAdapter {
      * 服务连接成功
      */
     @Override
-    public void channelActive(ChannelHandlerContext ctx) throws Exception {
+    public void channelActive(@NotNull ChannelHandlerContext ctx) throws Exception {
         log.info("[SERVICE] 建立服务端连接 |dispatchId={}|serviceName={}", dispatchId, serviceName);
         dispatchManager.addChannel(dispatchId, ctx.channel());
         // BootStrap set AUTO_READ=false
@@ -51,7 +52,7 @@ public class ServiceChannelHandler extends ChannelInboundHandlerAdapter {
     }
 
     @Override
-    public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
+    public void channelReadComplete(@NotNull ChannelHandlerContext ctx) throws Exception {
         ctx.read();
         frpChannel.flush();
     }
@@ -63,7 +64,7 @@ public class ServiceChannelHandler extends ChannelInboundHandlerAdapter {
      * 2. 关闭服务的 channel
      */
     @Override
-    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+    public void channelInactive(@NotNull ChannelHandlerContext ctx) throws Exception {
         log.warn("[SERVICE] 丢失服务端连接 |dispatchId={}|serviceName{}", dispatchId, serviceName);
         // frp-client -x-> mysql:3306
         frpChannel.writeAndFlush(ServiceState.broken(dispatchId), Listeners.read(frpChannel));
@@ -71,7 +72,7 @@ public class ServiceChannelHandler extends ChannelInboundHandlerAdapter {
     }
 
     @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+    public void exceptionCaught(@NotNull ChannelHandlerContext ctx, Throwable cause) throws Exception {
         log.error("exception caught|dispatchId={}", dispatchId, cause);
         ctx.close();
     }

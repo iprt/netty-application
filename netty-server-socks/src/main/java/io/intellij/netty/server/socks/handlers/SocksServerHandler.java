@@ -90,9 +90,10 @@ public class SocksServerHandler extends SimpleChannelInboundHandler<SocksMessage
                     }
                 } else if (socksRequest instanceof Socks5CommandRequest socks5CommandRequest) {
                     if (socks5CommandRequest.type() == Socks5CommandType.CONNECT) {
-                        ctx.pipeline().addLast(new Socks5ServerConnectHandler());
-                        ctx.pipeline().remove(this);
-                        ctx.fireChannelRead(socks5CommandRequest);
+                        // 理解链表的特性
+                        ctx.pipeline().addLast(new Socks5ServerConnectHandler()); // // 此时 pipeline 是：[A, B, this, newHandler, ...]
+                        ctx.pipeline().remove(this); // 删除“当前 handler”，pipeline 变为：[A, B, newHandler, ...]
+                        ctx.fireChannelRead(socks5CommandRequest); // 注意：ctx 还是刚才被 remove 的 handler 节点
                     } else {
                         log.error("Unsupported SOCKS5 command type: {}", socks5CommandRequest.type());
                         ctx.close();

@@ -58,8 +58,8 @@ public class SocksServerHandler extends SimpleChannelInboundHandler<SocksMessage
             case SOCKS4a:
                 Socks4CommandRequest socksV4CmdRequest = (Socks4CommandRequest) socksRequest;
                 if (socksV4CmdRequest.type() == Socks4CommandType.CONNECT) {
-                    ctx.pipeline().addLast(new Socks4ServerConnectHandler());
                     ctx.pipeline().remove(this);
+                    ctx.pipeline().addLast(new Socks4ServerConnectHandler());
                     ctx.fireChannelRead(socksV4CmdRequest);
                 } else {
                     log.error("Unsupported SOCKS4 command type: {}", socksV4CmdRequest.type());

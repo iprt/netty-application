@@ -9,13 +9,13 @@
   "clients": [
     {
       "name": "mysql",
-      "local_ip": "dev.iproute.org",
+      "local_ip": "dev1.iproute.org",
       "local_port": 3306,
       "remote_port": 3306
     },
     {
       "name": "pgsql",
-      "local_ip": "dev.iproute.org",
+      "local_ip": "dev1.iproute.org",
       "local_port": 5432,
       "remote_port": 5432
     },

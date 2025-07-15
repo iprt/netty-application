@@ -31,8 +31,8 @@ public class AuthRequestHandler extends ChannelInboundHandlerAdapter {
                         channelFuture -> {
                             if (channelFuture.isSuccess()) {
                                 ChannelPipeline p = ctx.pipeline();
-                                p.remove(this);
                                 p.addLast(new ListeningRequestHandler());
+                                p.remove(this);
                                 p.fireChannelActive();
                             } else {
                                 frpChannel.close();

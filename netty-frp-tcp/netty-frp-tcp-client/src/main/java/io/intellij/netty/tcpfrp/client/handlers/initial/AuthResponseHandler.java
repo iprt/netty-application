@@ -35,8 +35,8 @@ public class AuthResponseHandler extends SimpleChannelInboundHandler<AuthRespons
             frpChannel.write(ListeningRequest.create(listeningPorts), channelFuture -> {
                         if (channelFuture.isSuccess()) {
                             ChannelPipeline p = ctx.pipeline();
-                            p.remove(this);
                             p.addLast(new ListeningResponseHandler(configMap));
+                            p.remove(this);
                             // ReceiveUserStateHandler
                             p.fireChannelActive();
                         }

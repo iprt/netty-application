@@ -1,9 +1,9 @@
-FROM openjdk:17-jdk
+FROM registry.cn-shanghai.aliyuncs.com/iproute/openjdk:17-jdk
 
-MAINTAINER "tech@intellij.io"
+LABEL org.opencontainers.image.authors="tech@intellij.io"
 
 LABEL email="tech@intellij.io" \
-      author="zhenjie zhu"
+      author="devops"
 
 # random_file
 RUN dd if=/dev/urandom of=/random_file bs=1K count=1

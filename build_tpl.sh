@@ -5,6 +5,12 @@ cd "$SHELL_FOLDER"
 
 source <(curl -SL https://gitlab.com/iprt/shell-basic/-/raw/main/build-project/basic.sh)
 source <(curl -sSL $ROOT_URI/func/log.sh)
+source <(curl -sSL $ROOT_URI/func/ostype.sh)
+
+if is_windows;then
+  log_info "build" "build in windows"
+  export MSYS_NO_PATHCONV=1
+fi
 
 sub_project_path="$1"
 sub_project_jar_name="$2"
@@ -13,9 +19,9 @@ sub_project_image_name="$3"
 log_info "step 1" "gradle build jar"
 
 sub_project_gradle_path=$(echo "$sub_project_path" | sed 's/\//:/g')
-bash <(curl $ROOT_URI/gradle/build.sh) \
+bash <(curl -sSL $ROOT_URI/gradle/build.sh) \
   -i "registry.cn-shanghai.aliyuncs.com/iproute/gradle:8.4-jdk17" \
-  -c "gradle_8.4-jdk17_cache" \
+  -c "gradle-cache" \
   -x "gradle clean $sub_project_gradle_path:build -x test --info"
 
 jar_name="$sub_project_jar_name"
@@ -33,7 +39,7 @@ registry="registry.cn-shanghai.aliyuncs.com"
 version="latest"
 #version="$(date '+%Y%m%d')_$(git rev-parse --short HEAD)"
 
-bash <(curl $ROOT_URI/docker/build.sh) \
+bash <(curl -sSL $ROOT_URI/docker/build.sh) \
   -f "$sub_project_path/Dockerfile" \
   -i "$registry/$sub_project_image_name" \
   -v "$version" \

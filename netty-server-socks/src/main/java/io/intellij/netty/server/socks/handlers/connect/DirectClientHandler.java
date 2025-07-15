@@ -13,7 +13,7 @@
  * License for the specific language governing permissions and limitations
  * under the License.
  */
-package io.intellij.netty.server.socks.handler;
+package io.intellij.netty.server.socks.handlers.connect;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;

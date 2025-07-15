@@ -14,17 +14,8 @@ start on default port `1080`
 java -jar netty-socks-server-1.0-all.jar
 ```
 
-or start on port which you want
+or specify port
 
 ```shell
 java -jar -Dport=1080 netty-socks-server-1.0-all.jar
-
 ```
-
-use `epoll`
-
-```shell
-java -jar -DuseEpoll=true java -jar -Dport=1088 netty-socks-server-1.0-all.jar
-
-```
-

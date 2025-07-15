@@ -15,13 +15,14 @@
  */
 package io.intellij.netty.server.socks.handlers.connect;
 
-import io.intellij.netty.server.socks.handlers.SocksServerUtils;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.util.ReferenceCountUtil;
 import lombok.extern.slf4j.Slf4j;
+
+import static io.intellij.netty.utils.ChannelUtils.closeOnFlush;
 
 @Slf4j
 public final class RelayHandler extends ChannelInboundHandlerAdapter {
@@ -49,9 +50,7 @@ public final class RelayHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelInactive(ChannelHandlerContext ctx) {
         if (relayChannel.isActive()) {
-            SocksServerUtils.closeOnFlush(relayChannel, "SocksServer relayChannel");
-        } else {
-            log.info("relayChannel is not active");
+            closeOnFlush(relayChannel);
         }
     }
 

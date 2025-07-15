@@ -6,7 +6,7 @@ freefair-lombok = "8.13.1"
 java = "17"
 
 [libraries]
-commons-lang3 = { module = "org.apache.commons:commons-lang3", version = "3.14.0" }
+commons-lang3 = { module = "org.apache.commons:commons-lang3", version = "3.18.0" }
 commons-io = { module = "commons-io:commons-io", version = "2.16.1" }
 netty-all = { module = "io.netty:netty-all", version = "4.1.115.Final" }
 slf4j-api = { module = "org.slf4j:slf4j-api", version = "2.0.12" }

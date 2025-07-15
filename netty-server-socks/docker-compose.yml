@@ -6,5 +6,7 @@ services:
     volumes:
       - "./logs:/opt/app/logs"
     environment:
-      - JAVA_OPTIONS=-Xms128M -Xmx128M
       - TZ=Asia/Shanghai
+      - JAVA_OPTIONS=-Xms128M -Xmx128M
+      - SOCKS5_USERNAME=
+      - SOCKS5_PASSWORD=

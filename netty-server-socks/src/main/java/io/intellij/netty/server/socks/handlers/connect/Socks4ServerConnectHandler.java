@@ -1,11 +1,9 @@
 package io.intellij.netty.server.socks.handlers.connect;
 
-import io.intellij.netty.server.socks.handlers.SocksServerUtils;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
-import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -18,12 +16,13 @@ import io.netty.util.concurrent.Promise;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 
+import static io.intellij.netty.utils.ChannelUtils.closeOnFlush;
+
 /**
  * Socks4ServerConnectHandler
  *
  * @author tech@intellij.io
  */
-@ChannelHandler.Sharable
 @Slf4j
 public class Socks4ServerConnectHandler extends SimpleChannelInboundHandler<Socks4CommandRequest> {
 
@@ -45,7 +44,7 @@ public class Socks4ServerConnectHandler extends SimpleChannelInboundHandler<Sock
                 });
             } else {
                 ctx.channel().writeAndFlush(new DefaultSocks4CommandResponse(Socks4CommandStatus.REJECTED_OR_FAILED));
-                SocksServerUtils.closeOnFlush(ctx.channel());
+                closeOnFlush(ctx.channel());
             }
         });
 
@@ -62,10 +61,11 @@ public class Socks4ServerConnectHandler extends SimpleChannelInboundHandler<Sock
                 log.info("connect to {}:{} success", dstAddr, dstPort);
             } else {
                 // Close the connection if the connection attempt has failed.
+                log.error("connect to {}:{} failed", request.dstAddr(), request.dstPort());
                 ctx.channel().writeAndFlush(
                         new DefaultSocks4CommandResponse(Socks4CommandStatus.REJECTED_OR_FAILED)
                 );
-                SocksServerUtils.closeOnFlush(inboundChannel);
+                closeOnFlush(inboundChannel);
             }
         });
 

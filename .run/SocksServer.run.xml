@@ -1,5 +1,9 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="SocksServer" type="Application" factoryName="Application" nameIsGenerated="true">
+    <envs>
+      <env name="SOCKS5_USERNAME" value="admin" />
+      <env name="SOCKS5_PASSWORD" value="admin" />
+    </envs>
     <option name="MAIN_CLASS_NAME" value="io.intellij.netty.server.socks.SocksServer" />
     <module name="netty-application.netty-server-socks.main" />
     <extension name="coverage">

@@ -19,3 +19,11 @@ or specify port
 ```shell
 java -jar -Dport=1080 netty-socks-server-1.0-all.jar
 ```
+
+or with authentication
+
+```shell
+export SOCKS5_USERNAME=your_username
+export SOCKS5_PASSWORD=your_password
+java -jar netty-socks-server-1.0-all.jar
+```

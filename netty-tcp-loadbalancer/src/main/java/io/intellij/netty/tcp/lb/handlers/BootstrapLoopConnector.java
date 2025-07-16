@@ -1,7 +1,7 @@
 package io.intellij.netty.tcp.lb.handlers;
 
 import io.intellij.netty.tcp.lb.config.Backend;
-import io.intellij.netty.tcp.lb.strategy.BackendChooser;
+import io.intellij.netty.tcp.lb.selector.BackendSelector;
 import io.intellij.netty.utils.ChannelUtils;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
@@ -25,7 +25,7 @@ import static io.intellij.netty.tcp.lb.handlers.FrontendInboundHandler.OUTBOUND_
 @Slf4j
 public class BootstrapLoopConnector {
     private final Bootstrap b = new Bootstrap();
-    private final BackendChooser chooser;
+    private final BackendSelector selector;
     private final Channel inboundChannel;
 
     public void connect() {
@@ -41,10 +41,10 @@ public class BootstrapLoopConnector {
                 .option(ChannelOption.AUTO_READ, false)
                 .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 1000);
 
-        this.doConnect(chooser.receive());
+        this.loopConnect(selector.select());
     }
 
-    private void doConnect(Backend backend) {
+    private void loopConnect(Backend backend) {
         ChannelFuture f = b.connect(backend.getHost(), backend.getPort());
         f.addListener(
                 (ChannelFutureListener) channelFuture -> {
@@ -53,14 +53,14 @@ public class BootstrapLoopConnector {
                         Channel outboundChannel = channelFuture.channel();
                         inboundChannel.attr(OUTBOUND_CHANNEL_KEY).set(outboundChannel);
 
-                        outboundChannel.pipeline().addLast(new BackendOutboundHandler(inboundChannel, chooser, backend));
+                        outboundChannel.pipeline().addLast(new BackendOutboundHandler(inboundChannel, selector, backend));
                         // read after connected
                         inboundChannel.read();
                     } else {
                         log.error("connect to backend failed: {}", channelFuture.cause().getMessage());
-                        Backend next = chooser.next(backend);
+                        Backend next = selector.nextIfConnectFailed(backend);
                         if (next != null) {
-                            doConnect(next);
+                            loopConnect(next);
                         } else {
                             log.error("No available backend server");
                             ChannelUtils.closeOnFlush(inboundChannel);

@@ -1,41 +1,40 @@
-package io.intellij.netty.tcp.lb.strategy.chooser;
+package io.intellij.netty.tcp.lb.selector.strategies;
 
 import io.intellij.netty.tcp.lb.config.Backend;
-import io.intellij.netty.tcp.lb.strategy.AbstractBackendChooser;
+import io.intellij.netty.tcp.lb.selector.AbstractBackendSelector;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 import java.util.Map;
 
 /**
- * RandomChooser
+ * RandomSelector
  *
  * @author tech@intellij.io
- * @since 2025-02-20
  */
 @Slf4j
-public class RandomChooser extends AbstractBackendChooser {
+public class RandomSelector extends AbstractBackendSelector {
 
-    public RandomChooser(Map<String, Backend> backends) {
+    public RandomSelector(Map<String, Backend> backends) {
         super(backends);
     }
 
     @Override
-    protected void afterActive( Backend target) {
-        log.info("========> active start ========== | target: {}", target.getName());
-        this.logConnectionCount(log);
-        log.info("========> active end   ==========");
+    protected void afterActive(Backend target) {
+        log.info("========> active statistic start ========== | target: {}", target.getName());
+        connectionCountMap().forEach((k, v) -> log.info("Random Selector|name = {}, count = {}", k, v));
+        log.info("========> active statistic end   ==========\n");
     }
 
     @Override
-    protected void afterInactive( Backend target) {
+    protected void afterInactive(Backend target) {
         log.info("========> inactive start ========== | target: {}", target.getName());
-        this.logConnectionCount(log);
-        log.info("========> inactive end   ==========");
+        connectionCountMap().forEach((k, v) -> log.info("Random Selector|name = {}, count = {}", k, v));
+        log.info("========> inactive end   ==========\n");
     }
 
     @Override
-    protected Backend choose() {
+    protected Backend doSelect() {
         Map<String, Boolean> accessMap = accessStatusMap();
         List<String> failed = accessMap.entrySet().stream()
                 .filter(entry -> !entry.getValue())
@@ -55,4 +54,5 @@ public class RandomChooser extends AbstractBackendChooser {
         int index = (int) (Math.random() * size);
         return accessBackends.get(index);
     }
+
 }

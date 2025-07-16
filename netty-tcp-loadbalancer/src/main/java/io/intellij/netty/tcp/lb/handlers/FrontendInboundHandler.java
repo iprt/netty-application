@@ -2,7 +2,7 @@ package io.intellij.netty.tcp.lb.handlers;
 
 import io.intellij.netty.tcp.lb.config.Backend;
 import io.intellij.netty.tcp.lb.config.LbStrategy;
-import io.intellij.netty.tcp.lb.strategy.BackendChooser;
+import io.intellij.netty.tcp.lb.selector.BackendSelector;
 import io.intellij.netty.utils.ChannelUtils;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFutureListener;
@@ -33,7 +33,7 @@ public class FrontendInboundHandler extends ChannelInboundHandlerAdapter {
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         Channel inboundChannel = ctx.channel();
 
-        BackendChooser chooser = BackendChooser.get(strategy, backends);
+        BackendSelector chooser = BackendSelector.get(strategy, backends);
         BootstrapLoopConnector loop = new BootstrapLoopConnector(chooser, inboundChannel);
         loop.connect();
     }

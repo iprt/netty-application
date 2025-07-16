@@ -9,7 +9,7 @@
 
     <appender name="file" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>
-            ./logs/netty-lb.log
+            ./logs/netty-tcp-loadbalancer.log
         </file>
         <append>true</append>
         <encoder>
@@ -18,7 +18,7 @@
         </encoder>
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
             <fileNamePattern>
-                ./logs/netty-lb-%d{yyyy-MM-dd}.%i.log
+                ./logs/netty-tcp-loadbalancer-%d{yyyy-MM-dd}.%i.log
             </fileNamePattern>
             <maxHistory>180</maxHistory>
             <maxFileSize>100MB</maxFileSize>

@@ -1,7 +1,7 @@
 package io.intellij.netty.tcp.lb.handlers;
 
 import io.intellij.netty.tcp.lb.config.Backend;
-import io.intellij.netty.tcp.lb.strategy.BackendChooser;
+import io.intellij.netty.tcp.lb.selector.BackendSelector;
 import io.intellij.netty.utils.ChannelUtils;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFutureListener;
@@ -20,12 +20,12 @@ import org.jetbrains.annotations.NotNull;
 public class BackendOutboundHandler extends ChannelInboundHandlerAdapter {
     private final Channel inboundChannel;
 
-    private final BackendChooser chooser;
+    private final BackendSelector chooser;
     private final Backend target;
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        chooser.active(target);
+        chooser.onChannelActive(target);
         ctx.read();
     }
 
@@ -46,7 +46,7 @@ public class BackendOutboundHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelInactive(@NotNull ChannelHandlerContext ctx) throws Exception {
         // server closes the connection
-        chooser.inactive(target);
+        chooser.onChannelInactive(target);
         ChannelUtils.closeOnFlush(inboundChannel);
     }
 

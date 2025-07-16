@@ -1,7 +1,7 @@
-package io.intellij.netty.tcp.lb.strategy.chooser;
+package io.intellij.netty.tcp.lb.selector.strategies;
 
 import io.intellij.netty.tcp.lb.config.Backend;
-import io.intellij.netty.tcp.lb.strategy.AbstractBackendChooser;
+import io.intellij.netty.tcp.lb.selector.AbstractBackendSelector;
 
 import java.util.HashMap;
 import java.util.List;
@@ -9,18 +9,17 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * RoundRobinChooser
+ * RoundRobinSelector
  *
  * @author tech@intellij.io
- * @since 2025-02-24
  */
-public class RoundRobinChooser extends AbstractBackendChooser {
+public class RoundRobinSelector extends AbstractBackendSelector {
     private static final AtomicInteger ROUND_ROBIN_INDEX = new AtomicInteger(-1);
 
     private final Map<String, Integer> backendIndex;
     private final Map<Integer, Backend> indexBackend;
 
-    public RoundRobinChooser(Map<String, Backend> backends) {
+    public RoundRobinSelector(Map<String, Backend> backends) {
         super(backends);
         backendIndex = new HashMap<>();
         indexBackend = new HashMap<>();
@@ -39,7 +38,7 @@ public class RoundRobinChooser extends AbstractBackendChooser {
     }
 
     @Override
-    protected Backend choose() {
+    protected Backend doSelect() {
         List<String> availableList = availableList();
         if (availableList.isEmpty()) {
             return null;
